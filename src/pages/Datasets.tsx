@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PieChart, Map, FileText, Database, BarChart3 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import FilterBar from '@/components/FilterBar';
