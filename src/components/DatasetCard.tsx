@@ -36,11 +36,17 @@ const DatasetCard = ({
     'Chart': <BarChart3 className="h-4 w-4" />,
   };
   
+  const handleDownload = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault(); // Prevent link navigation when clicking the button
+    console.log(`Downloading dataset: ${id}`);
+    // Add download logic here
+  };
+  
   if (type === 'compact') {
     return (
       <Link 
         to={`/datasets/${id}`}
-        className="block glass border border-border/50 rounded-xl p-3 transition-all duration-300 hover:shadow-md hover:border-primary/20"
+        className="block glass border border-border/50 rounded-xl p-3 transition-all duration-300 hover:shadow-md hover:border-primary/20 cursor-pointer"
       >
         <div className="flex justify-between items-start">
           <div>
@@ -100,15 +106,16 @@ const DatasetCard = ({
             <Button 
               variant="outline" 
               size="sm" 
-              className="flex-1 rounded-lg text-xs"
+              className="flex-1 rounded-lg text-xs cursor-pointer"
+              onClick={handleDownload}
             >
               <DownloadCloud className="mr-1 h-3 w-3" />
               Download
             </Button>
-            <Link to={`/datasets/${id}`}>
+            <Link to={`/datasets/${id}`} className="flex-1">
               <Button 
                 size="sm" 
-                className="flex-1 rounded-lg text-xs group-hover:bg-primary/90"
+                className="w-full rounded-lg text-xs group-hover:bg-primary/90 cursor-pointer"
               >
                 <Eye className="mr-1 h-3 w-3" />
                 Explore
@@ -124,18 +131,18 @@ const DatasetCard = ({
   return (
     <Link 
       to={`/datasets/${id}`}
-      className="block relative glass border border-border/50 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-md hover:border-primary/20"
+      className="block relative glass border border-border/50 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-md hover:border-primary/20 cursor-pointer"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="p-5">
         <div className="flex justify-between items-start mb-3">
           <div className="flex items-center space-x-2">
-            <span className="text-xs bg-secondary text-foreground/70 px-2 py-1 rounded-full flex items-center">
+            <span className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded-full flex items-center">
               {formatIcons[format] || formatIcons['CSV']}
               <span className="ml-1">{format}</span>
             </span>
-            <span className="text-xs bg-secondary text-foreground/70 px-2 py-1 rounded-full">
+            <span className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded-full">
               {category}
             </span>
           </div>

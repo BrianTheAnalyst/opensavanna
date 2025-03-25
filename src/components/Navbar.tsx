@@ -26,7 +26,7 @@ const Navbar = () => {
     <header
       className={`fixed top-0 left-0 right-0 z-50 py-4 transition-all duration-300 ${
         isScrolled 
-          ? 'glass border-b border-border/50 py-3' 
+          ? 'glass border-b border-border/50 py-3 shadow-sm' 
           : 'bg-transparent'
       }`}
     >
@@ -67,7 +67,7 @@ const Navbar = () => {
         <nav className="hidden md:flex items-center space-x-8">
           <Link 
             to="/" 
-            className={`text-sm font-medium hover:text-primary transition-colors ${
+            className={`text-sm font-medium hover:text-primary transition-colors cursor-pointer ${
               location.pathname === '/' ? 'text-primary' : 'text-foreground/80'
             }`}
           >
@@ -75,7 +75,7 @@ const Navbar = () => {
           </Link>
           <Link 
             to="/datasets" 
-            className={`text-sm font-medium hover:text-primary transition-colors ${
+            className={`text-sm font-medium hover:text-primary transition-colors cursor-pointer ${
               location.pathname.includes('/datasets') ? 'text-primary' : 'text-foreground/80'
             }`}
           >
@@ -83,7 +83,7 @@ const Navbar = () => {
           </Link>
           <Link 
             to="/api" 
-            className={`text-sm font-medium hover:text-primary transition-colors ${
+            className={`text-sm font-medium hover:text-primary transition-colors cursor-pointer ${
               location.pathname === '/api' ? 'text-primary' : 'text-foreground/80'
             }`}
           >
@@ -91,7 +91,7 @@ const Navbar = () => {
           </Link>
           <Link 
             to="/about" 
-            className={`text-sm font-medium hover:text-primary transition-colors ${
+            className={`text-sm font-medium hover:text-primary transition-colors cursor-pointer ${
               location.pathname === '/about' ? 'text-primary' : 'text-foreground/80'
             }`}
           >
@@ -101,17 +101,17 @@ const Navbar = () => {
 
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center space-x-4">
-          <Button variant="ghost" size="icon" className="text-foreground/80">
+          <Button variant="ghost" size="icon" className="text-foreground/80 cursor-pointer">
             <Search className="h-5 w-5" />
           </Button>
-          <Button variant="default" className="rounded-full px-4 py-2">
+          <Button variant="default" className="rounded-full px-4 py-2 cursor-pointer">
             Upload Data
           </Button>
         </div>
 
         {/* Mobile Menu Button */}
         <button 
-          className="md:hidden text-foreground/80 hover:text-primary"
+          className="md:hidden text-foreground/80 hover:text-primary cursor-pointer"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
         >
           {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -124,7 +124,7 @@ const Navbar = () => {
           <div className="flex flex-col p-4 pt-8">
             <Link 
               to="/" 
-              className={`py-3 px-4 text-lg font-medium ${
+              className={`py-3 px-4 text-lg font-medium cursor-pointer ${
                 location.pathname === '/' ? 'text-primary' : 'text-foreground/80'
               }`}
             >
@@ -132,7 +132,7 @@ const Navbar = () => {
             </Link>
             <Link 
               to="/datasets" 
-              className={`py-3 px-4 text-lg font-medium ${
+              className={`py-3 px-4 text-lg font-medium cursor-pointer ${
                 location.pathname.includes('/datasets') ? 'text-primary' : 'text-foreground/80'
               }`}
             >
@@ -140,7 +140,7 @@ const Navbar = () => {
             </Link>
             <Link 
               to="/api" 
-              className={`py-3 px-4 text-lg font-medium ${
+              className={`py-3 px-4 text-lg font-medium cursor-pointer ${
                 location.pathname === '/api' ? 'text-primary' : 'text-foreground/80'
               }`}
             >
@@ -148,14 +148,14 @@ const Navbar = () => {
             </Link>
             <Link 
               to="/about" 
-              className={`py-3 px-4 text-lg font-medium ${
+              className={`py-3 px-4 text-lg font-medium cursor-pointer ${
                 location.pathname === '/about' ? 'text-primary' : 'text-foreground/80'
               }`}
             >
               About
             </Link>
             <div className="mt-6 p-4">
-              <Button className="w-full rounded-full py-6">Upload Data</Button>
+              <Button className="w-full rounded-full py-6 cursor-pointer">Upload Data</Button>
             </div>
             <div className="mt-2 p-4">
               <div className="relative">

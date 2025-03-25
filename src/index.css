@@ -100,6 +100,7 @@
     @apply bg-background text-foreground font-sans;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
   }
 
   /* Refined typography */
@@ -127,18 +128,41 @@
   /* Glass effects */
   .glass {
     @apply bg-white/90 dark:bg-black/80 backdrop-blur-md;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   }
 
   .glass-light {
     @apply bg-white/70 backdrop-blur-sm;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
   }
 
   .glass-dark {
     @apply bg-black/50 backdrop-blur-md;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   }
 
   /* Smooth hover transitions */
   a, button {
-    @apply transition-all duration-200;
+    @apply transition-all duration-200 cursor-pointer;
+  }
+  
+  /* Fix for navigation and proper spacing */
+  main {
+    @apply pt-16; /* Add padding to create space for fixed navbar */
+  }
+  
+  /* Ensure z-index hierarchy works properly */
+  .dropdown-content {
+    @apply z-50 bg-background shadow-lg rounded-md;
+  }
+  
+  /* Fix for overlapping cards */
+  .grid {
+    @apply relative;
+  }
+  
+  /* Ensure clickable elements have pointer cursor */
+  button, a, [role="button"], .cursor-pointer {
+    cursor: pointer !important;
   }
 }
