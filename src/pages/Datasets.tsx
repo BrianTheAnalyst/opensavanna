@@ -1,106 +1,27 @@
 
 import React, { useState, useEffect } from 'react';
-import { PieChart, Map, FileText, Database, BarChart3 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { PieChart, Map, FileText, Database, BarChart3, Plus } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import FilterBar from '@/components/FilterBar';
 import DatasetGrid from '@/components/DatasetGrid';
 import Footer from '@/components/Footer';
+import { Button } from "@/components/ui/button";
+import { getDatasets, Dataset } from '@/services/api';
 
-// Sample data
-const allDatasets = [
-  {
-    id: '1',
-    title: 'Economic Indicators by Region',
-    description: 'Comprehensive collection of economic indicators across different regions including GDP, inflation, and employment rates.',
-    category: 'Economics',
-    format: 'CSV',
-    country: 'Global',
-    date: 'Updated June 2023',
-    downloads: 5248,
-    featured: true
-  },
-  {
-    id: '2',
-    title: 'Healthcare Facility Locations',
-    description: 'Geographic dataset of healthcare facilities including hospitals, clinics, and specialized care centers.',
-    category: 'Health',
-    format: 'GeoJSON',
-    country: 'South Africa',
-    date: 'Updated May 2023',
-    downloads: 3129
-  },
-  {
-    id: '3',
-    title: 'Public Transportation Usage',
-    description: 'Time series data showing public transportation usage patterns across major metropolitan areas.',
-    category: 'Transport',
-    format: 'JSON',
-    country: 'Nigeria',
-    date: 'Updated April 2023',
-    downloads: 2847
-  },
-  {
-    id: '4',
-    title: 'Agricultural Production Statistics',
-    description: 'Annual agricultural production statistics for major crops and livestock by region.',
-    category: 'Agriculture',
-    format: 'CSV',
-    country: 'Kenya',
-    date: 'Updated March 2023',
-    downloads: 2156
-  },
-  {
-    id: '5',
-    title: 'Education Access and Completion Rates',
-    description: 'Data on education access, enrollment, and completion rates across different regions and demographics.',
-    category: 'Education',
-    format: 'CSV',
-    country: 'Ghana',
-    date: 'Updated June 2023',
-    downloads: 1845
-  },
-  {
-    id: '6',
-    title: 'Climate Data by Region',
-    description: 'Time series climate data including temperature, precipitation, and other environmental indicators.',
-    category: 'Environment',
-    format: 'JSON',
-    country: 'East Africa',
-    date: 'Updated May 2023',
-    downloads: 1732
-  },
-  {
-    id: '7',
-    title: 'Population Demographics',
-    description: 'Demographic data including age distribution, gender ratios, and population density by region.',
-    category: 'Demographics',
-    format: 'CSV',
-    country: 'West Africa',
-    date: 'Updated April 2023',
-    downloads: 1621
-  },
-  {
-    id: '8',
-    title: 'COVID-19 Case Statistics',
-    description: 'Historical data on COVID-19 cases, hospitalizations, recoveries, and vaccination rates.',
-    category: 'Health',
-    format: 'CSV',
-    country: 'Africa',
-    date: 'Updated March 2023',
-    downloads: 1597
-  },
-  {
-    id: '9',
-    title: 'Election Results and Voting Patterns',
-    description: 'Historical election results, voter turnout, and voting patterns by region.',
-    category: 'Government',
-    format: 'JSON',
-    country: 'Nigeria',
-    date: 'Updated February 2023',
-    downloads: 1483
-  }
-];
+// Category icons mapping
+const categoryIcons: Record<string, any> = {
+  'Economics': PieChart,
+  'Health': Map,
+  'Transport': Map,
+  'Agriculture': FileText,
+  'Education': Database,
+  'Environment': Map,
+  'Demographics': BarChart3,
+  'Government': Database
+};
 
+// Category data
 const categories = [
   { label: 'Economics', value: 'economics', count: 426 },
   { label: 'Health', value: 'health', count: 348 },
@@ -112,6 +33,7 @@ const categories = [
   { label: 'Government', value: 'government', count: 85 }
 ];
 
+// Format data
 const formats = [
   { label: 'CSV', value: 'csv', count: 874 },
   { label: 'JSON', value: 'json', count: 523 },
@@ -120,6 +42,7 @@ const formats = [
   { label: 'API', value: 'api', count: 89 }
 ];
 
+// Region data
 const regions = [
   { label: 'Global', value: 'global', count: 423 },
   { label: 'East Africa', value: 'east-africa', count: 385 },
@@ -131,8 +54,13 @@ const regions = [
 
 const Datasets = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const [datasets, setDatasets] = useState<any[]>([]);
-  const [filters, setFilters] = useState({});
+  const [datasets, setDatasets] = useState<Dataset[]>([]);
+  const [filters, setFilters] = useState({
+    search: '',
+    category: '',
+    format: '',
+    country: ''
+  });
   const [featuredCategory, setFeaturedCategory] = useState({
     title: 'Economics',
     icon: PieChart,
@@ -140,37 +68,23 @@ const Datasets = () => {
   });
   
   useEffect(() => {
-    // Simulate API call with loading delay
-    const timer = setTimeout(() => {
-      setDatasets(allDatasets);
-      setIsLoading(false);
-    }, 800);
+    const loadDatasets = async () => {
+      setIsLoading(true);
+      try {
+        const data = await getDatasets(filters);
+        setDatasets(data);
+      } catch (error) {
+        console.error('Failed to load datasets:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
     
-    return () => clearTimeout(timer);
-  }, []);
+    loadDatasets();
+  }, [filters]);
   
   const handleFilterChange = (newFilters: any) => {
-    setFilters(newFilters);
-    console.log('Filters applied:', newFilters);
-    
-    // In a real application, this would filter the datasets based on the filters
-    // For now, we'll just simulate a loading state and then return all datasets
-    setIsLoading(true);
-    setTimeout(() => {
-      setDatasets(allDatasets);
-      setIsLoading(false);
-    }, 500);
-  };
-  
-  const categoryIcons: Record<string, any> = {
-    'Economics': PieChart,
-    'Health': Map,
-    'Transport': Map,
-    'Agriculture': FileText,
-    'Education': Database,
-    'Environment': Map,
-    'Demographics': BarChart3,
-    'Government': Database
+    setFilters({ ...filters, ...newFilters });
   };
   
   return (
@@ -191,6 +105,12 @@ const Datasets = () => {
               <p className="text-foreground/70 mb-4">
                 Browse, filter, and discover our collection of open datasets covering various sectors, regions, and formats.
               </p>
+              <Link to="/upload">
+                <Button className="mt-2">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Upload New Dataset
+                </Button>
+              </Link>
             </div>
           </div>
         </section>
