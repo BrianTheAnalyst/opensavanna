@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
-import { Upload, Info, FileType, Check } from 'lucide-react';
+import { UploadCloud, Info, FileType, Check } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,7 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-const Upload = () => {
+const UploadPage = () => {
   const navigate = useNavigate();
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStep, setUploadStep] = useState(1);
@@ -240,7 +240,7 @@ const Upload = () => {
                       <div className="space-y-2">
                         <FormLabel>Upload File</FormLabel>
                         <div className="glass border-2 border-dashed border-border rounded-lg p-6 flex flex-col items-center justify-center">
-                          <Upload className="h-10 w-10 text-primary/60 mb-2" />
+                          <UploadCloud className="h-10 w-10 text-primary/60 mb-2" />
                           <p className="text-sm text-center mb-2">
                             Drag and drop your file here or click to browse
                           </p>
@@ -356,4 +356,4 @@ const Upload = () => {
   );
 };
 
-export default Upload;
+export default UploadPage;
