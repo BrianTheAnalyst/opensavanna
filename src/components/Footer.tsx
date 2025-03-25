@@ -37,7 +37,7 @@ const Footer = () => {
                   strokeLinejoin="round"
                 />
               </svg>
-              <span className="text-lg tracking-tight">OpenData</span>
+              <span className="text-lg tracking-tight">OpenSavanna</span>
             </Link>
             <p className="text-sm text-foreground/70">
               Making data accessible, usable, and valuable for researchers, policymakers, journalists, and developers.
@@ -166,7 +166,7 @@ const Footer = () => {
         
         <div className="border-t border-border/50 mt-10 pt-6 flex flex-col md:flex-row justify-between items-center">
           <p className="text-xs text-foreground/60">
-            &copy; {new Date().getFullYear()} OpenData Platform. All rights reserved.
+            &copy; {new Date().getFullYear()} OpenSavanna Platform. All rights reserved.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <Link to="/terms" className="text-xs text-foreground/60 hover:text-primary transition-colors">

@@ -60,7 +60,7 @@ const Navbar = () => {
               strokeLinejoin="round"
             />
           </svg>
-          <span className="text-xl tracking-tight">OpenData</span>
+          <span className="text-xl tracking-tight">OpenSavanna</span>
         </Link>
 
         {/* Desktop Navigation */}

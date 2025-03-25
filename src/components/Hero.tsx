@@ -22,7 +22,7 @@ const Hero = () => {
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div className={`transition-all duration-700 delay-100 transform ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
             <div className="inline-block px-3 py-1 mb-6 text-xs font-medium text-primary bg-primary/10 rounded-full animate-fade-in">
-              Open Data Platform
+              Africa's Open Data Hub
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight mb-6">
               Discover insights through <span className="text-primary">open data</span>
