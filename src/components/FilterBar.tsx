@@ -68,7 +68,7 @@ const FilterBar = ({
   };
   
   return (
-    <div className="glass border border-border/50 rounded-xl overflow-hidden mb-8">
+    <div className="border border-border/50 rounded-xl overflow-hidden mb-8">
       <div className="p-4">
         <form onSubmit={handleSearch} className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -88,7 +88,7 @@ const FilterBar = ({
           {/* Category Dropdown */}
           <div className="relative">
             <button
-              className="flex items-center space-x-1 text-sm cursor-pointer"
+              className="flex items-center space-x-1 text-sm cursor-pointer hover:text-primary transition-colors"
               onClick={() => toggleDropdown('category')}
             >
               <span className={selectedCategory ? 'font-medium text-primary' : 'text-foreground/70'}>
@@ -98,7 +98,7 @@ const FilterBar = ({
             </button>
             
             {dropdownStates.category && (
-              <div className="absolute top-full left-0 mt-1 w-56 bg-popover border border-border rounded-lg shadow-lg z-50 animate-scale-in">
+              <div className="absolute top-full left-0 mt-1 w-56 bg-background border border-border rounded-lg shadow-lg z-50 animate-scale-in">
                 <div className="p-2 max-h-60 overflow-y-auto">
                   <button
                     className={`w-full text-left px-3 py-1.5 text-sm rounded-md cursor-pointer ${
@@ -141,7 +141,7 @@ const FilterBar = ({
           {/* Format Dropdown */}
           <div className="relative">
             <button
-              className="flex items-center space-x-1 text-sm cursor-pointer"
+              className="flex items-center space-x-1 text-sm cursor-pointer hover:text-primary transition-colors"
               onClick={() => toggleDropdown('format')}
             >
               <span className={selectedFormat ? 'font-medium text-primary' : 'text-foreground/70'}>
@@ -151,7 +151,7 @@ const FilterBar = ({
             </button>
             
             {dropdownStates.format && (
-              <div className="absolute top-full left-0 mt-1 w-56 bg-popover border border-border rounded-lg shadow-lg z-50 animate-scale-in">
+              <div className="absolute top-full left-0 mt-1 w-56 bg-background border border-border rounded-lg shadow-lg z-50 animate-scale-in">
                 <div className="p-2 max-h-60 overflow-y-auto">
                   <button
                     className={`w-full text-left px-3 py-1.5 text-sm rounded-md cursor-pointer ${
@@ -194,7 +194,7 @@ const FilterBar = ({
           {/* Region Dropdown */}
           <div className="relative">
             <button
-              className="flex items-center space-x-1 text-sm cursor-pointer"
+              className="flex items-center space-x-1 text-sm cursor-pointer hover:text-primary transition-colors"
               onClick={() => toggleDropdown('region')}
             >
               <span className={selectedRegion ? 'font-medium text-primary' : 'text-foreground/70'}>
@@ -204,7 +204,7 @@ const FilterBar = ({
             </button>
             
             {dropdownStates.region && (
-              <div className="absolute top-full left-0 mt-1 w-56 bg-popover border border-border rounded-lg shadow-lg z-50 animate-scale-in">
+              <div className="absolute top-full left-0 mt-1 w-56 bg-background border border-border rounded-lg shadow-lg z-50 animate-scale-in">
                 <div className="p-2 max-h-60 overflow-y-auto">
                   <button
                     className={`w-full text-left px-3 py-1.5 text-sm rounded-md cursor-pointer ${

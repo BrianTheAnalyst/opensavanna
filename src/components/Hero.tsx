@@ -65,8 +65,8 @@ const Hero = () => {
           </div>
           
           <div className={`relative transition-all duration-700 delay-300 transform ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-            <div className="relative z-10 glass border border-border/50 rounded-2xl p-6 shadow-lg">
-              <div className="absolute -top-3 -left-3 bg-primary text-white text-xs px-3 py-1 rounded-full">
+            <div className="relative z-10 border border-border/50 rounded-2xl p-6 shadow-lg bg-background">
+              <div className="absolute -top-3 -left-3 bg-primary text-white text-xs px-3 py-1 rounded-full z-20">
                 Most Popular
               </div>
               
@@ -96,7 +96,7 @@ const Hero = () => {
               </Link>
             </div>
             
-            <div className="absolute top-1/2 -right-12 z-0 glass-light border border-border/50 rounded-2xl p-6 shadow-lg w-64 transform -translate-y-1/2 hidden lg:block">
+            <div className="absolute top-1/2 -right-12 z-0 border border-border/50 bg-background/90 rounded-2xl p-6 shadow-lg w-64 transform -translate-y-1/2 hidden lg:block">
               <div className="flex items-center mb-4">
                 <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center mr-3">
                   <Layers className="h-4 w-4 text-primary" />
@@ -111,7 +111,7 @@ const Hero = () => {
               </div>
             </div>
             
-            <div className="absolute -bottom-8 -left-4 z-0 glass-light border border-border/50 rounded-2xl p-4 shadow-lg hidden lg:block">
+            <div className="absolute -bottom-8 -left-4 z-0 border border-border/50 bg-background/90 rounded-2xl p-4 shadow-lg hidden lg:block">
               <div className="flex items-center">
                 <Search className="h-4 w-4 text-primary mr-2" />
                 <span className="text-sm text-foreground/70">Search by region, format...</span>

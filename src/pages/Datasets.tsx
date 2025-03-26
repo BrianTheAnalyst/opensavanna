@@ -106,7 +106,7 @@ const Datasets = () => {
                 Browse, filter, and discover our collection of open datasets covering various sectors, regions, and formats.
               </p>
               <Link to="/upload">
-                <Button className="mt-2">
+                <Button className="mt-2 cursor-pointer">
                   <Plus className="mr-2 h-4 w-4" />
                   Upload New Dataset
                 </Button>
@@ -118,7 +118,7 @@ const Datasets = () => {
         {/* Featured Category */}
         <section className="py-12">
           <div className="container px-4 mx-auto">
-            <div className="glass border border-border/50 rounded-2xl overflow-hidden mb-10 animate-scale-in">
+            <div className="border border-border/50 bg-background/90 rounded-2xl overflow-hidden mb-10 animate-scale-in">
               <div className="grid md:grid-cols-3 items-center">
                 <div className="p-8 md:col-span-2">
                   <div className="inline-block px-3 py-1 mb-2 text-xs font-medium text-primary bg-primary/10 rounded-full">
@@ -137,7 +137,7 @@ const Datasets = () => {
                       { label: 'Data Sources', value: '12' },
                       { label: 'Average Downloads', value: '1.8K' }
                     ].map((stat, i) => (
-                      <div key={i} className="glass-light rounded-lg p-3">
+                      <div key={i} className="bg-background/90 rounded-lg p-3 border border-border/50">
                         <div className="text-lg font-medium">{stat.value}</div>
                         <div className="text-xs text-foreground/60">{stat.label}</div>
                       </div>
