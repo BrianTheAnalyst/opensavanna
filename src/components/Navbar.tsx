@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Search, Menu, X } from 'lucide-react';
+import { Search, Menu, X, Upload } from 'lucide-react';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -67,7 +67,7 @@ const Navbar = () => {
         <nav className="hidden md:flex items-center space-x-8">
           <Link 
             to="/" 
-            className={`text-sm font-medium hover:text-primary transition-colors cursor-pointer ${
+            className={`text-sm font-medium hover:text-primary transition-colors ${
               location.pathname === '/' ? 'text-primary' : 'text-foreground/80'
             }`}
           >
@@ -75,7 +75,7 @@ const Navbar = () => {
           </Link>
           <Link 
             to="/datasets" 
-            className={`text-sm font-medium hover:text-primary transition-colors cursor-pointer ${
+            className={`text-sm font-medium hover:text-primary transition-colors ${
               location.pathname.includes('/datasets') ? 'text-primary' : 'text-foreground/80'
             }`}
           >
@@ -83,7 +83,7 @@ const Navbar = () => {
           </Link>
           <Link 
             to="/api" 
-            className={`text-sm font-medium hover:text-primary transition-colors cursor-pointer ${
+            className={`text-sm font-medium hover:text-primary transition-colors ${
               location.pathname === '/api' ? 'text-primary' : 'text-foreground/80'
             }`}
           >
@@ -91,7 +91,7 @@ const Navbar = () => {
           </Link>
           <Link 
             to="/about" 
-            className={`text-sm font-medium hover:text-primary transition-colors cursor-pointer ${
+            className={`text-sm font-medium hover:text-primary transition-colors ${
               location.pathname === '/about' ? 'text-primary' : 'text-foreground/80'
             }`}
           >
@@ -101,17 +101,20 @@ const Navbar = () => {
 
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center space-x-4">
-          <Button variant="ghost" size="icon" className="text-foreground/80 cursor-pointer">
+          <Button variant="ghost" size="icon" className="text-foreground/80">
             <Search className="h-5 w-5" />
           </Button>
-          <Button variant="default" className="rounded-full px-4 py-2 cursor-pointer">
-            Upload Data
-          </Button>
+          <Link to="/upload">
+            <Button variant="default" className="rounded-full px-4 py-2">
+              <Upload className="mr-2 h-4 w-4" />
+              Upload Data
+            </Button>
+          </Link>
         </div>
 
         {/* Mobile Menu Button */}
         <button 
-          className="md:hidden text-foreground/80 hover:text-primary cursor-pointer"
+          className="md:hidden text-foreground/80 hover:text-primary"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
         >
           {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -124,7 +127,7 @@ const Navbar = () => {
           <div className="flex flex-col p-4 pt-8">
             <Link 
               to="/" 
-              className={`py-3 px-4 text-lg font-medium cursor-pointer ${
+              className={`py-3 px-4 text-lg font-medium ${
                 location.pathname === '/' ? 'text-primary' : 'text-foreground/80'
               }`}
             >
@@ -132,7 +135,7 @@ const Navbar = () => {
             </Link>
             <Link 
               to="/datasets" 
-              className={`py-3 px-4 text-lg font-medium cursor-pointer ${
+              className={`py-3 px-4 text-lg font-medium ${
                 location.pathname.includes('/datasets') ? 'text-primary' : 'text-foreground/80'
               }`}
             >
@@ -140,7 +143,7 @@ const Navbar = () => {
             </Link>
             <Link 
               to="/api" 
-              className={`py-3 px-4 text-lg font-medium cursor-pointer ${
+              className={`py-3 px-4 text-lg font-medium ${
                 location.pathname === '/api' ? 'text-primary' : 'text-foreground/80'
               }`}
             >
@@ -148,14 +151,19 @@ const Navbar = () => {
             </Link>
             <Link 
               to="/about" 
-              className={`py-3 px-4 text-lg font-medium cursor-pointer ${
+              className={`py-3 px-4 text-lg font-medium ${
                 location.pathname === '/about' ? 'text-primary' : 'text-foreground/80'
               }`}
             >
               About
             </Link>
             <div className="mt-6 p-4">
-              <Button className="w-full rounded-full py-6 cursor-pointer">Upload Data</Button>
+              <Link to="/upload">
+                <Button className="w-full rounded-full py-6">
+                  <Upload className="mr-2 h-4 w-4" />
+                  Upload Data
+                </Button>
+              </Link>
             </div>
             <div className="mt-2 p-4">
               <div className="relative">

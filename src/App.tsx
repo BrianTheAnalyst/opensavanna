@@ -13,6 +13,7 @@ import Datasets from "./pages/Datasets";
 import DatasetDetail from "./pages/DatasetDetail";
 import UploadPage from "./pages/Upload";
 import Api from "./pages/Api";
+import About from "./pages/About";
 import NotFound from "./pages/NotFound";
 
 // Create a client with proper configuration
@@ -38,6 +39,7 @@ const App = () => {
             <Route path="/datasets/:id" element={<DatasetDetail />} />
             <Route path="/upload" element={<UploadPage />} />
             <Route path="/api" element={<Api />} />
+            <Route path="/about" element={<About />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Search, PieChart, Layers, Database } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Hero = () => {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -32,13 +33,17 @@ const Hero = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" className="rounded-full group">
-                <span>Explore Datasets</span>
-                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </Button>
-              <Button size="lg" variant="outline" className="rounded-full">
-                Learn About APIs
-              </Button>
+              <Link to="/datasets">
+                <Button size="lg" className="rounded-full group">
+                  <span>Explore Datasets</span>
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Button>
+              </Link>
+              <Link to="/api">
+                <Button size="lg" variant="outline" className="rounded-full">
+                  Learn About APIs
+                </Button>
+              </Link>
             </div>
             
             <div className="mt-12">
@@ -84,9 +89,11 @@ const Hero = () => {
                 <span className="text-xs bg-secondary px-2 py-1 rounded-full">Updated Weekly</span>
               </div>
               
-              <Button variant="outline" size="sm" className="w-full rounded-lg">
-                View Dataset
-              </Button>
+              <Link to="/datasets/1">
+                <Button variant="outline" size="sm" className="w-full rounded-lg">
+                  View Dataset
+                </Button>
+              </Link>
             </div>
             
             <div className="absolute top-1/2 -right-12 z-0 glass-light border border-border/50 rounded-2xl p-6 shadow-lg w-64 transform -translate-y-1/2 hidden lg:block">

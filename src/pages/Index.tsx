@@ -169,7 +169,7 @@ const Index = () => {
             </div>
             
             <div className="mt-10 text-center">
-              <Link to="/categories">
+              <Link to="/datasets">
                 <Button variant="outline" className="rounded-full">
                   View All Categories
                 </Button>
@@ -204,7 +204,7 @@ const Index = () => {
                     </li>
                   ))}
                 </ul>
-                <Link to="/visualizations">
+                <Link to="/datasets">
                   <Button className="rounded-full group">
                     <span>Explore Visualizations</span>
                     <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -300,7 +300,7 @@ fetch('https://api.opendata.org/v1/datasets')
                   <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Button>
               </Link>
-              <Link to="/contribute">
+              <Link to="/upload">
                 <Button size="lg" variant="outline" className="rounded-full">
                   <Database className="mr-2 h-4 w-4" />
                   Contribute Data
