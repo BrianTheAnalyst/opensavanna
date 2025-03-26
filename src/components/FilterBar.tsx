@@ -40,9 +40,11 @@ const FilterBar = ({
   };
   
   const toggleDropdown = (dropdown: 'category' | 'format' | 'region') => {
+    // Close all other dropdowns when opening a new one
     setDropdownStates({
-      ...dropdownStates,
-      [dropdown]: !dropdownStates[dropdown]
+      category: dropdown === 'category' ? !dropdownStates[dropdown] : false,
+      format: dropdown === 'format' ? !dropdownStates[dropdown] : false,
+      region: dropdown === 'region' ? !dropdownStates[dropdown] : false
     });
   };
   
@@ -86,7 +88,7 @@ const FilterBar = ({
           {/* Category Dropdown */}
           <div className="relative">
             <button
-              className="flex items-center space-x-1 text-sm"
+              className="flex items-center space-x-1 text-sm cursor-pointer"
               onClick={() => toggleDropdown('category')}
             >
               <span className={selectedCategory ? 'font-medium text-primary' : 'text-foreground/70'}>
@@ -96,10 +98,10 @@ const FilterBar = ({
             </button>
             
             {dropdownStates.category && (
-              <div className="absolute top-full left-0 mt-1 w-56 glass border border-border rounded-lg shadow-lg z-10 animate-scale-in">
+              <div className="absolute top-full left-0 mt-1 w-56 bg-popover border border-border rounded-lg shadow-lg z-50 animate-scale-in">
                 <div className="p-2 max-h-60 overflow-y-auto">
                   <button
-                    className={`w-full text-left px-3 py-1.5 text-sm rounded-md ${
+                    className={`w-full text-left px-3 py-1.5 text-sm rounded-md cursor-pointer ${
                       !selectedCategory 
                         ? 'bg-primary/10 text-primary' 
                         : 'hover:bg-secondary'
@@ -115,7 +117,7 @@ const FilterBar = ({
                   {categories.map(category => (
                     <button
                       key={category.value}
-                      className={`w-full text-left px-3 py-1.5 text-sm rounded-md flex justify-between items-center ${
+                      className={`w-full text-left px-3 py-1.5 text-sm rounded-md flex justify-between items-center cursor-pointer ${
                         selectedCategory === category.value 
                           ? 'bg-primary/10 text-primary' 
                           : 'hover:bg-secondary'
@@ -139,7 +141,7 @@ const FilterBar = ({
           {/* Format Dropdown */}
           <div className="relative">
             <button
-              className="flex items-center space-x-1 text-sm"
+              className="flex items-center space-x-1 text-sm cursor-pointer"
               onClick={() => toggleDropdown('format')}
             >
               <span className={selectedFormat ? 'font-medium text-primary' : 'text-foreground/70'}>
@@ -149,10 +151,10 @@ const FilterBar = ({
             </button>
             
             {dropdownStates.format && (
-              <div className="absolute top-full left-0 mt-1 w-56 glass border border-border rounded-lg shadow-lg z-10 animate-scale-in">
+              <div className="absolute top-full left-0 mt-1 w-56 bg-popover border border-border rounded-lg shadow-lg z-50 animate-scale-in">
                 <div className="p-2 max-h-60 overflow-y-auto">
                   <button
-                    className={`w-full text-left px-3 py-1.5 text-sm rounded-md ${
+                    className={`w-full text-left px-3 py-1.5 text-sm rounded-md cursor-pointer ${
                       !selectedFormat 
                         ? 'bg-primary/10 text-primary' 
                         : 'hover:bg-secondary'
@@ -168,7 +170,7 @@ const FilterBar = ({
                   {formats.map(format => (
                     <button
                       key={format.value}
-                      className={`w-full text-left px-3 py-1.5 text-sm rounded-md flex justify-between items-center ${
+                      className={`w-full text-left px-3 py-1.5 text-sm rounded-md flex justify-between items-center cursor-pointer ${
                         selectedFormat === format.value 
                           ? 'bg-primary/10 text-primary' 
                           : 'hover:bg-secondary'
@@ -192,7 +194,7 @@ const FilterBar = ({
           {/* Region Dropdown */}
           <div className="relative">
             <button
-              className="flex items-center space-x-1 text-sm"
+              className="flex items-center space-x-1 text-sm cursor-pointer"
               onClick={() => toggleDropdown('region')}
             >
               <span className={selectedRegion ? 'font-medium text-primary' : 'text-foreground/70'}>
@@ -202,10 +204,10 @@ const FilterBar = ({
             </button>
             
             {dropdownStates.region && (
-              <div className="absolute top-full left-0 mt-1 w-56 glass border border-border rounded-lg shadow-lg z-10 animate-scale-in">
+              <div className="absolute top-full left-0 mt-1 w-56 bg-popover border border-border rounded-lg shadow-lg z-50 animate-scale-in">
                 <div className="p-2 max-h-60 overflow-y-auto">
                   <button
-                    className={`w-full text-left px-3 py-1.5 text-sm rounded-md ${
+                    className={`w-full text-left px-3 py-1.5 text-sm rounded-md cursor-pointer ${
                       !selectedRegion 
                         ? 'bg-primary/10 text-primary' 
                         : 'hover:bg-secondary'
@@ -221,7 +223,7 @@ const FilterBar = ({
                   {regions.map(region => (
                     <button
                       key={region.value}
-                      className={`w-full text-left px-3 py-1.5 text-sm rounded-md flex justify-between items-center ${
+                      className={`w-full text-left px-3 py-1.5 text-sm rounded-md flex justify-between items-center cursor-pointer ${
                         selectedRegion === region.value 
                           ? 'bg-primary/10 text-primary' 
                           : 'hover:bg-secondary'
@@ -249,7 +251,7 @@ const FilterBar = ({
               variant="ghost" 
               size="sm" 
               onClick={handleClearFilters}
-              className="text-xs"
+              className="text-xs cursor-pointer"
             >
               <X className="h-3 w-3 mr-1" />
               Clear All
@@ -259,7 +261,7 @@ const FilterBar = ({
           <Button 
             size="sm" 
             onClick={applyFilters}
-            className="text-xs"
+            className="text-xs cursor-pointer"
           >
             Apply Filters
           </Button>
@@ -271,7 +273,7 @@ const FilterBar = ({
         <Button
           variant="outline"
           size="sm"
-          className="w-full flex items-center justify-center"
+          className="w-full flex items-center justify-center cursor-pointer"
           onClick={() => setShowMobileFilters(!showMobileFilters)}
         >
           <Filter className="mr-2 h-4 w-4" />
@@ -284,7 +286,7 @@ const FilterBar = ({
             <div>
               <label className="block text-sm font-medium mb-1">Category</label>
               <select
-                className="w-full p-2 rounded-md border border-border bg-background"
+                className="w-full p-2 rounded-md border border-border bg-background cursor-pointer"
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
               >
@@ -301,7 +303,7 @@ const FilterBar = ({
             <div>
               <label className="block text-sm font-medium mb-1">Format</label>
               <select
-                className="w-full p-2 rounded-md border border-border bg-background"
+                className="w-full p-2 rounded-md border border-border bg-background cursor-pointer"
                 value={selectedFormat}
                 onChange={(e) => setSelectedFormat(e.target.value)}
               >
@@ -318,7 +320,7 @@ const FilterBar = ({
             <div>
               <label className="block text-sm font-medium mb-1">Region</label>
               <select
-                className="w-full p-2 rounded-md border border-border bg-background"
+                className="w-full p-2 rounded-md border border-border bg-background cursor-pointer"
                 value={selectedRegion}
                 onChange={(e) => setSelectedRegion(e.target.value)}
               >
@@ -336,7 +338,7 @@ const FilterBar = ({
                 variant="outline" 
                 size="sm" 
                 onClick={handleClearFilters}
-                className="flex-1"
+                className="flex-1 cursor-pointer"
               >
                 Clear All
               </Button>
@@ -344,7 +346,7 @@ const FilterBar = ({
               <Button 
                 size="sm" 
                 onClick={applyFilters}
-                className="flex-1"
+                className="flex-1 cursor-pointer"
               >
                 Apply Filters
               </Button>
