@@ -8,12 +8,14 @@ import {
   QueryClientProvider 
 } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import Datasets from "./pages/Datasets";
 import DatasetDetail from "./pages/DatasetDetail";
 import UploadPage from "./pages/Upload";
 import Api from "./pages/Api";
 import About from "./pages/About";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 // Create a client with proper configuration
@@ -30,20 +32,23 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/datasets" element={<Datasets />} />
-            <Route path="/datasets/:id" element={<DatasetDetail />} />
-            <Route path="/upload" element={<UploadPage />} />
-            <Route path="/api" element={<Api />} />
-            <Route path="/about" element={<About />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
+        <AuthProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/datasets" element={<Datasets />} />
+              <Route path="/datasets/:id" element={<DatasetDetail />} />
+              <Route path="/upload" element={<UploadPage />} />
+              <Route path="/api" element={<Api />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/auth" element={<Auth />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );

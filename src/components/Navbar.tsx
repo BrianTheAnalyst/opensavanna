@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Search, Menu, X, Upload } from 'lucide-react';
+import { AuthButton } from './AuthButton';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -110,6 +111,7 @@ const Navbar = () => {
               Upload Data
             </Button>
           </Link>
+          <AuthButton />
         </div>
 
         {/* Mobile Menu Button */}
@@ -157,13 +159,16 @@ const Navbar = () => {
             >
               About
             </Link>
-            <div className="mt-6 p-4">
+            <div className="mt-6 p-4 flex flex-col space-y-4">
               <Link to="/upload">
                 <Button className="w-full rounded-full py-6">
                   <Upload className="mr-2 h-4 w-4" />
                   Upload Data
                 </Button>
               </Link>
+              <div className="w-full">
+                <AuthButton />
+              </div>
             </div>
             <div className="mt-2 p-4">
               <div className="relative">
