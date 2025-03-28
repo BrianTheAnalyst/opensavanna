@@ -7,10 +7,9 @@ import Navbar from '@/components/Navbar';
 import Visualization from '@/components/Visualization';
 import DatasetGrid from '@/components/DatasetGrid';
 import Footer from '@/components/Footer';
-import { getDatasetById, getDatasetVisualization, downloadDataset, Dataset } from '@/services/api';
+import { getDatasetById, getDatasetVisualization, downloadDataset, Dataset, sampleVisData } from '@/services/api';
 import { toast } from 'sonner';
 
-// Related datasets (can be replaced with real data fetching later)
 const relatedDatasets = [
   {
     id: '2',
@@ -52,7 +51,6 @@ const DatasetDetail = () => {
   const [visData, setVisData] = useState<any[]>([]);
   
   useEffect(() => {
-    // Scroll to top when component mounts
     window.scrollTo(0, 0);
     
     const fetchDataset = async () => {
@@ -63,7 +61,6 @@ const DatasetDetail = () => {
       if (data) {
         setDataset(data);
         
-        // Load visualization data
         const visualizationData = await getDatasetVisualization(id);
         setVisData(visualizationData);
       }
@@ -132,13 +129,19 @@ const DatasetDetail = () => {
     );
   }
   
+  const defaultTags = ['economics', 'data', 'statistics'];
+  const defaultDataFields = [
+    { name: 'date', description: 'Date of the data point', type: 'Date' },
+    { name: 'value', description: 'Numeric value for the metric', type: 'Number' },
+    { name: 'region', description: 'Geographic region', type: 'String' }
+  ];
+  
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
       
       <main className="flex-grow pt-20">
         <div className="container px-4 mx-auto py-12">
-          {/* Back Link */}
           <div className="mb-6">
             <Link to="/datasets" className="text-sm flex items-center text-foreground/70 hover:text-primary transition-colors">
               <ArrowLeft className="h-4 w-4 mr-1" />
@@ -146,7 +149,6 @@ const DatasetDetail = () => {
             </Link>
           </div>
           
-          {/* Dataset Header */}
           <div className="glass border border-border/50 rounded-xl p-6 mb-8 animate-fade-in">
             <div className="flex justify-between items-start mb-4">
               <div className="flex-1">
@@ -212,7 +214,6 @@ const DatasetDetail = () => {
             </div>
           </div>
           
-          {/* Tabs Section */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8 animate-fade-in">
             <TabsList className="mb-6 glass w-full justify-start">
               <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -256,31 +257,31 @@ const DatasetDetail = () => {
                     <div className="space-y-4">
                       <div>
                         <p className="text-xs text-foreground/60 mb-1">License</p>
-                        <p className="font-medium">{dataset.license}</p>
+                        <p className="font-medium">{dataset?.license || 'Open Data License'}</p>
                       </div>
                       <div>
                         <p className="text-xs text-foreground/60 mb-1">Format</p>
                         <p className="font-medium flex items-center">
                           <FileText className="h-4 w-4 mr-1 text-primary" />
-                          {dataset.format}
+                          {dataset?.format}
                         </p>
                       </div>
                       <div>
                         <p className="text-xs text-foreground/60 mb-1">File Size</p>
-                        <p className="font-medium">{dataset.fileSize}</p>
+                        <p className="font-medium">{dataset?.fileSize || '2.4 MB'}</p>
                       </div>
                       <div>
                         <p className="text-xs text-foreground/60 mb-1">Data Points</p>
-                        <p className="font-medium">{dataset.dataPoints}</p>
+                        <p className="font-medium">{dataset?.dataPoints || '5,200'}</p>
                       </div>
                       <div>
                         <p className="text-xs text-foreground/60 mb-1">Time Period</p>
-                        <p className="font-medium">{dataset.timespan}</p>
+                        <p className="font-medium">{dataset?.timespan || '2010-2023'}</p>
                       </div>
                       <div>
                         <p className="text-xs text-foreground/60 mb-1">Source</p>
                         <a 
-                          href={dataset.source} 
+                          href={dataset?.source || '#'} 
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="font-medium text-primary hover:underline flex items-center"
@@ -295,7 +296,7 @@ const DatasetDetail = () => {
                   <div className="glass border border-border/50 rounded-xl p-6">
                     <h2 className="text-xl font-medium mb-4">Tags</h2>
                     <div className="flex flex-wrap gap-2">
-                      {dataset.tags.map((tag: string) => (
+                      {(dataset?.tags || defaultTags).map((tag: string) => (
                         <Link 
                           key={tag} 
                           to={`/datasets?tag=${tag}`}
@@ -327,7 +328,7 @@ const DatasetDetail = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {dataset.dataFields.map((field: any, index: number) => (
+                      {(dataset?.dataFields || defaultDataFields).map((field: any, index: number) => (
                         <tr key={index} className="hover:bg-muted/30 transition-colors">
                           <td className="p-3 border-b border-border/50 text-sm font-medium">{field.name}</td>
                           <td className="p-3 border-b border-border/50 text-sm">{field.description}</td>
@@ -562,11 +563,10 @@ print(data)`}
             </TabsContent>
           </Tabs>
           
-          {/* Related Datasets */}
           <div className="mt-12 animate-fade-in">
             <div className="flex justify-between items-end mb-6">
               <h2 className="text-2xl font-medium">Related Datasets</h2>
-              <Link to={`/datasets?category=${dataset.category}`} className="text-primary hover:underline text-sm">
+              <Link to={`/datasets?category=${dataset?.category}`} className="text-primary hover:underline text-sm">
                 View More
               </Link>
             </div>

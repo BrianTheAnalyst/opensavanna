@@ -14,6 +14,18 @@ export interface Dataset {
   downloads: number;
   featured?: boolean;
   file?: string;
+  // Add missing properties referenced in DatasetDetail.tsx
+  license?: string;
+  fileSize?: string;
+  dataPoints?: string;
+  timespan?: string;
+  source?: string;
+  tags?: string[];
+  dataFields?: Array<{
+    name: string;
+    description: string;
+    type: string;
+  }>;
 }
 
 // Sample visualization data
