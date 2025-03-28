@@ -185,7 +185,7 @@ export const addDataset = async (
 
 // Get dataset visualization data
 export const getDatasetVisualization = async (id: string): Promise<any> => {
-  // For now, we'll continue to return mock visualization data
+  // For now, we'll return mock visualization data
   // In a real application, this could fetch actual visualization data from Supabase
   return sampleVisData;
 };

@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
 import { UploadCloud, Info, FileType, Check } from 'lucide-react';
@@ -20,7 +19,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { addDataset } from '@/services/api';
 import { supabase } from '@/integrations/supabase/client';
-import { useEffect } from 'react';
 
 // Form validation schema
 const formSchema = z.object({

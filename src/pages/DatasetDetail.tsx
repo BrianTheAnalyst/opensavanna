@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { FileText, Download, Share, Calendar, Users, MapPin, Eye, BarChart3, ArrowLeft, ExternalLink } from 'lucide-react';
@@ -8,40 +7,10 @@ import Navbar from '@/components/Navbar';
 import Visualization from '@/components/Visualization';
 import DatasetGrid from '@/components/DatasetGrid';
 import Footer from '@/components/Footer';
+import { getDatasetById, getDatasetVisualization, downloadDataset, Dataset } from '@/services/api';
+import { toast } from 'sonner';
 
-// Sample data
-const sampleDataset = {
-  id: '1',
-  title: 'Economic Indicators by Region',
-  description: 'Comprehensive collection of economic indicators across different regions including GDP, inflation, and employment rates. This dataset provides valuable insights for policymakers, researchers, and businesses looking to understand economic trends and patterns.',
-  category: 'Economics',
-  format: 'CSV',
-  country: 'Global',
-  date: 'June 15, 2023',
-  lastUpdated: 'August 3, 2023',
-  downloads: 5248,
-  views: 12597,
-  license: 'Creative Commons Attribution 4.0',
-  publisher: 'African Development Bank',
-  maintainer: 'Open Data Research Team',
-  source: 'https://example.com/source',
-  tags: ['economics', 'gdp', 'inflation', 'employment', 'trade', 'indicators'],
-  fileSize: '12.4 MB',
-  dataPoints: '24,568 rows',
-  timespan: '2010-2023',
-  dataFields: [
-    { name: 'Region', description: 'Geographic region or country name', type: 'string' },
-    { name: 'Year', description: 'Year of data collection', type: 'integer' },
-    { name: 'GDP', description: 'Gross Domestic Product in USD', type: 'float' },
-    { name: 'GDPGrowth', description: 'Annual GDP growth percentage', type: 'float' },
-    { name: 'Inflation', description: 'Annual inflation rate percentage', type: 'float' },
-    { name: 'UnemploymentRate', description: 'Unemployment rate percentage', type: 'float' },
-    { name: 'TradeBalance', description: 'Trade balance in USD', type: 'float' },
-    { name: 'Population', description: 'Total population', type: 'integer' }
-  ]
-};
-
-// Related datasets
+// Related datasets (can be replaced with real data fetching later)
 const relatedDatasets = [
   {
     id: '2',
@@ -75,32 +44,44 @@ const relatedDatasets = [
   }
 ];
 
-// Visualization data
-const sampleVisData = [
-  { name: 'East Africa', value: 32.5 },
-  { name: 'West Africa', value: 27.8 },
-  { name: 'North Africa', value: 21.3 },
-  { name: 'Southern Africa', value: 18.4 }
-];
-
 const DatasetDetail = () => {
   const { id } = useParams();
-  const [dataset, setDataset] = useState<any>(null);
+  const [dataset, setDataset] = useState<Dataset | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
+  const [visData, setVisData] = useState<any[]>([]);
   
   useEffect(() => {
     // Scroll to top when component mounts
     window.scrollTo(0, 0);
     
-    // Simulate API call
-    const timer = setTimeout(() => {
-      setDataset(sampleDataset);
+    const fetchDataset = async () => {
+      if (!id) return;
+      
+      setIsLoading(true);
+      const data = await getDatasetById(id);
+      if (data) {
+        setDataset(data);
+        
+        // Load visualization data
+        const visualizationData = await getDatasetVisualization(id);
+        setVisData(visualizationData);
+      }
       setIsLoading(false);
-    }, 800);
+    };
     
-    return () => clearTimeout(timer);
+    fetchDataset();
   }, [id]);
+  
+  const handleDownload = async () => {
+    if (!id) return;
+    await downloadDataset(id);
+  };
+  
+  const handleShare = () => {
+    navigator.clipboard.writeText(window.location.href);
+    toast.success('Link copied to clipboard');
+  };
   
   if (isLoading) {
     return (
@@ -121,6 +102,28 @@ const DatasetDetail = () => {
               
               <div className="h-10 bg-muted rounded w-full mb-6"></div>
               <div className="h-64 bg-muted rounded w-full"></div>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+  
+  if (!dataset) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-grow pt-20">
+          <div className="container px-4 mx-auto py-12">
+            <div className="glass border border-border/50 rounded-xl p-8">
+              <h1 className="text-2xl md:text-3xl font-medium mb-4">Dataset Not Found</h1>
+              <p className="text-foreground/70 mb-6">
+                The dataset you're looking for doesn't exist or has been removed.
+              </p>
+              <Link to="/datasets">
+                <Button>Back to All Datasets</Button>
+              </Link>
             </div>
           </div>
         </main>
@@ -166,11 +169,11 @@ const DatasetDetail = () => {
               </div>
               
               <div className="flex flex-col sm:flex-row gap-2 ml-4">
-                <Button variant="outline" size="sm" className="rounded-lg flex items-center">
+                <Button variant="outline" size="sm" className="rounded-lg flex items-center" onClick={handleShare}>
                   <Share className="h-4 w-4 mr-1" />
                   Share
                 </Button>
-                <Button size="sm" className="rounded-lg flex items-center">
+                <Button size="sm" className="rounded-lg flex items-center" onClick={handleDownload}>
                   <Download className="h-4 w-4 mr-1" />
                   Download
                 </Button>
@@ -186,24 +189,24 @@ const DatasetDetail = () => {
                 </p>
               </div>
               <div>
-                <p className="text-xs text-foreground/60 mb-1">Views</p>
-                <p className="text-lg font-medium flex items-center">
-                  <Eye className="h-4 w-4 mr-1 text-primary" />
-                  {dataset.views.toLocaleString()}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-foreground/60 mb-1">Last Updated</p>
+                <p className="text-xs text-foreground/60 mb-1">Updated</p>
                 <p className="text-lg font-medium flex items-center">
                   <Calendar className="h-4 w-4 mr-1 text-primary" />
-                  {dataset.lastUpdated}
+                  {dataset.date}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-foreground/60 mb-1">Publisher</p>
+                <p className="text-xs text-foreground/60 mb-1">Format</p>
                 <p className="text-lg font-medium flex items-center">
-                  <Users className="h-4 w-4 mr-1 text-primary" />
-                  {dataset.publisher}
+                  <FileText className="h-4 w-4 mr-1 text-primary" />
+                  {dataset.format}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-foreground/60 mb-1">Region</p>
+                <p className="text-lg font-medium flex items-center">
+                  <MapPin className="h-4 w-4 mr-1 text-primary" />
+                  {dataset.country}
                 </p>
               </div>
             </div>
@@ -563,7 +566,7 @@ print(data)`}
           <div className="mt-12 animate-fade-in">
             <div className="flex justify-between items-end mb-6">
               <h2 className="text-2xl font-medium">Related Datasets</h2>
-              <Link to="/datasets?category=economics" className="text-primary hover:underline text-sm">
+              <Link to={`/datasets?category=${dataset.category}`} className="text-primary hover:underline text-sm">
                 View More
               </Link>
             </div>

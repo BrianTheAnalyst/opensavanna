@@ -18,6 +18,7 @@ export type Database = {
           description: string
           downloads: number | null
           featured: boolean | null
+          file: string | null
           format: string
           id: string
           title: string
@@ -32,6 +33,7 @@ export type Database = {
           description: string
           downloads?: number | null
           featured?: boolean | null
+          file?: string | null
           format: string
           id?: string
           title: string
@@ -46,6 +48,7 @@ export type Database = {
           description?: string
           downloads?: number | null
           featured?: boolean | null
+          file?: string | null
           format?: string
           id?: string
           title?: string
