@@ -11,7 +11,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import Datasets from "./pages/Datasets";
-import DatasetDetail from "./pages/DatasetDetail";
+import DatasetDetail from "./pages/dataset-detail";
 import UploadPage from "./pages/Upload";
 import Api from "./pages/Api";
 import About from "./pages/About";
