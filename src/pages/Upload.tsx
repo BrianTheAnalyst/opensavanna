@@ -18,6 +18,9 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { addDataset } from '@/services/api';
+import { supabase } from '@/integrations/supabase/client';
+import { useEffect } from 'react';
 
 // Form validation schema
 const formSchema = z.object({
@@ -25,7 +28,8 @@ const formSchema = z.object({
   description: z.string().min(10, { message: "Description must be at least 10 characters" }),
   category: z.string().min(1, { message: "Please select a category" }),
   country: z.string().min(1, { message: "Please select a country" }),
-  file: z.instanceof(File, { message: "Please upload a file" })
+  format: z.string().min(1, { message: "Please select a format" }),
+  file: z.any().optional() // Make file optional
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -35,6 +39,23 @@ const UploadPage = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStep, setUploadStep] = useState(1);
   const [filePreview, setFilePreview] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  
+  // Check if user is logged in
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsLoggedIn(!!user);
+      
+      if (!user) {
+        toast.info('You need to be logged in to upload datasets.');
+        // For now we'll just show a notification without redirecting
+      }
+    };
+    
+    checkAuth();
+  }, [navigate]);
   
   // Initialize form
   const form = useForm<FormValues>({
@@ -43,7 +64,8 @@ const UploadPage = () => {
       title: "",
       description: "",
       category: "",
-      country: ""
+      country: "",
+      format: ""
     }
   });
   
@@ -58,7 +80,7 @@ const UploadPage = () => {
       return;
     }
     
-    form.setValue("file", file);
+    setSelectedFile(file);
     
     // Preview for text files
     const reader = new FileReader();
@@ -72,50 +94,67 @@ const UploadPage = () => {
   
   // Form submission handler
   const onSubmit = async (data: FormValues) => {
+    if (!isLoggedIn) {
+      toast.error("You must be logged in to upload datasets. Please log in and try again.");
+      return;
+    }
+    
     setIsUploading(true);
     
     try {
-      // Mock API call - In a real app, you would use axios or fetch to send to backend
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Send to Supabase
+      const result = await addDataset({
+        title: data.title,
+        description: data.description,
+        category: data.category,
+        format: data.format,
+        country: data.country
+      }, selectedFile || undefined);
       
-      // Mock success
-      toast.success("Dataset uploaded successfully!");
-      setUploadStep(2);
-      
-      // Navigate to datasets page after short delay
-      setTimeout(() => {
-        navigate('/datasets');
-      }, 2000);
-      
+      if (result) {
+        setUploadStep(2);
+        
+        // Navigate to datasets page after short delay
+        setTimeout(() => {
+          navigate('/datasets');
+        }, 2000);
+      }
     } catch (error) {
       toast.error("Failed to upload dataset. Please try again.");
+      console.error(error);
     } finally {
       setIsUploading(false);
     }
   };
   
   const categories = [
-    { label: 'Economics', value: 'economics' },
-    { label: 'Health', value: 'health' },
-    { label: 'Transport', value: 'transport' },
-    { label: 'Agriculture', value: 'agriculture' },
-    { label: 'Education', value: 'education' },
-    { label: 'Environment', value: 'environment' },
-    { label: 'Demographics', value: 'demographics' },
-    { label: 'Government', value: 'government' }
+    { label: 'Economics', value: 'Economics' },
+    { label: 'Health', value: 'Health' },
+    { label: 'Transport', value: 'Transport' },
+    { label: 'Agriculture', value: 'Agriculture' },
+    { label: 'Education', value: 'Education' },
+    { label: 'Environment', value: 'Environment' },
+    { label: 'Demographics', value: 'Demographics' },
+    { label: 'Government', value: 'Government' }
   ];
   
   const countries = [
-    { label: 'East Africa', value: 'east-africa' },
-    { label: 'West Africa', value: 'west-africa' },
-    { label: 'South Africa', value: 'south-africa' },
-    { label: 'North Africa', value: 'north-africa' },
-    { label: 'Central Africa', value: 'central-africa' },
-    { label: 'Global', value: 'global' },
-    { label: 'Kenya', value: 'kenya' },
-    { label: 'Nigeria', value: 'nigeria' },
-    { label: 'Ghana', value: 'ghana' },
-    { label: 'Ethiopia', value: 'ethiopia' }
+    { label: 'East Africa', value: 'East Africa' },
+    { label: 'West Africa', value: 'West Africa' },
+    { label: 'South Africa', value: 'South Africa' },
+    { label: 'North Africa', value: 'North Africa' },
+    { label: 'Central Africa', value: 'Central Africa' },
+    { label: 'Global', value: 'Global' },
+    { label: 'Kenya', value: 'Kenya' },
+    { label: 'Nigeria', value: 'Nigeria' },
+    { label: 'Ghana', value: 'Ghana' },
+    { label: 'Ethiopia', value: 'Ethiopia' }
+  ];
+  
+  const formats = [
+    { label: 'CSV', value: 'CSV' },
+    { label: 'JSON', value: 'JSON' },
+    { label: 'GeoJSON', value: 'GeoJSON' }
   ];
   
   return (
@@ -135,6 +174,11 @@ const UploadPage = () => {
               <p className="text-foreground/70 mb-4">
                 Share your datasets with the community. We accept CSV, JSON, and GeoJSON formats.
               </p>
+              {!isLoggedIn && (
+                <p className="text-destructive mb-4">
+                  You need to be logged in to upload datasets.
+                </p>
+              )}
             </div>
           </div>
         </section>
@@ -184,7 +228,7 @@ const UploadPage = () => {
                         )}
                       />
                       
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {/* Category field */}
                         <FormField
                           control={form.control}
@@ -201,6 +245,31 @@ const UploadPage = () => {
                                   {categories.map(category => (
                                     <option key={category.value} value={category.value}>
                                       {category.label}
+                                    </option>
+                                  ))}
+                                </select>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        {/* Format field */}
+                        <FormField
+                          control={form.control}
+                          name="format"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Format</FormLabel>
+                              <FormControl>
+                                <select 
+                                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                                  {...field}
+                                >
+                                  <option value="">Select a format</option>
+                                  {formats.map(format => (
+                                    <option key={format.value} value={format.value}>
+                                      {format.label}
                                     </option>
                                   ))}
                                 </select>
@@ -273,18 +342,13 @@ const UploadPage = () => {
                             </div>
                           )}
                         </div>
-                        {form.formState.errors.file && (
-                          <p className="text-sm font-medium text-destructive">
-                            {form.formState.errors.file.message}
-                          </p>
-                        )}
                       </div>
                       
                       <div className="pt-4">
                         <Button 
                           type="submit" 
                           className="w-full"
-                          disabled={isUploading}
+                          disabled={isUploading || !isLoggedIn}
                         >
                           {isUploading ? 'Uploading...' : 'Upload Dataset'}
                         </Button>

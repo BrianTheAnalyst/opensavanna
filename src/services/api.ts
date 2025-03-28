@@ -1,5 +1,6 @@
 
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 // Types for our dataset
 export interface Dataset {
@@ -15,102 +16,7 @@ export interface Dataset {
   file?: string;
 }
 
-// Sample dataset that we'll use as mock data
-const sampleDatasets: Dataset[] = [
-  {
-    id: '1',
-    title: 'Economic Indicators by Region',
-    description: 'Comprehensive collection of economic indicators across different regions including GDP, inflation, and employment rates.',
-    category: 'Economics',
-    format: 'CSV',
-    country: 'Global',
-    date: 'Updated June 2023',
-    downloads: 5248,
-    featured: true
-  },
-  {
-    id: '2',
-    title: 'Healthcare Facility Locations',
-    description: 'Geographic dataset of healthcare facilities including hospitals, clinics, and specialized care centers.',
-    category: 'Health',
-    format: 'GeoJSON',
-    country: 'South Africa',
-    date: 'Updated May 2023',
-    downloads: 3129
-  },
-  {
-    id: '3',
-    title: 'Public Transportation Usage',
-    description: 'Time series data showing public transportation usage patterns across major metropolitan areas.',
-    category: 'Transport',
-    format: 'JSON',
-    country: 'Nigeria',
-    date: 'Updated April 2023',
-    downloads: 2847
-  },
-  {
-    id: '4',
-    title: 'Agricultural Production Statistics',
-    description: 'Annual agricultural production statistics for major crops and livestock by region.',
-    category: 'Agriculture',
-    format: 'CSV',
-    country: 'Kenya',
-    date: 'Updated March 2023',
-    downloads: 2156
-  },
-  {
-    id: '5',
-    title: 'Education Access and Completion Rates',
-    description: 'Data on education access, enrollment, and completion rates across different regions and demographics.',
-    category: 'Education',
-    format: 'CSV',
-    country: 'Ghana',
-    date: 'Updated June 2023',
-    downloads: 1845
-  },
-  {
-    id: '6',
-    title: 'Climate Data by Region',
-    description: 'Time series climate data including temperature, precipitation, and other environmental indicators.',
-    category: 'Environment',
-    format: 'JSON',
-    country: 'East Africa',
-    date: 'Updated May 2023',
-    downloads: 1732
-  },
-  {
-    id: '7',
-    title: 'Population Demographics',
-    description: 'Demographic data including age distribution, gender ratios, and population density by region.',
-    category: 'Demographics',
-    format: 'CSV',
-    country: 'West Africa',
-    date: 'Updated April 2023',
-    downloads: 1621
-  },
-  {
-    id: '8',
-    title: 'COVID-19 Case Statistics',
-    description: 'Historical data on COVID-19 cases, hospitalizations, recoveries, and vaccination rates.',
-    category: 'Health',
-    format: 'CSV',
-    country: 'Africa',
-    date: 'Updated March 2023',
-    downloads: 1597
-  },
-  {
-    id: '9',
-    title: 'Election Results and Voting Patterns',
-    description: 'Historical election results, voter turnout, and voting patterns by region.',
-    category: 'Government',
-    format: 'JSON',
-    country: 'Nigeria',
-    date: 'Updated February 2023',
-    downloads: 1483
-  }
-];
-
-// Mock visualization data
+// Sample visualization data
 export const sampleVisData = [
   { name: 'Jan', value: 400 },
   { name: 'Feb', value: 300 },
@@ -121,17 +27,6 @@ export const sampleVisData = [
   { name: 'Jul', value: 700 },
 ];
 
-// Local storage key for our datasets
-const STORAGE_KEY = 'africa_open_data_datasets';
-
-// Initialize local storage with sample data if empty
-const initializeStorage = () => {
-  const existingData = localStorage.getItem(STORAGE_KEY);
-  if (!existingData) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(sampleDatasets));
-  }
-};
-
 // Get all datasets with optional filtering
 export const getDatasets = async (
   filters?: { 
@@ -141,41 +36,37 @@ export const getDatasets = async (
     country?: string;
   }
 ): Promise<Dataset[]> => {
-  initializeStorage();
-  
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 800));
-  
   try {
-    const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]') as Dataset[];
-    
-    if (!filters) return data;
+    let query = supabase.from('datasets').select('*');
     
     // Apply filters if provided
-    return data.filter(dataset => {
-      // Search filter (search in title and description)
-      if (filters.search && !dataset.title.toLowerCase().includes(filters.search.toLowerCase()) && 
-          !dataset.description.toLowerCase().includes(filters.search.toLowerCase())) {
-        return false;
+    if (filters) {
+      if (filters.search) {
+        query = query.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
       }
       
-      // Category filter
-      if (filters.category && dataset.category.toLowerCase() !== filters.category.toLowerCase()) {
-        return false;
+      if (filters.category) {
+        query = query.eq('category', filters.category);
       }
       
-      // Format filter
-      if (filters.format && dataset.format.toLowerCase() !== filters.format.toLowerCase()) {
-        return false;
+      if (filters.format) {
+        query = query.eq('format', filters.format);
       }
       
-      // Country filter
-      if (filters.country && dataset.country.toLowerCase() !== filters.country.toLowerCase()) {
-        return false;
+      if (filters.country) {
+        query = query.eq('country', filters.country);
       }
-      
-      return true;
-    });
+    }
+    
+    const { data, error } = await query.order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching datasets:', error);
+      toast.error('Failed to load datasets');
+      return [];
+    }
+    
+    return data as Dataset[];
   } catch (error) {
     console.error('Error fetching datasets:', error);
     toast.error('Failed to load datasets');
@@ -185,21 +76,25 @@ export const getDatasets = async (
 
 // Get a single dataset by ID
 export const getDatasetById = async (id: string): Promise<Dataset | null> => {
-  initializeStorage();
-  
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 600));
-  
   try {
-    const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]') as Dataset[];
-    const dataset = data.find(item => item.id === id);
+    const { data, error } = await supabase
+      .from('datasets')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
     
-    if (!dataset) {
+    if (error) {
+      console.error('Error fetching dataset:', error);
+      toast.error('Failed to load dataset');
+      return null;
+    }
+    
+    if (!data) {
       toast.error('Dataset not found');
       return null;
     }
     
-    return dataset;
+    return data as Dataset;
   } catch (error) {
     console.error('Error fetching dataset:', error);
     toast.error('Failed to load dataset');
@@ -208,62 +103,127 @@ export const getDatasetById = async (id: string): Promise<Dataset | null> => {
 };
 
 // Add a new dataset
-export const addDataset = async (dataset: Omit<Dataset, 'id' | 'date' | 'downloads'>): Promise<Dataset> => {
-  initializeStorage();
-  
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1500));
-  
+export const addDataset = async (
+  dataset: Omit<Dataset, 'id' | 'date' | 'downloads'>,
+  file?: File
+): Promise<Dataset | null> => {
   try {
-    const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]') as Dataset[];
+    // Get the current user
+    const { data: { user } } = await supabase.auth.getUser();
     
-    // Create new dataset with generated ID and other default values
-    const newDataset: Dataset = {
+    if (!user) {
+      toast.error('You must be logged in to upload datasets');
+      return null;
+    }
+    
+    // Format the date
+    const currentDate = new Date();
+    const formattedDate = `Updated ${currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`;
+    
+    // Create the dataset entry
+    const newDataset = {
       ...dataset,
-      id: Date.now().toString(),
-      date: `Updated ${new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`,
-      downloads: 0
+      date: formattedDate,
+      downloads: 0,
+      user_id: user.id
     };
     
-    // Add to storage
-    localStorage.setItem(STORAGE_KEY, JSON.stringify([newDataset, ...data]));
+    const { data, error } = await supabase
+      .from('datasets')
+      .insert(newDataset)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error adding dataset:', error);
+      toast.error('Failed to add dataset');
+      return null;
+    }
+    
+    // If a file was provided, upload it to storage
+    if (file && data.id) {
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${data.id}/${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('dataset_files')
+        .upload(filePath, file);
+      
+      if (uploadError) {
+        console.error('Error uploading file:', uploadError);
+        toast.error('Dataset added but file upload failed');
+        return data as Dataset;
+      }
+      
+      // Get the public URL for the file
+      const { data: publicURL } = supabase.storage
+        .from('dataset_files')
+        .getPublicUrl(filePath);
+      
+      // Update the dataset with the file URL
+      const { error: updateError } = await supabase
+        .from('datasets')
+        .update({ file: publicURL.publicUrl })
+        .eq('id', data.id);
+      
+      if (updateError) {
+        console.error('Error updating dataset with file URL:', updateError);
+      } else {
+        // Update the return data with the file URL
+        data.file = publicURL.publicUrl;
+      }
+    }
     
     toast.success('Dataset added successfully');
-    return newDataset;
+    return data as Dataset;
   } catch (error) {
     console.error('Error adding dataset:', error);
     toast.error('Failed to add dataset');
-    throw error;
+    return null;
   }
 };
 
 // Get dataset visualization data
 export const getDatasetVisualization = async (id: string): Promise<any> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  // Return mock visualization data
+  // For now, we'll continue to return mock visualization data
+  // In a real application, this could fetch actual visualization data from Supabase
   return sampleVisData;
 };
 
-// Download a dataset (in a real app, this would generate a download)
+// Download a dataset (updates download count and returns download URL)
 export const downloadDataset = async (id: string): Promise<void> => {
   try {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 800));
+    // First get the dataset to check if it has a file
+    const { data: dataset, error: fetchError } = await supabase
+      .from('datasets')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (fetchError) {
+      console.error('Error fetching dataset for download:', fetchError);
+      toast.error('Failed to download dataset');
+      return;
+    }
     
     // Update download count
-    const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]') as Dataset[];
-    const updatedData = data.map(item => {
-      if (item.id === id) {
-        return { ...item, downloads: item.downloads + 1 };
-      }
-      return item;
-    });
+    const { error: updateError } = await supabase
+      .from('datasets')
+      .update({ downloads: (dataset.downloads || 0) + 1 })
+      .eq('id', id);
     
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedData));
+    if (updateError) {
+      console.error('Error updating download count:', updateError);
+    }
     
-    toast.success('Dataset download started');
+    // If the dataset has a file URL, open it
+    if (dataset.file) {
+      window.open(dataset.file, '_blank');
+      toast.success('Dataset download started');
+    } else {
+      // For datasets without files, we could provide a fallback
+      toast.info('This dataset does not have a downloadable file');
+    }
   } catch (error) {
     console.error('Error downloading dataset:', error);
     toast.error('Failed to download dataset');
