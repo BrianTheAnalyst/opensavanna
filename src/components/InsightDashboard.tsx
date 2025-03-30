@@ -21,34 +21,34 @@ const InsightDashboard = ({ dataset, visualizationData, insights }: InsightDashb
       
       return [
         {
-          type: 'highlight',
+          type: 'highlight' as const,
           title: 'Total',
           value: totalSpending.toLocaleString(),
           description: 'Total across all categories',
-          color: 'info'
+          color: 'info' as const
         },
         {
-          type: 'increase',
+          type: 'increase' as const,
           title: 'Highest',
           value: highestCategory.name,
           description: `${highestCategory.value.toLocaleString()} (${Math.round(highestCategory.value/totalSpending*100)}%)`,
           percentage: Math.round(highestCategory.value/totalSpending*100),
-          color: 'success'
+          color: 'success' as const
         },
         {
-          type: 'decrease',
+          type: 'decrease' as const,
           title: 'Lowest',
           value: lowestCategory.name,
           description: `${lowestCategory.value.toLocaleString()} (${Math.round(lowestCategory.value/totalSpending*100)}%)`,
           percentage: Math.round(lowestCategory.value/totalSpending*100),
-          color: 'warning'
+          color: 'warning' as const
         },
         {
-          type: 'trend',
+          type: 'trend' as const,
           title: 'Average',
           value: Math.round(avgSpending).toLocaleString(),
           description: 'Average per category',
-          color: 'default'
+          color: 'default' as const
         }
       ];
     }
@@ -56,18 +56,18 @@ const InsightDashboard = ({ dataset, visualizationData, insights }: InsightDashb
     // Default metrics for other dataset types
     return [
       {
-        type: 'highlight',
+        type: 'highlight' as const,
         title: 'Key Points',
         value: visualizationData.length,
         description: 'Number of data points analyzed',
-        color: 'info'
+        color: 'info' as const
       },
       {
-        type: 'trend',
+        type: 'trend' as const,
         title: 'Insights',
         value: insights.length,
         description: 'Automated insights detected',
-        color: 'success'
+        color: 'success' as const
       }
     ];
   };
