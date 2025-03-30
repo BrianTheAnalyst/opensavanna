@@ -21,11 +21,27 @@ const Visualization = ({ data, title, description }: VisualizationProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [chartData, setChartData] = useState<any[]>([]);
   
+  // Sample data if none is provided
+  const sampleData = [
+    { name: 'Jan', value: 400 },
+    { name: 'Feb', value: 300 },
+    { name: 'Mar', value: 600 },
+    { name: 'Apr', value: 800 },
+    { name: 'May', value: 500 },
+    { name: 'Jun', value: 900 },
+    { name: 'Jul', value: 700 },
+  ];
+  
   useEffect(() => {
-    // Simulate data processing delay
+    // Process data for visualization
     const timer = setTimeout(() => {
-      // Transform data for visualization if needed
-      setChartData(data || sampleData);
+      if (data && Array.isArray(data) && data.length > 0) {
+        console.log("Visualization data:", data);
+        setChartData(data);
+      } else {
+        console.log("Using sample data for visualization");
+        setChartData(sampleData);
+      }
       setIsLoading(false);
     }, 500);
     
@@ -34,7 +50,29 @@ const Visualization = ({ data, title, description }: VisualizationProps) => {
   
   const handleDownload = () => {
     // Implementation for data download
-    console.log('Downloading data...');
+    console.log('Downloading chart data:', chartData);
+    
+    try {
+      // Create CSV content
+      const headers = Object.keys(chartData[0]).join(',');
+      const rows = chartData.map(item => Object.values(item).join(',')).join('\n');
+      const csvContent = `${headers}\n${rows}`;
+      
+      // Create a blob and download link
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `chart-data-${Date.now()}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      console.log('Data download complete');
+    } catch (error) {
+      console.error('Error downloading data:', error);
+    }
   };
   
   if (isLoading) {
@@ -112,7 +150,11 @@ const Visualization = ({ data, title, description }: VisualizationProps) => {
                     fill={colors[0]}
                     radius={[4, 4, 0, 0]}
                     animationDuration={1000}
-                  />
+                  >
+                    {chartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -170,6 +212,7 @@ const Visualization = ({ data, title, description }: VisualizationProps) => {
                     outerRadius={100}
                     fill="#8884d8"
                     dataKey="value"
+                    nameKey="name"
                     label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                     animationDuration={1000}
                   >
@@ -200,16 +243,5 @@ const Visualization = ({ data, title, description }: VisualizationProps) => {
     </div>
   );
 };
-
-// Sample data if none is provided
-const sampleData = [
-  { name: 'Jan', value: 400 },
-  { name: 'Feb', value: 300 },
-  { name: 'Mar', value: 600 },
-  { name: 'Apr', value: 800 },
-  { name: 'May', value: 500 },
-  { name: 'Jun', value: 900 },
-  { name: 'Jul', value: 700 },
-];
 
 export default Visualization;
