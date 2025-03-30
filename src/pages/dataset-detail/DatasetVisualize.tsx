@@ -1,11 +1,14 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
-import Visualization from '@/components/Visualization';
+import { Loader2, BarChart3, FileText, PieChart, LineChart } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Dataset } from '@/types/dataset';
 import { toast } from 'sonner';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import InsightDashboard from '@/components/InsightDashboard';
+import AdvancedVisualization from '@/components/AdvancedVisualization';
+import Visualization from '@/components/Visualization';
 
 const DatasetVisualize = () => {
   const { id } = useParams();
@@ -13,6 +16,7 @@ const DatasetVisualize = () => {
   const [visualizationData, setVisualizationData] = useState<any[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [insights, setInsights] = useState<string[]>([]);
+  const [analysisMode, setAnalysisMode] = useState<'overview' | 'detailed' | 'advanced'>('overview');
 
   useEffect(() => {
     const fetchDatasetAndVisualize = async () => {
@@ -41,6 +45,8 @@ const DatasetVisualize = () => {
           // Generate insights based on the data
           const generatedInsights = generateInsights(sampleData, datasetData.category, datasetData.title);
           setInsights(generatedInsights);
+
+          toast.success("Insights generated from your dataset");
         } else {
           // If no file exists, use fallback data based on category
           const fallbackData = generateSampleData(datasetData.category, datasetData.title);
@@ -86,58 +92,99 @@ const DatasetVisualize = () => {
   return (
     <>
       <div className="glass border border-border/50 rounded-xl p-6 mb-6">
-        <h2 className="text-xl font-medium mb-4">Insights from Your {dataset.title}</h2>
+        <h2 className="text-xl font-medium mb-4">Visualize This Dataset</h2>
         <p className="text-foreground/70 mb-6">
-          We've analyzed your data and extracted the following insights. Explore the visualizations below to discover patterns and trends.
+          Explore the data through interactive visualizations. Select different views and parameters to discover insights.
         </p>
         
-        {insights.length > 0 && (
-          <div className="bg-muted/30 rounded-lg p-4 mb-6">
-            <h3 className="text-lg font-medium mb-3">Key Insights</h3>
-            <ul className="space-y-2">
-              {insights.map((insight, index) => (
-                <li key={index} className="flex items-start">
-                  <span className="inline-block h-5 w-5 text-xs flex items-center justify-center rounded-full bg-primary/10 text-primary mr-2 mt-0.5">
-                    {index + 1}
-                  </span>
-                  <span>{insight}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-        
-        <Visualization 
-          data={visualizationData} 
-          title={`${dataset.title} - Overview`} 
-          description="Analysis of your dataset showing key metrics and trends"
-        />
-      </div>
-      
-      <div className="grid md:grid-cols-2 gap-6">
-        <div className="glass border border-border/50 rounded-xl p-6">
-          <Visualization 
-            data={generateTimeSeriesData(visualizationData, dataset.category)} 
-            title="Trend Analysis" 
-            description="Time-based progression of key metrics"
-          />
-        </div>
-        
-        <div className="glass border border-border/50 rounded-xl p-6">
-          <Visualization 
-            data={generateCategoryData(visualizationData, dataset.category)} 
-            title="Category Distribution" 
-            description="Distribution across different categories"
-          />
-        </div>
+        <Tabs value={analysisMode} onValueChange={(v) => setAnalysisMode(v as any)} className="mb-6">
+          <TabsList className="glass">
+            <TabsTrigger value="overview" className="flex items-center">
+              <BarChart3 className="h-4 w-4 mr-2" />
+              Overview Analysis
+            </TabsTrigger>
+            <TabsTrigger value="detailed" className="flex items-center">
+              <PieChart className="h-4 w-4 mr-2" />
+              Detailed Charts
+            </TabsTrigger>
+            <TabsTrigger value="advanced" className="flex items-center">
+              <LineChart className="h-4 w-4 mr-2" />
+              Advanced Visualization
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="overview">
+            <div className="pt-4">
+              <InsightDashboard 
+                dataset={dataset} 
+                visualizationData={visualizationData} 
+                insights={insights} 
+              />
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="detailed">
+            <div className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Visualization 
+                data={visualizationData} 
+                title={`${dataset.title} - Overview`} 
+                description="Analysis of key metrics from your dataset"
+              />
+              
+              <Visualization 
+                data={generateTimeSeriesData(visualizationData, dataset.category)} 
+                title="Trend Analysis" 
+                description="Time-based progression of key metrics"
+              />
+              
+              <Visualization 
+                data={generateCategoryData(visualizationData, dataset.category)} 
+                title="Category Distribution" 
+                description="Distribution across different categories"
+              />
+              
+              <div className="glass border border-border/50 rounded-xl p-6">
+                <h3 className="text-lg font-medium mb-3">Key Insights</h3>
+                {insights.length > 0 ? (
+                  <ul className="space-y-2">
+                    {insights.slice(0, 5).map((insight, index) => (
+                      <li key={index} className="flex items-start">
+                        <span className="inline-block h-5 w-5 text-xs flex items-center justify-center rounded-full bg-primary/10 text-primary mr-2 mt-0.5">
+                          {index + 1}
+                        </span>
+                        <span>{insight}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-foreground/70">No insights available for this dataset</p>
+                )}
+                
+                <div className="flex items-center mt-4 pt-4 border-t border-border/50">
+                  <FileText className="h-4 w-4 mr-2 text-primary" />
+                  <span className="text-sm">Analysis based on {dataset.title}</span>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="advanced">
+            <div className="pt-4">
+              <AdvancedVisualization 
+                dataset={dataset}
+                data={visualizationData}
+              />
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
       
       <div className="mt-6 p-6 bg-muted/30 rounded-xl">
-        <h3 className="text-lg font-medium mb-3">About These Visualizations</h3>
+        <h3 className="text-lg font-medium mb-3">About Data Visualization</h3>
         <p className="text-foreground/70">
-          These visualizations are generated based on your {dataset.title} dataset. 
-          The charts and insights are designed to help you understand patterns and trends in your data.
-          For more detailed analysis, you can download the full dataset and use advanced analytics tools.
+          These visualizations are automatically generated based on your {dataset.title} dataset. 
+          The charts and insights aim to help you understand patterns and trends in your data.
+          For more detailed analysis, you can download the full dataset or use the Advanced Visualization tools.
         </p>
       </div>
     </>
