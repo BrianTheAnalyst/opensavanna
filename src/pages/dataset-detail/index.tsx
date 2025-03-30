@@ -69,7 +69,7 @@ const DatasetDetail = () => {
                 <TabsList className="mb-6 glass w-full justify-start">
                   <TabsTrigger value="overview">Overview</TabsTrigger>
                   <TabsTrigger value="metadata">Metadata</TabsTrigger>
-                  <TabsTrigger value="visualize">Visualize</TabsTrigger>
+                  <TabsTrigger id="visualize-tab" value="visualize">Visualize</TabsTrigger>
                   <TabsTrigger value="api">API Access</TabsTrigger>
                 </TabsList>
                 
