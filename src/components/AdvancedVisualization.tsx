@@ -22,67 +22,72 @@ const COLORS = [
 ];
 
 const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) => {
-  const [selectedTab, setSelectedTab] = useState('composed');
+  const [selectedTab, setSelectedTab] = useState('bar');
   const [dataKey, setDataKey] = useState('value');
   const [nameKey, setNameKey] = useState('name');
   const [isDataReady, setIsDataReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [processedData, setProcessedData] = useState<any[]>([]);
   
-  // Process the data when it changes
+  // Ensure we have valid data at initialization
   useEffect(() => {
+    console.log("AdvancedVisualization received data:", data);
+    
     try {
+      // Validate and process input data
       if (data && Array.isArray(data) && data.length > 0) {
-        console.log("Advanced visualization data:", data);
+        // Ensure each data item has the required properties
+        const validData = data.map(item => {
+          if (typeof item !== 'object' || item === null) {
+            return { name: 'Unknown', value: 0 };
+          }
+          
+          // Ensure each item has name and value properties
+          return {
+            name: item.name || 'Unknown',
+            value: typeof item.value === 'number' ? item.value : 0,
+            ...item // Keep other properties
+          };
+        });
         
-        // Validate that each data item has at least the necessary properties
-        const hasRequiredProps = data.every(item => 
-          typeof item === 'object' && 
-          item !== null && 
-          Object.keys(item).length > 0
-        );
-        
-        if (!hasRequiredProps) {
-          throw new Error("Data items are missing required properties");
-        }
-        
-        // Store the processed data
-        setProcessedData(data);
+        console.log("Processed visualization data:", validData);
+        setProcessedData(validData);
         setIsDataReady(true);
-        setError(null);
         
-        // Set default visualization type based on data
-        if (isTimeSeriesData(data)) {
-          setSelectedTab('line');
-        } else if (data.length <= 5) {
+        // Determine best visualization type based on data
+        if (validData.length <= 5) {
           setSelectedTab('pie');
+        } else if (isTimeSeriesData(validData)) {
+          setSelectedTab('line');
         } else {
-          setSelectedTab('composed');
+          setSelectedTab('bar');
         }
         
-        // Update default keys based on data
-        const keys = getDataKeys(data);
-        if (keys.length > 0) {
-          setDataKey(keys[0]);
+        // Set appropriate keys
+        const availableDataKeys = getDataKeys(validData);
+        if (availableDataKeys.includes('value')) {
+          setDataKey('value');
+        } else if (availableDataKeys.length > 0) {
+          setDataKey(availableDataKeys[0]);
         }
         
-        const names = getNameKeys(data);
-        if (names.length > 0) {
-          setNameKey(names[0]);
+        const availableNameKeys = getNameKeys(validData);
+        if (availableNameKeys.includes('name')) {
+          setNameKey('name');
+        } else if (availableNameKeys.length > 0) {
+          setNameKey(availableNameKeys[0]);
         }
       } else {
-        console.log("Invalid or empty data for Advanced Visualization:", data);
-        setIsDataReady(false);
+        console.log("No valid data for visualization, using fallback data");
         setError("No valid data available for visualization");
-        // Set fallback data
         setProcessedData(getFallbackData());
+        setIsDataReady(true);
       }
     } catch (err: any) {
       console.error("Error processing visualization data:", err);
       setError(err.message || "Failed to process visualization data");
-      setIsDataReady(false);
-      // Set fallback data
       setProcessedData(getFallbackData());
+      setIsDataReady(true);
     }
   }, [data]);
   
@@ -136,17 +141,28 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
     ];
   };
 
-  // Use processed data
-  const displayData = processedData;
-
   // Log the current state for debugging
-  console.log("Current state:", { 
+  console.log("Current visualization state:", { 
     selectedTab, 
     dataKey, 
     nameKey, 
     isDataReady, 
-    displayData
+    processedData
   });
+
+  if (!isDataReady) {
+    return (
+      <div className="glass border border-border/50 rounded-xl p-6">
+        <h3 className="text-lg font-medium mb-3">Advanced Visualization</h3>
+        <p className="text-foreground/70 mb-4">Loading visualization options...</p>
+        <div className="h-96 flex items-center justify-center">
+          <div className="animate-pulse text-primary">
+            Preparing visualization data...
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="glass border border-border/50 rounded-xl p-6">
@@ -156,7 +172,7 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
       </p>
       
       {error && (
-        <Alert variant="warning" className="mb-4">
+        <Alert variant="destructive" className="mb-4">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
             {error} - Using sample data for demonstration.
@@ -167,14 +183,14 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="flex-1">
           <p className="text-sm font-medium mb-2">Select Visualization Type</p>
-          <Tabs defaultValue={selectedTab} value={selectedTab} onValueChange={setSelectedTab}>
+          <Tabs value={selectedTab} onValueChange={setSelectedTab}>
             <TabsList className="glass grid grid-cols-3 lg:grid-cols-6">
-              <TabsTrigger value="composed">Combined</TabsTrigger>
-              <TabsTrigger value="line">Line</TabsTrigger>
               <TabsTrigger value="bar">Bar</TabsTrigger>
+              <TabsTrigger value="line">Line</TabsTrigger>
               <TabsTrigger value="pie">Pie</TabsTrigger>
               <TabsTrigger value="radar">Radar</TabsTrigger>
               <TabsTrigger value="area">Area</TabsTrigger>
+              <TabsTrigger value="composed">Combined</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
@@ -210,21 +226,21 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
         </div>
       </div>
       
-      <div className="h-96 mb-4">
-        {/* Composed Chart */}
-        <TabsContent value="composed" className="h-full mt-0">
+      <div className="h-96 mb-4 bg-background/30 rounded-lg">
+        {/* Bar Chart */}
+        <TabsContent value="bar" className="h-full mt-0">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
-              data={displayData}
-              margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+              data={processedData}
+              margin={{ top: 20, right: 20, bottom: 60, left: 20 }}
             >
-              <CartesianGrid stroke="#f5f5f5" />
+              <CartesianGrid strokeDasharray="3 3" />
               <XAxis 
                 dataKey={nameKey} 
-                scale="band" 
                 tick={{ fontSize: 12 }}
                 angle={-45}
                 textAnchor="end"
+                height={60}
               />
               <YAxis tick={{ fontSize: 12 }} />
               <Tooltip 
@@ -235,8 +251,15 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
                 }} 
               />
               <Legend />
-              <Bar dataKey={dataKey} barSize={20} fill="#6366f1" />
-              <Line type="monotone" dataKey={dataKey} stroke="#8b5cf6" />
+              <Bar 
+                dataKey={dataKey} 
+                fill="#6366f1" 
+                radius={[4, 4, 0, 0]}
+              >
+                {processedData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Bar>
             </ComposedChart>
           </ResponsiveContainer>
         </TabsContent>
@@ -245,8 +268,8 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
         <TabsContent value="line" className="h-full mt-0">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
-              data={displayData}
-              margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+              data={processedData}
+              margin={{ top: 20, right: 20, bottom: 60, left: 20 }}
             >
               <CartesianGrid stroke="#f5f5f5" />
               <XAxis 
@@ -254,6 +277,7 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
                 tick={{ fontSize: 12 }}
                 angle={-45}
                 textAnchor="end"
+                height={60}
               />
               <YAxis tick={{ fontSize: 12 }} />
               <Tooltip 
@@ -282,48 +306,12 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
           </ResponsiveContainer>
         </TabsContent>
         
-        {/* Bar Chart */}
-        <TabsContent value="bar" className="h-full mt-0">
-          <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart
-              data={displayData}
-              margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey={nameKey} 
-                tick={{ fontSize: 12 }}
-                angle={-45}
-                textAnchor="end"
-              />
-              <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip 
-                contentStyle={{ 
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                  border: 'none'
-                }} 
-              />
-              <Legend />
-              <Bar 
-                dataKey={dataKey} 
-                fill="#6366f1" 
-                radius={[4, 4, 0, 0]}
-              >
-                {displayData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Bar>
-            </ComposedChart>
-          </ResponsiveContainer>
-        </TabsContent>
-        
         {/* Pie Chart */}
         <TabsContent value="pie" className="h-full mt-0">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
-                data={displayData}
+                data={processedData}
                 cx="50%"
                 cy="50%"
                 innerRadius={60}
@@ -336,7 +324,7 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
                 }
                 labelLine={false}
               >
-                {displayData.map((entry, index) => (
+                {processedData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
@@ -355,7 +343,7 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
         {/* Radar Chart */}
         <TabsContent value="radar" className="h-full mt-0">
           <ResponsiveContainer width="100%" height="100%">
-            <RadarChart cx="50%" cy="50%" outerRadius="80%" data={displayData}>
+            <RadarChart cx="50%" cy="50%" outerRadius="80%" data={processedData}>
               <PolarGrid />
               <PolarAngleAxis dataKey={nameKey} />
               <PolarRadiusAxis angle={30} domain={[0, 'auto']} />
@@ -382,8 +370,8 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
         <TabsContent value="area" className="h-full mt-0">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
-              data={displayData}
-              margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+              data={processedData}
+              margin={{ top: 20, right: 20, bottom: 60, left: 20 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis 
@@ -391,6 +379,7 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
                 tick={{ fontSize: 12 }}
                 angle={-45}
                 textAnchor="end"
+                height={60}
               />
               <YAxis tick={{ fontSize: 12 }} />
               <Tooltip 
@@ -409,6 +398,37 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
                 fillOpacity={0.8}
               />
               <Scatter dataKey={dataKey} fill="#ec4899" />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </TabsContent>
+        
+        {/* Composed Chart */}
+        <TabsContent value="composed" className="h-full mt-0">
+          <ResponsiveContainer width="100%" height="100%">
+            <ComposedChart
+              data={processedData}
+              margin={{ top: 20, right: 20, bottom: 60, left: 20 }}
+            >
+              <CartesianGrid stroke="#f5f5f5" />
+              <XAxis 
+                dataKey={nameKey} 
+                scale="band" 
+                tick={{ fontSize: 12 }}
+                angle={-45}
+                textAnchor="end"
+                height={60}
+              />
+              <YAxis tick={{ fontSize: 12 }} />
+              <Tooltip 
+                contentStyle={{ 
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                  border: 'none'
+                }} 
+              />
+              <Legend />
+              <Bar dataKey={dataKey} barSize={20} fill="#6366f1" />
+              <Line type="monotone" dataKey={dataKey} stroke="#8b5cf6" />
             </ComposedChart>
           </ResponsiveContainer>
         </TabsContent>

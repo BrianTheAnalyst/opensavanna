@@ -63,10 +63,20 @@ const DatasetVisualize = () => {
             throw new Error("Failed to generate visualization data");
           }
           
-          setVisualizationData(sampleData);
+          // Ensure data is in the correct format for visualizations
+          const formattedData = sampleData.map(item => {
+            // Make sure each item has at least name and value properties
+            return {
+              name: item.name || 'Unknown',
+              value: typeof item.value === 'number' ? item.value : 0,
+              ...item // Keep other properties
+            };
+          });
+          
+          setVisualizationData(formattedData);
           
           // Generate insights based on the data
-          const generatedInsights = generateInsights(sampleData, datasetData.category, datasetData.title);
+          const generatedInsights = generateInsights(formattedData, datasetData.category, datasetData.title);
           setInsights(generatedInsights);
 
           toast.success("Insights generated from your dataset");
@@ -74,11 +84,19 @@ const DatasetVisualize = () => {
           console.error("Error processing dataset file:", dataError);
           // Fall back to sample data
           const fallbackData = generateSampleData(datasetData.category, datasetData.title);
-          console.log("Using fallback data (file error):", fallbackData);
-          setVisualizationData(fallbackData);
+          
+          // Ensure fallback data is properly formatted
+          const formattedFallbackData = fallbackData.map(item => ({
+            name: item.name || 'Unknown',
+            value: typeof item.value === 'number' ? item.value : 0,
+            ...item
+          }));
+          
+          console.log("Using fallback data (file error):", formattedFallbackData);
+          setVisualizationData(formattedFallbackData);
           
           // Generate insights based on the fallback data
-          const generatedInsights = generateInsights(fallbackData, datasetData.category, datasetData.title);
+          const generatedInsights = generateInsights(formattedFallbackData, datasetData.category, datasetData.title);
           setInsights(generatedInsights);
           
           toast.info("Using sample data for visualization as the actual dataset file couldn't be processed");
@@ -86,16 +104,24 @@ const DatasetVisualize = () => {
       } else {
         // If no file exists, use fallback data based on category
         const fallbackData = generateSampleData(datasetData.category, datasetData.title);
-        console.log("Using fallback data (no file):", fallbackData);
         
-        if (!fallbackData || fallbackData.length === 0) {
+        // Ensure fallback data is properly formatted
+        const formattedFallbackData = fallbackData.map(item => ({
+          name: item.name || 'Unknown',
+          value: typeof item.value === 'number' ? item.value : 0,
+          ...item
+        }));
+        
+        console.log("Using fallback data (no file):", formattedFallbackData);
+        
+        if (!formattedFallbackData || formattedFallbackData.length === 0) {
           throw new Error("Failed to generate fallback visualization data");
         }
         
-        setVisualizationData(fallbackData);
+        setVisualizationData(formattedFallbackData);
         
         // Generate insights based on the fallback data
-        const generatedInsights = generateInsights(fallbackData, datasetData.category, datasetData.title);
+        const generatedInsights = generateInsights(formattedFallbackData, datasetData.category, datasetData.title);
         setInsights(generatedInsights);
         
         toast.info("Using sample data for visualization as no dataset file is available");
@@ -104,7 +130,16 @@ const DatasetVisualize = () => {
       console.error("Error fetching dataset for visualization:", error);
       setError(error?.message || "Failed to load visualization data");
       toast.error("Failed to load visualization data");
-      setVisualizationData(null);
+      
+      // Provide default data even in case of error to prevent component rendering issues
+      const defaultData = [
+        { name: 'Sample 1', value: 200 },
+        { name: 'Sample 2', value: 300 },
+        { name: 'Sample 3', value: 400 },
+        { name: 'Sample 4', value: 500 },
+        { name: 'Sample 5', value: 600 }
+      ];
+      setVisualizationData(defaultData);
     } finally {
       setIsLoading(false);
     }

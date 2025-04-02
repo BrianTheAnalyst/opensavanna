@@ -75,7 +75,7 @@ const VisualizationTabs: React.FC<VisualizationTabsProps> = ({
             </>
           ) : !isDataValid ? (
             <div className="col-span-2">
-              <Alert variant="warning" className="mb-6">
+              <Alert variant="destructive" className="mb-6">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
                   Unable to generate detailed charts. The dataset may not contain visualization-friendly data.
@@ -134,7 +134,7 @@ const VisualizationTabs: React.FC<VisualizationTabsProps> = ({
           {isLoading ? (
             <Skeleton className="h-96 w-full rounded-lg" />
           ) : !isDataValid ? (
-            <Alert variant="warning" className="mb-6">
+            <Alert variant="destructive" className="mb-6">
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
                 Unable to generate advanced visualization. The dataset may not contain visualization-friendly data.
