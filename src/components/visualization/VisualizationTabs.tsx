@@ -1,9 +1,11 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dataset } from '@/types/dataset';
 import { BarChart3, FileText, LineChart, PieChart, AlertTriangle } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import InsightDashboard from '@/components/InsightDashboard';
 import AdvancedVisualization from '@/components/AdvancedVisualization';
 import Visualization from '@/components/Visualization';
@@ -29,9 +31,23 @@ const VisualizationTabs: React.FC<VisualizationTabsProps> = ({
 }) => {
   // Validate data before rendering
   const isDataValid = Array.isArray(visualizationData) && visualizationData.length > 0;
+  const [activeTab, setActiveTab] = useState<string>(analysisMode);
+  
+  // Ensure the tabs stay in sync with the parent component's analysisMode
+  useEffect(() => {
+    setActiveTab(analysisMode);
+  }, [analysisMode]);
+
+  // Handle tab change and update parent's analysisMode
+  const handleTabChange = (value: string) => {
+    const mode = value as 'overview' | 'detailed' | 'advanced';
+    setActiveTab(value);
+    setAnalysisMode(mode);
+    toast.info(`Switched to ${value} visualization mode`);
+  };
   
   return (
-    <Tabs value={analysisMode} onValueChange={(v) => setAnalysisMode(v as any)} className="mb-6">
+    <Tabs value={activeTab} onValueChange={handleTabChange} className="mb-6">
       <TabsList className="glass">
         <TabsTrigger value="overview" className="flex items-center">
           <BarChart3 className="h-4 w-4 mr-2" />
@@ -81,6 +97,13 @@ const VisualizationTabs: React.FC<VisualizationTabsProps> = ({
                   Unable to generate detailed charts. The dataset may not contain visualization-friendly data.
                 </AlertDescription>
               </Alert>
+              <Button 
+                onClick={() => setAnalysisMode('overview')} 
+                variant="outline" 
+                className="mt-4"
+              >
+                Return to Overview
+              </Button>
             </div>
           ) : (
             <>
@@ -134,12 +157,21 @@ const VisualizationTabs: React.FC<VisualizationTabsProps> = ({
           {isLoading ? (
             <Skeleton className="h-96 w-full rounded-lg" />
           ) : !isDataValid ? (
-            <Alert variant="destructive" className="mb-6">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>
-                Unable to generate advanced visualization. The dataset may not contain visualization-friendly data.
-              </AlertDescription>
-            </Alert>
+            <div>
+              <Alert variant="destructive" className="mb-6">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  Unable to generate advanced visualization. The dataset may not contain visualization-friendly data.
+                </AlertDescription>
+              </Alert>
+              <Button 
+                onClick={() => setAnalysisMode('overview')} 
+                variant="outline" 
+                className="mt-4"
+              >
+                Return to Overview
+              </Button>
+            </div>
           ) : (
             <AdvancedVisualization 
               dataset={dataset}

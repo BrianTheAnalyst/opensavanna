@@ -3,6 +3,7 @@ import React from 'react';
 import { AlertTriangle, FileText, Upload, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
 
 interface NoVisualizationDataProps {
   onRetry?: () => void;
@@ -13,6 +14,13 @@ const NoVisualizationData: React.FC<NoVisualizationDataProps> = ({
   onRetry,
   error
 }) => {
+  const handleRetry = () => {
+    toast.info('Retrying visualization loading...');
+    if (onRetry) {
+      onRetry();
+    }
+  };
+
   return (
     <div className="glass border border-border/50 rounded-xl p-6 mb-6">
       <div className="flex items-start">
@@ -44,7 +52,7 @@ const NoVisualizationData: React.FC<NoVisualizationDataProps> = ({
           <div className="mt-6 flex flex-wrap gap-3">
             {onRetry && (
               <Button 
-                onClick={onRetry} 
+                onClick={handleRetry} 
                 className="flex items-center" 
                 variant="secondary" 
                 size="sm"
