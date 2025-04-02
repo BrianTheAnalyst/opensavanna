@@ -27,6 +27,7 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
   const [nameKey, setNameKey] = useState('name');
   const [isDataReady, setIsDataReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [processedData, setProcessedData] = useState<any[]>([]);
   
   // Process the data when it changes
   useEffect(() => {
@@ -45,11 +46,13 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
           throw new Error("Data items are missing required properties");
         }
         
+        // Store the processed data
+        setProcessedData(data);
         setIsDataReady(true);
         setError(null);
         
         // Set default visualization type based on data
-        if (isTimeSeriesData()) {
+        if (isTimeSeriesData(data)) {
           setSelectedTab('line');
         } else if (data.length <= 5) {
           setSelectedTab('pie');
@@ -58,12 +61,12 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
         }
         
         // Update default keys based on data
-        const keys = getDataKeys();
+        const keys = getDataKeys(data);
         if (keys.length > 0) {
           setDataKey(keys[0]);
         }
         
-        const names = getNameKeys();
+        const names = getNameKeys(data);
         if (names.length > 0) {
           setNameKey(names[0]);
         }
@@ -71,30 +74,34 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
         console.log("Invalid or empty data for Advanced Visualization:", data);
         setIsDataReady(false);
         setError("No valid data available for visualization");
+        // Set fallback data
+        setProcessedData(getFallbackData());
       }
     } catch (err: any) {
       console.error("Error processing visualization data:", err);
       setError(err.message || "Failed to process visualization data");
       setIsDataReady(false);
+      // Set fallback data
+      setProcessedData(getFallbackData());
     }
   }, [data]);
   
   // Available data keys from the first data item
-  const getDataKeys = () => {
-    if (data && data.length > 0) {
-      return Object.keys(data[0]).filter(key => 
-        typeof data[0][key] === 'number' || 
-        !isNaN(Number(data[0][key]))
+  const getDataKeys = (dataArray: any[] = processedData) => {
+    if (dataArray && dataArray.length > 0) {
+      return Object.keys(dataArray[0]).filter(key => 
+        typeof dataArray[0][key] === 'number' || 
+        !isNaN(Number(dataArray[0][key]))
       );
     }
     return ['value'];
   };
   
   // Available name keys from the first data item
-  const getNameKeys = () => {
-    if (data && data.length > 0) {
-      return Object.keys(data[0]).filter(key => 
-        typeof data[0][key] === 'string' && 
+  const getNameKeys = (dataArray: any[] = processedData) => {
+    if (dataArray && dataArray.length > 0) {
+      return Object.keys(dataArray[0]).filter(key => 
+        typeof dataArray[0][key] === 'string' && 
         key !== dataKey
       );
     }
@@ -102,10 +109,10 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
   };
   
   // Determine if the data is suitable for time series visualization
-  const isTimeSeriesData = () => {
-    if (data && data.length > 0) {
+  const isTimeSeriesData = (dataArray: any[] = processedData) => {
+    if (dataArray && dataArray.length > 0) {
       // Check if the first item has a date-like string property
-      const firstItem = data[0];
+      const firstItem = dataArray[0];
       return Object.keys(firstItem).some(key => {
         const value = firstItem[key];
         return typeof value === 'string' && 
@@ -119,20 +126,27 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
   };
 
   // Fallback data if no data is provided
-  const fallbackData = [
-    { name: 'Category A', value: 400 },
-    { name: 'Category B', value: 300 },
-    { name: 'Category C', value: 200 },
-    { name: 'Category D', value: 500 },
-    { name: 'Category E', value: 350 }
-  ];
+  const getFallbackData = () => {
+    return [
+      { name: 'Category A', value: 400 },
+      { name: 'Category B', value: 300 },
+      { name: 'Category C', value: 200 },
+      { name: 'Category D', value: 500 },
+      { name: 'Category E', value: 350 }
+    ];
+  };
 
-  // Use valid data or fallback
-  const displayData = (isDataReady && data && data.length > 0) ? data : fallbackData;
+  // Use processed data
+  const displayData = processedData;
 
-  if (!isDataReady) {
-    console.log("Using fallback data for visualization");
-  }
+  // Log the current state for debugging
+  console.log("Current state:", { 
+    selectedTab, 
+    dataKey, 
+    nameKey, 
+    isDataReady, 
+    displayData
+  });
 
   return (
     <div className="glass border border-border/50 rounded-xl p-6">
@@ -153,7 +167,7 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="flex-1">
           <p className="text-sm font-medium mb-2">Select Visualization Type</p>
-          <Tabs value={selectedTab} onValueChange={setSelectedTab}>
+          <Tabs defaultValue={selectedTab} value={selectedTab} onValueChange={setSelectedTab}>
             <TabsList className="glass grid grid-cols-3 lg:grid-cols-6">
               <TabsTrigger value="composed">Combined</TabsTrigger>
               <TabsTrigger value="line">Line</TabsTrigger>
@@ -197,6 +211,7 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
       </div>
       
       <div className="h-96 mb-4">
+        {/* Composed Chart */}
         <TabsContent value="composed" className="h-full mt-0">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
@@ -226,6 +241,7 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
           </ResponsiveContainer>
         </TabsContent>
         
+        {/* Line Chart */}
         <TabsContent value="line" className="h-full mt-0">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
@@ -266,6 +282,7 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
           </ResponsiveContainer>
         </TabsContent>
         
+        {/* Bar Chart */}
         <TabsContent value="bar" className="h-full mt-0">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
@@ -301,6 +318,7 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
           </ResponsiveContainer>
         </TabsContent>
         
+        {/* Pie Chart */}
         <TabsContent value="pie" className="h-full mt-0">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
@@ -334,6 +352,7 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
           </ResponsiveContainer>
         </TabsContent>
         
+        {/* Radar Chart */}
         <TabsContent value="radar" className="h-full mt-0">
           <ResponsiveContainer width="100%" height="100%">
             <RadarChart cx="50%" cy="50%" outerRadius="80%" data={displayData}>
@@ -359,6 +378,7 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
           </ResponsiveContainer>
         </TabsContent>
         
+        {/* Area Chart */}
         <TabsContent value="area" className="h-full mt-0">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart

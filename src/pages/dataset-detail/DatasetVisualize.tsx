@@ -57,7 +57,7 @@ const DatasetVisualize = () => {
           // In a real implementation, you would fetch and parse the actual file
           const sampleData = generateSampleData(datasetData.category, datasetData.title);
           
-          console.log("Visualization data:", sampleData);
+          console.log("Visualization data (from file):", sampleData);
           
           if (!sampleData || sampleData.length === 0) {
             throw new Error("Failed to generate visualization data");
@@ -74,6 +74,7 @@ const DatasetVisualize = () => {
           console.error("Error processing dataset file:", dataError);
           // Fall back to sample data
           const fallbackData = generateSampleData(datasetData.category, datasetData.title);
+          console.log("Using fallback data (file error):", fallbackData);
           setVisualizationData(fallbackData);
           
           // Generate insights based on the fallback data
@@ -85,6 +86,7 @@ const DatasetVisualize = () => {
       } else {
         // If no file exists, use fallback data based on category
         const fallbackData = generateSampleData(datasetData.category, datasetData.title);
+        console.log("Using fallback data (no file):", fallbackData);
         
         if (!fallbackData || fallbackData.length === 0) {
           throw new Error("Failed to generate fallback visualization data");
@@ -124,12 +126,17 @@ const DatasetVisualize = () => {
   if (!visualizationData || !dataset) {
     return <NoVisualizationData onRetry={handleRetry} error={error || undefined} />;
   }
+
+  // Make sure we always have an array of data objects with at least name and value properties
+  const processedData = Array.isArray(visualizationData) && visualizationData.length > 0
+    ? visualizationData
+    : [{ name: 'No Data', value: 0 }];
   
   return (
     <>
       <VisualizationContainer 
         dataset={dataset}
-        visualizationData={visualizationData}
+        visualizationData={processedData}
         insights={insights}
         analysisMode={analysisMode}
         setAnalysisMode={setAnalysisMode}
