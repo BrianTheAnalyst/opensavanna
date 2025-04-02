@@ -1,12 +1,14 @@
 
 import React from 'react';
 import { Dataset } from '@/types/dataset';
-import { BarChart3, FileText, LineChart, PieChart } from 'lucide-react';
+import { BarChart3, FileText, LineChart, PieChart, AlertTriangle } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import InsightDashboard from '@/components/InsightDashboard';
 import AdvancedVisualization from '@/components/AdvancedVisualization';
 import Visualization from '@/components/Visualization';
 import { generateCategoryData, generateTimeSeriesData } from '@/utils/datasetVisualizationUtils';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface VisualizationTabsProps {
   dataset: Dataset;
@@ -14,6 +16,7 @@ interface VisualizationTabsProps {
   insights: string[];
   analysisMode: 'overview' | 'detailed' | 'advanced';
   setAnalysisMode: (mode: 'overview' | 'detailed' | 'advanced') => void;
+  isLoading?: boolean;
 }
 
 const VisualizationTabs: React.FC<VisualizationTabsProps> = ({ 
@@ -21,8 +24,12 @@ const VisualizationTabs: React.FC<VisualizationTabsProps> = ({
   visualizationData, 
   insights, 
   analysisMode, 
-  setAnalysisMode 
+  setAnalysisMode,
+  isLoading = false
 }) => {
+  // Validate data before rendering
+  const isDataValid = Array.isArray(visualizationData) && visualizationData.length > 0;
+  
   return (
     <Tabs value={analysisMode} onValueChange={(v) => setAnalysisMode(v as any)} className="mb-6">
       <TabsList className="glass">
@@ -42,65 +49,103 @@ const VisualizationTabs: React.FC<VisualizationTabsProps> = ({
       
       <TabsContent value="overview">
         <div className="pt-4">
-          <InsightDashboard 
-            dataset={dataset} 
-            visualizationData={visualizationData} 
-            insights={insights} 
-          />
+          {isLoading ? (
+            <div className="space-y-4">
+              <Skeleton className="h-20 w-full rounded-lg" />
+              <Skeleton className="h-64 w-full rounded-lg" />
+            </div>
+          ) : (
+            <InsightDashboard 
+              dataset={dataset} 
+              visualizationData={visualizationData} 
+              insights={insights} 
+            />
+          )}
         </div>
       </TabsContent>
       
       <TabsContent value="detailed">
         <div className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Visualization 
-            data={visualizationData} 
-            title={`${dataset.title} - Overview`} 
-            description="Analysis of key metrics from your dataset"
-          />
-          
-          <Visualization 
-            data={generateTimeSeriesData(visualizationData, dataset.category)} 
-            title="Trend Analysis" 
-            description="Time-based progression of key metrics"
-          />
-          
-          <Visualization 
-            data={generateCategoryData(visualizationData, dataset.category)} 
-            title="Category Distribution" 
-            description="Distribution across different categories"
-          />
-          
-          <div className="glass border border-border/50 rounded-xl p-6">
-            <h3 className="text-lg font-medium mb-3">Key Insights</h3>
-            {insights.length > 0 ? (
-              <ul className="space-y-2">
-                {insights.slice(0, 5).map((insight, index) => (
-                  <li key={index} className="flex items-start">
-                    <span className="inline-block h-5 w-5 text-xs flex items-center justify-center rounded-full bg-primary/10 text-primary mr-2 mt-0.5">
-                      {index + 1}
-                    </span>
-                    <span>{insight}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-foreground/70">No insights available for this dataset</p>
-            )}
-            
-            <div className="flex items-center mt-4 pt-4 border-t border-border/50">
-              <FileText className="h-4 w-4 mr-2 text-primary" />
-              <span className="text-sm">Analysis based on {dataset.title}</span>
+          {isLoading ? (
+            <>
+              <Skeleton className="h-80 w-full rounded-lg" />
+              <Skeleton className="h-80 w-full rounded-lg" />
+              <Skeleton className="h-80 w-full rounded-lg" />
+              <Skeleton className="h-80 w-full rounded-lg" />
+            </>
+          ) : !isDataValid ? (
+            <div className="col-span-2">
+              <Alert variant="warning" className="mb-6">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  Unable to generate detailed charts. The dataset may not contain visualization-friendly data.
+                </AlertDescription>
+              </Alert>
             </div>
-          </div>
+          ) : (
+            <>
+              <Visualization 
+                data={visualizationData} 
+                title={`${dataset.title} - Overview`} 
+                description="Analysis of key metrics from your dataset"
+              />
+              
+              <Visualization 
+                data={generateTimeSeriesData(visualizationData, dataset.category)} 
+                title="Trend Analysis" 
+                description="Time-based progression of key metrics"
+              />
+              
+              <Visualization 
+                data={generateCategoryData(visualizationData, dataset.category)} 
+                title="Category Distribution" 
+                description="Distribution across different categories"
+              />
+              
+              <div className="glass border border-border/50 rounded-xl p-6">
+                <h3 className="text-lg font-medium mb-3">Key Insights</h3>
+                {insights.length > 0 ? (
+                  <ul className="space-y-2">
+                    {insights.slice(0, 5).map((insight, index) => (
+                      <li key={index} className="flex items-start">
+                        <span className="inline-block h-5 w-5 text-xs flex items-center justify-center rounded-full bg-primary/10 text-primary mr-2 mt-0.5">
+                          {index + 1}
+                        </span>
+                        <span>{insight}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-foreground/70">No insights available for this dataset</p>
+                )}
+                
+                <div className="flex items-center mt-4 pt-4 border-t border-border/50">
+                  <FileText className="h-4 w-4 mr-2 text-primary" />
+                  <span className="text-sm">Analysis based on {dataset.title}</span>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </TabsContent>
       
       <TabsContent value="advanced">
         <div className="pt-4">
-          <AdvancedVisualization 
-            dataset={dataset}
-            data={visualizationData}
-          />
+          {isLoading ? (
+            <Skeleton className="h-96 w-full rounded-lg" />
+          ) : !isDataValid ? (
+            <Alert variant="warning" className="mb-6">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                Unable to generate advanced visualization. The dataset may not contain visualization-friendly data.
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <AdvancedVisualization 
+              dataset={dataset}
+              data={visualizationData}
+            />
+          )}
         </div>
       </TabsContent>
     </Tabs>
