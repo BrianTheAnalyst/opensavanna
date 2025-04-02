@@ -8,6 +8,8 @@ import {
 import { Dataset } from '@/types/dataset';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
 
 interface AdvancedVisualizationProps {
   dataset: Dataset;
@@ -24,34 +26,55 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
   const [dataKey, setDataKey] = useState('value');
   const [nameKey, setNameKey] = useState('name');
   const [isDataReady, setIsDataReady] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
-  // Ensure we have valid data
+  // Process the data when it changes
   useEffect(() => {
-    if (data && Array.isArray(data) && data.length > 0) {
-      console.log("Advanced visualization data:", data);
-      setIsDataReady(true);
-      
-      // Set default visualization type based on data
-      if (isTimeSeriesData()) {
-        setSelectedTab('line');
-      } else if (data.length <= 5) {
-        setSelectedTab('pie');
+    try {
+      if (data && Array.isArray(data) && data.length > 0) {
+        console.log("Advanced visualization data:", data);
+        
+        // Validate that each data item has at least the necessary properties
+        const hasRequiredProps = data.every(item => 
+          typeof item === 'object' && 
+          item !== null && 
+          Object.keys(item).length > 0
+        );
+        
+        if (!hasRequiredProps) {
+          throw new Error("Data items are missing required properties");
+        }
+        
+        setIsDataReady(true);
+        setError(null);
+        
+        // Set default visualization type based on data
+        if (isTimeSeriesData()) {
+          setSelectedTab('line');
+        } else if (data.length <= 5) {
+          setSelectedTab('pie');
+        } else {
+          setSelectedTab('composed');
+        }
+        
+        // Update default keys based on data
+        const keys = getDataKeys();
+        if (keys.length > 0) {
+          setDataKey(keys[0]);
+        }
+        
+        const names = getNameKeys();
+        if (names.length > 0) {
+          setNameKey(names[0]);
+        }
       } else {
-        setSelectedTab('composed');
+        console.log("Invalid or empty data for Advanced Visualization:", data);
+        setIsDataReady(false);
+        setError("No valid data available for visualization");
       }
-      
-      // Update default keys based on data
-      const keys = getDataKeys();
-      if (keys.length > 0 && keys[0] !== dataKey) {
-        setDataKey(keys[0]);
-      }
-      
-      const names = getNameKeys();
-      if (names.length > 0 && names[0] !== nameKey) {
-        setNameKey(names[0]);
-      }
-    } else {
-      console.log("Invalid or empty data for Advanced Visualization:", data);
+    } catch (err: any) {
+      console.error("Error processing visualization data:", err);
+      setError(err.message || "Failed to process visualization data");
       setIsDataReady(false);
     }
   }, [data]);
@@ -59,7 +82,10 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
   // Available data keys from the first data item
   const getDataKeys = () => {
     if (data && data.length > 0) {
-      return Object.keys(data[0]).filter(key => typeof data[0][key] === 'number');
+      return Object.keys(data[0]).filter(key => 
+        typeof data[0][key] === 'number' || 
+        !isNaN(Number(data[0][key]))
+      );
     }
     return ['value'];
   };
@@ -67,7 +93,10 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
   // Available name keys from the first data item
   const getNameKeys = () => {
     if (data && data.length > 0) {
-      return Object.keys(data[0]).filter(key => typeof data[0][key] === 'string');
+      return Object.keys(data[0]).filter(key => 
+        typeof data[0][key] === 'string' && 
+        key !== dataKey
+      );
     }
     return ['name'];
   };
@@ -111,6 +140,15 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
       <p className="text-foreground/70 mb-4">
         Interactive data visualization with multiple view options
       </p>
+      
+      {error && (
+        <Alert variant="warning" className="mb-4">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            {error} - Using sample data for demonstration.
+          </AlertDescription>
+        </Alert>
+      )}
       
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="flex-1">

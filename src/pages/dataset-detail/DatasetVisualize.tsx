@@ -44,25 +44,44 @@ const DatasetVisualize = () => {
         throw new Error(datasetError.message);
       }
       
+      if (!datasetData) {
+        throw new Error("Dataset not found");
+      }
+      
       setDataset(datasetData);
       
       // Attempt to fetch the actual data if a file exists
       if (datasetData.file) {
-        // For demonstration, we'll use sample data based on the dataset category
-        // In a real implementation, you would fetch and parse the actual file
-        const sampleData = generateSampleData(datasetData.category, datasetData.title);
-        
-        if (!sampleData || sampleData.length === 0) {
-          throw new Error("Failed to generate visualization data");
-        }
-        
-        setVisualizationData(sampleData);
-        
-        // Generate insights based on the data
-        const generatedInsights = generateInsights(sampleData, datasetData.category, datasetData.title);
-        setInsights(generatedInsights);
+        try {
+          // For demonstration, we'll use sample data based on the dataset category
+          // In a real implementation, you would fetch and parse the actual file
+          const sampleData = generateSampleData(datasetData.category, datasetData.title);
+          
+          console.log("Visualization data:", sampleData);
+          
+          if (!sampleData || sampleData.length === 0) {
+            throw new Error("Failed to generate visualization data");
+          }
+          
+          setVisualizationData(sampleData);
+          
+          // Generate insights based on the data
+          const generatedInsights = generateInsights(sampleData, datasetData.category, datasetData.title);
+          setInsights(generatedInsights);
 
-        toast.success("Insights generated from your dataset");
+          toast.success("Insights generated from your dataset");
+        } catch (dataError: any) {
+          console.error("Error processing dataset file:", dataError);
+          // Fall back to sample data
+          const fallbackData = generateSampleData(datasetData.category, datasetData.title);
+          setVisualizationData(fallbackData);
+          
+          // Generate insights based on the fallback data
+          const generatedInsights = generateInsights(fallbackData, datasetData.category, datasetData.title);
+          setInsights(generatedInsights);
+          
+          toast.info("Using sample data for visualization as the actual dataset file couldn't be processed");
+        }
       } else {
         // If no file exists, use fallback data based on category
         const fallbackData = generateSampleData(datasetData.category, datasetData.title);
@@ -77,7 +96,7 @@ const DatasetVisualize = () => {
         const generatedInsights = generateInsights(fallbackData, datasetData.category, datasetData.title);
         setInsights(generatedInsights);
         
-        toast.info("Using sample data for visualization as the actual dataset file couldn't be processed");
+        toast.info("Using sample data for visualization as no dataset file is available");
       }
     } catch (error: any) {
       console.error("Error fetching dataset for visualization:", error);
@@ -115,6 +134,7 @@ const DatasetVisualize = () => {
         analysisMode={analysisMode}
         setAnalysisMode={setAnalysisMode}
         error={error || undefined}
+        isLoading={false}
       />
       
       <VisualizationAbout dataset={dataset} />
