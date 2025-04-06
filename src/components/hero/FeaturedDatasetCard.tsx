@@ -30,7 +30,7 @@ const FeaturedDatasetCard = ({ isLoaded }: FeaturedDatasetCardProps) => {
           .select('*')
           .eq('featured', true)
           .limit(1)
-          .single();
+          .maybeSingle();
           
         // If no featured dataset, get the most downloaded one
         if (!featured) {
@@ -39,7 +39,7 @@ const FeaturedDatasetCard = ({ isLoaded }: FeaturedDatasetCardProps) => {
             .select('*')
             .order('downloads', { ascending: false })
             .limit(1)
-            .single();
+            .maybeSingle();
             
           if (popular) {
             setFeaturedDataset(popular);
@@ -48,15 +48,14 @@ const FeaturedDatasetCard = ({ isLoaded }: FeaturedDatasetCardProps) => {
           setFeaturedDataset(featured);
         }
         
-        // Get count of health datasets for the floating card
-        const { count } = await supabase
+        // Get count of health datasets
+        const { data } = await supabase
           .from('datasets')
-          .select('*', { count: 'exact', head: true })
+          .select('*')
           .eq('category', 'Health');
           
-        if (count !== null) {
-          setHealthCount(count);
-        }
+        // Count manually
+        setHealthCount(data?.length || 0);
       } catch (error) {
         console.error('Error fetching featured dataset:', error);
       }

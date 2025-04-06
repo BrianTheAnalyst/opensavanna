@@ -21,15 +21,22 @@ const HeroStats = ({ isLoaded }: HeroStatsProps) => {
           .from('datasets')
           .select('*', { count: 'exact', head: true });
         
-        // Get the number of unique categories
+        // Get distinct categories - using a different approach since .distinct() isn't available
         const { data: categoryData } = await supabase
           .from('datasets')
-          .select('category')
-          .distinct();
+          .select('category');
+        
+        // Count unique categories manually using a Set
+        const uniqueCategories = new Set();
+        categoryData?.forEach(item => {
+          if (item.category) {
+            uniqueCategories.add(item.category);
+          }
+        });
         
         setStats({
           datasets: datasetCount || 0,
-          categories: categoryData?.length || 0
+          categories: uniqueCategories.size
         });
       } catch (error) {
         console.error('Error fetching stats:', error);
