@@ -13,16 +13,35 @@ import {
   generateInsights 
 } from '@/utils/datasetVisualizationUtils';
 
-const DatasetVisualize = () => {
+interface DatasetVisualizeProps {
+  datasetProp?: Dataset;
+  visualizationDataProp?: any[];
+}
+
+const DatasetVisualize: React.FC<DatasetVisualizeProps> = ({ datasetProp, visualizationDataProp }) => {
   const { id } = useParams();
-  const [dataset, setDataset] = useState<Dataset | null>(null);
-  const [visualizationData, setVisualizationData] = useState<any[] | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [dataset, setDataset] = useState<Dataset | null>(datasetProp || null);
+  const [visualizationData, setVisualizationData] = useState<any[] | null>(visualizationDataProp || null);
+  const [isLoading, setIsLoading] = useState(!datasetProp);
   const [error, setError] = useState<string | null>(null);
   const [insights, setInsights] = useState<string[]>([]);
   const [analysisMode, setAnalysisMode] = useState<'overview' | 'detailed' | 'advanced'>('overview');
 
   const fetchDatasetAndVisualize = useCallback(async () => {
+    // Skip fetching if data was passed as prop
+    if (datasetProp && visualizationDataProp) {
+      try {
+        // Still generate insights based on provided data
+        const generatedInsights = generateInsights(visualizationDataProp, datasetProp.category, datasetProp.title);
+        setInsights(generatedInsights);
+        setIsLoading(false);
+        return;
+      } catch (err: any) {
+        console.error("Error processing provided visualization data:", err);
+        // Continue with normal flow if there was an error
+      }
+    }
+
     if (!id) {
       setError("Dataset ID is missing");
       setIsLoading(false);
@@ -143,7 +162,7 @@ const DatasetVisualize = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [id]);
+  }, [id, datasetProp, visualizationDataProp]);
   
   useEffect(() => {
     fetchDatasetAndVisualize();

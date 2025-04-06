@@ -47,6 +47,26 @@ const DatasetDetail = () => {
     if (!id) return;
     await downloadDataset(id);
   };
+
+  // Handle tab change with history state
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    // Update URL without full page reload
+    window.history.pushState(
+      { tab: value },
+      '',
+      `${window.location.pathname}?tab=${value}`
+    );
+  };
+  
+  // Sync with URL parameters when page loads
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tabParam = params.get('tab');
+    if (tabParam && ['overview', 'metadata', 'visualize', 'api'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, []);
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -65,7 +85,7 @@ const DatasetDetail = () => {
                 handleDownload={handleDownload} 
               />
               
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8 animate-fade-in">
+              <Tabs value={activeTab} onValueChange={handleTabChange} className="mb-8 animate-fade-in">
                 <TabsList className="mb-6 glass w-full justify-start">
                   <TabsTrigger value="overview">Overview</TabsTrigger>
                   <TabsTrigger value="metadata">Metadata</TabsTrigger>
@@ -82,7 +102,7 @@ const DatasetDetail = () => {
                 </TabsContent>
                 
                 <TabsContent value="visualize" className="animate-slide-up">
-                  <DatasetVisualize />
+                  <DatasetVisualize datasetProp={dataset} visualizationDataProp={visData} />
                 </TabsContent>
                 
                 <TabsContent value="api" className="animate-slide-up">

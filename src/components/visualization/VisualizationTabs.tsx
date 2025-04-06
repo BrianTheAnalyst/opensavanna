@@ -32,6 +32,21 @@ const VisualizationTabs: React.FC<VisualizationTabsProps> = ({
   // Validate data before rendering
   const isDataValid = Array.isArray(visualizationData) && visualizationData.length > 0;
   const [activeTab, setActiveTab] = useState<string>(analysisMode);
+  const [isMobile, setIsMobile] = useState(false);
+  
+  // Check viewport width for responsive design
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkIfMobile();
+    window.addEventListener('resize', checkIfMobile);
+    
+    return () => {
+      window.removeEventListener('resize', checkIfMobile);
+    };
+  }, []);
   
   // Ensure the tabs stay in sync with the parent component's analysisMode
   useEffect(() => {
@@ -48,18 +63,18 @@ const VisualizationTabs: React.FC<VisualizationTabsProps> = ({
   
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange} className="mb-6">
-      <TabsList className="glass">
+      <TabsList className={`glass ${isMobile ? 'grid grid-cols-3 w-full' : ''}`}>
         <TabsTrigger value="overview" className="flex items-center">
           <BarChart3 className="h-4 w-4 mr-2" />
-          Overview Analysis
+          {!isMobile && "Overview Analysis"}
         </TabsTrigger>
         <TabsTrigger value="detailed" className="flex items-center">
           <PieChart className="h-4 w-4 mr-2" />
-          Detailed Charts
+          {!isMobile && "Detailed Charts"}
         </TabsTrigger>
         <TabsTrigger value="advanced" className="flex items-center">
           <LineChart className="h-4 w-4 mr-2" />
-          Advanced Visualization
+          {!isMobile && "Advanced Visualization"}
         </TabsTrigger>
       </TabsList>
       
@@ -107,25 +122,31 @@ const VisualizationTabs: React.FC<VisualizationTabsProps> = ({
             </div>
           ) : (
             <>
-              <Visualization 
-                data={visualizationData} 
-                title={`${dataset.title} - Overview`} 
-                description="Analysis of key metrics from your dataset"
-              />
+              <div className={isMobile ? "col-span-1" : ""}>
+                <Visualization 
+                  data={visualizationData} 
+                  title={`${dataset.title} - Overview`} 
+                  description="Analysis of key metrics from your dataset"
+                />
+              </div>
               
-              <Visualization 
-                data={generateTimeSeriesData(visualizationData, dataset.category)} 
-                title="Trend Analysis" 
-                description="Time-based progression of key metrics"
-              />
+              <div className={isMobile ? "col-span-1" : ""}>
+                <Visualization 
+                  data={generateTimeSeriesData(visualizationData, dataset.category)} 
+                  title="Trend Analysis" 
+                  description="Time-based progression of key metrics"
+                />
+              </div>
               
-              <Visualization 
-                data={generateCategoryData(visualizationData, dataset.category)} 
-                title="Category Distribution" 
-                description="Distribution across different categories"
-              />
+              <div className={isMobile ? "col-span-1" : ""}>
+                <Visualization 
+                  data={generateCategoryData(visualizationData, dataset.category)} 
+                  title="Category Distribution" 
+                  description="Distribution across different categories"
+                />
+              </div>
               
-              <div className="glass border border-border/50 rounded-xl p-6">
+              <div className={`glass border border-border/50 rounded-xl p-6 ${isMobile ? "col-span-1" : ""}`}>
                 <h3 className="text-lg font-medium mb-3">Key Insights</h3>
                 {insights.length > 0 ? (
                   <ul className="space-y-2">

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   ResponsiveContainer, ComposedChart, Bar, Line, Area, XAxis, YAxis, 
   CartesianGrid, Tooltip, Legend, Scatter, Cell, PieChart, Pie, Radar, 
@@ -10,6 +10,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
+import { Pagination } from "@/components/ui/pagination"
+import { Button } from "@/components/ui/button"
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react"
 
 interface AdvancedVisualizationProps {
   dataset: Dataset;
@@ -21,6 +29,9 @@ const COLORS = [
   '#f43f5e', '#f97316', '#eab308', '#22c55e', '#06b6d4'
 ];
 
+// Number of items to show per page
+const ITEMS_PER_PAGE = 15;
+
 const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) => {
   const [selectedTab, setSelectedTab] = useState('bar');
   const [dataKey, setDataKey] = useState('value');
@@ -28,6 +39,9 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
   const [isDataReady, setIsDataReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [processedData, setProcessedData] = useState<any[]>([]);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
   
   // Ensure we have valid data at initialization
   useEffect(() => {
@@ -140,6 +154,32 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
       { name: 'Category E', value: 350 }
     ];
   };
+  
+  // Calculate total pages
+  const totalPages = Math.ceil(processedData.length / ITEMS_PER_PAGE);
+  
+  // Get current items for pagination
+  const getCurrentItems = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    // Only apply pagination for bar, line, area and composed charts
+    // For pie and radar, we'll use the entire dataset but limit the number of items
+    if (['bar', 'line', 'area', 'composed'].includes(selectedTab)) {
+      return processedData.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    }
+    
+    // For pie and radar, limit to a reasonable number
+    if (['pie', 'radar'].includes(selectedTab)) {
+      // Show at most 10 items for pie/radar charts to avoid visual clutter
+      return processedData.slice(0, 10); 
+    }
+    
+    return processedData;
+  }, [processedData, currentPage, selectedTab]);
+  
+  // Reset to page 1 when changing visualization type
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedTab]);
 
   // Log the current state for debugging
   console.log("Current visualization state:", { 
@@ -147,7 +187,9 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
     dataKey, 
     nameKey, 
     isDataReady, 
-    processedData
+    currentPage,
+    totalItems: processedData.length,
+    currentItems: getCurrentItems.length
   });
 
   if (!isDataReady) {
@@ -231,7 +273,7 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
         <TabsContent value="bar" className="h-full mt-0">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
-              data={processedData}
+              data={getCurrentItems}
               margin={{ top: 20, right: 20, bottom: 60, left: 20 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
@@ -256,7 +298,7 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
                 fill="#6366f1" 
                 radius={[4, 4, 0, 0]}
               >
-                {processedData.map((entry, index) => (
+                {getCurrentItems.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Bar>
@@ -268,7 +310,7 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
         <TabsContent value="line" className="h-full mt-0">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
-              data={processedData}
+              data={getCurrentItems}
               margin={{ top: 20, right: 20, bottom: 60, left: 20 }}
             >
               <CartesianGrid stroke="#f5f5f5" />
@@ -296,12 +338,6 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
                 dot={{ r: 5, strokeWidth: 1 }}
                 activeDot={{ r: 7, strokeWidth: 1 }}
               />
-              <Area 
-                type="monotone"
-                dataKey={dataKey}
-                fill="#6366f130"
-                stroke="none"
-              />
             </ComposedChart>
           </ResponsiveContainer>
         </TabsContent>
@@ -311,7 +347,7 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
-                data={processedData}
+                data={getCurrentItems}
                 cx="50%"
                 cy="50%"
                 innerRadius={60}
@@ -324,7 +360,7 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
                 }
                 labelLine={false}
               >
-                {processedData.map((entry, index) => (
+                {getCurrentItems.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
@@ -343,7 +379,7 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
         {/* Radar Chart */}
         <TabsContent value="radar" className="h-full mt-0">
           <ResponsiveContainer width="100%" height="100%">
-            <RadarChart cx="50%" cy="50%" outerRadius="80%" data={processedData}>
+            <RadarChart cx="50%" cy="50%" outerRadius="80%" data={getCurrentItems}>
               <PolarGrid />
               <PolarAngleAxis dataKey={nameKey} />
               <PolarRadiusAxis angle={30} domain={[0, 'auto']} />
@@ -370,7 +406,7 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
         <TabsContent value="area" className="h-full mt-0">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
-              data={processedData}
+              data={getCurrentItems}
               margin={{ top: 20, right: 20, bottom: 60, left: 20 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
@@ -406,7 +442,7 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
         <TabsContent value="composed" className="h-full mt-0">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
-              data={processedData}
+              data={getCurrentItems}
               margin={{ top: 20, right: 20, bottom: 60, left: 20 }}
             >
               <CartesianGrid stroke="#f5f5f5" />
@@ -433,6 +469,80 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
           </ResponsiveContainer>
         </TabsContent>
       </div>
+      
+      {/* Pagination controls - only show for charts that support pagination */}
+      {['bar', 'line', 'area', 'composed'].includes(selectedTab) && processedData.length > ITEMS_PER_PAGE && (
+        <div className="flex items-center justify-between mt-4">
+          <p className="text-sm text-muted-foreground">
+            Showing {Math.min((currentPage - 1) * ITEMS_PER_PAGE + 1, processedData.length)} to {Math.min(currentPage * ITEMS_PER_PAGE, processedData.length)} of {processedData.length} entries
+          </p>
+          
+          <div className="flex items-center space-x-2">
+            <Pagination>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+              >
+                <ChevronsLeft className="h-4 w-4" />
+                <span className="sr-only">First</span>
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                <span className="sr-only">Previous</span>
+              </Button>
+              
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(3, totalPages) }, (_, i) => {
+                  const pageNumber = currentPage === 1 ? i + 1 : 
+                                     currentPage === totalPages ? totalPages - 2 + i : 
+                                     currentPage - 1 + i;
+                  
+                  if (pageNumber > 0 && pageNumber <= totalPages) {
+                    return (
+                      <Button
+                        key={pageNumber}
+                        variant={currentPage === pageNumber ? "default" : "outline"}
+                        size="icon"
+                        onClick={() => setCurrentPage(pageNumber)}
+                        className="w-8 h-8"
+                      >
+                        {pageNumber}
+                      </Button>
+                    );
+                  }
+                  return null;
+                })}
+              </div>
+              
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+              >
+                <ChevronRight className="h-4 w-4" />
+                <span className="sr-only">Next</span>
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages}
+              >
+                <ChevronsRight className="h-4 w-4" />
+                <span className="sr-only">Last</span>
+              </Button>
+            </Pagination>
+          </div>
+        </div>
+      )}
       
       <div className="text-xs text-muted-foreground mt-4">
         <p>This visualization is generated based on the data in {dataset.title}. Use the controls above to change the visualization type and data fields.</p>
