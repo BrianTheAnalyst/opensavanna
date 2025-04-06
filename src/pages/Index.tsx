@@ -8,80 +8,92 @@ import Hero from '@/components/Hero';
 import DatasetGrid from '@/components/DatasetGrid';
 import Visualization from '@/components/Visualization';
 import Footer from '@/components/Footer';
-
-// Sample datasets for demo
-const demoDatasets = [
-  {
-    id: '1',
-    title: 'Economic Indicators by Region',
-    description: 'Comprehensive collection of economic indicators across different regions including GDP, inflation, and employment rates.',
-    category: 'Economics',
-    format: 'CSV',
-    country: 'Global',
-    date: 'Updated June 2023',
-    downloads: 5248,
-    featured: true
-  },
-  {
-    id: '2',
-    title: 'Healthcare Facility Locations',
-    description: 'Geographic dataset of healthcare facilities including hospitals, clinics, and specialized care centers.',
-    category: 'Health',
-    format: 'GeoJSON',
-    country: 'South Africa',
-    date: 'Updated May 2023',
-    downloads: 3129
-  },
-  {
-    id: '3',
-    title: 'Public Transportation Usage',
-    description: 'Time series data showing public transportation usage patterns across major metropolitan areas.',
-    category: 'Transport',
-    format: 'JSON',
-    country: 'Nigeria',
-    date: 'Updated April 2023',
-    downloads: 2847
-  },
-  {
-    id: '4',
-    title: 'Agricultural Production Statistics',
-    description: 'Annual agricultural production statistics for major crops and livestock by region.',
-    category: 'Agriculture',
-    format: 'CSV',
-    country: 'Kenya',
-    date: 'Updated March 2023',
-    downloads: 2156
-  }
-];
-
-// Sample visualization data
-const sampleVisData = [
-  { name: 'Economics', value: 426 },
-  { name: 'Health', value: 348 },
-  { name: 'Transport', value: 276 },
-  { name: 'Agriculture', value: 219 },
-  { name: 'Education', value: 187 },
-  { name: 'Environment', value: 156 },
-  { name: 'Demographics', value: 98 }
-];
-
-const categories = [
-  { title: 'Economics', icon: PieChart, count: 426, description: 'GDP, inflation, trade, employment' },
-  { title: 'Health', icon: Map, count: 348, description: 'Healthcare facilities, disease data, health indicators' },
-  { title: 'Transport', icon: Map, count: 276, description: 'Public transport, road networks, traffic data' },
-  { title: 'Agriculture', icon: FileText, count: 219, description: 'Crop production, livestock, agricultural statistics' }
-];
+import { getDatasets } from '@/services/datasetService';
+import { Dataset } from '@/types/dataset';
+import { supabase } from '@/integrations/supabase/client';
 
 const Index = () => {
   const [isLoaded, setIsLoaded] = useState(false);
-  const [featuredDatasets, setFeaturedDatasets] = useState<any[]>([]);
+  const [featuredDatasets, setFeaturedDatasets] = useState<Dataset[]>([]);
+  const [visData, setVisData] = useState<any[]>([]);
+  const [categories, setCategories] = useState([
+    { title: 'Economics', icon: PieChart, count: 0, description: 'GDP, inflation, trade, employment' },
+    { title: 'Health', icon: Map, count: 0, description: 'Healthcare facilities, disease data, health indicators' },
+    { title: 'Transport', icon: Map, count: 0, description: 'Public transport, road networks, traffic data' },
+    { title: 'Agriculture', icon: FileText, count: 0, description: 'Crop production, livestock, agricultural statistics' }
+  ]);
   
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setFeaturedDatasets(demoDatasets);
-      setIsLoaded(true);
-    }, 500);
+    const fetchData = async () => {
+      try {
+        // Get datasets from the database
+        const datasets = await getDatasets();
+        
+        // Filter featured datasets - either tagged as featured or take the most recent ones
+        const featured = datasets.filter(d => d.featured).length > 0 
+          ? datasets.filter(d => d.featured)
+          : datasets.slice(0, 4);
+        
+        setFeaturedDatasets(featured);
+        
+        // Get category counts from the database
+        const { data: categoryCounts } = await supabase
+          .from('datasets')
+          .select('category, count')
+          .then(result => {
+            if (result.error) {
+              console.error('Error fetching category counts:', result.error);
+              return { data: null };
+            }
+            return result;
+          });
+        
+        // Generate visualization data based on actual categories in the database
+        const categoryData = categoryCounts ? categoryCounts : [];
+        
+        // If we have categories from the database, use them for visualization
+        if (categoryCounts && categoryCounts.length > 0) {
+          setVisData(
+            categoryCounts.map(item => ({
+              name: item.category,
+              value: parseInt(item.count)
+            }))
+          );
+        } else {
+          // If no categories or counts, fetch distinct categories and count them
+          const { data } = await supabase
+            .from('datasets')
+            .select('category');
+          
+          if (data) {
+            // Count occurrences of each category
+            const categoryMap = data.reduce((acc, item) => {
+              acc[item.category] = (acc[item.category] || 0) + 1;
+              return acc;
+            }, {} as Record<string, number>);
+            
+            // Convert to array format for visualization
+            const visDataArray = Object.entries(categoryMap).map(([name, value]) => ({ name, value }));
+            setVisData(visDataArray);
+            
+            // Update category counts in the UI
+            setCategories(prev => 
+              prev.map(cat => ({
+                ...cat,
+                count: categoryMap[cat.title.toLowerCase()] || 0
+              }))
+            );
+          }
+        }
+        
+        setIsLoaded(true);
+      } catch (error) {
+        console.error('Error loading homepage data:', error);
+        setIsLoaded(true);
+      }
+    };
+    
+    fetchData();
   }, []);
 
   return (
@@ -214,7 +226,7 @@ const Index = () => {
               
               <div className={`transition-all duration-700 delay-300 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
                 <Visualization 
-                  data={sampleVisData} 
+                  data={visData} 
                   title="Datasets by Category" 
                   description="Distribution of datasets across different categories in the platform."
                 />

@@ -1,13 +1,70 @@
 
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { PieChart, Layers, Search } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { supabase } from '@/integrations/supabase/client';
 
 interface FeaturedDatasetCardProps {
   isLoaded: boolean;
 }
 
 const FeaturedDatasetCard = ({ isLoaded }: FeaturedDatasetCardProps) => {
+  const [featuredDataset, setFeaturedDataset] = useState<any>({
+    id: '1',
+    title: 'Economic Indicators Dataset',
+    description: 'Comprehensive collection of economic indicators across different regions.',
+    category: 'Economics',
+    format: 'CSV',
+    date: 'Updated Weekly'
+  });
+  
+  const [healthCount, setHealthCount] = useState<number>(0);
+
+  useEffect(() => {
+    const fetchFeaturedData = async () => {
+      try {
+        // Try to get a featured dataset
+        const { data: featured } = await supabase
+          .from('datasets')
+          .select('*')
+          .eq('featured', true)
+          .limit(1)
+          .single();
+          
+        // If no featured dataset, get the most downloaded one
+        if (!featured) {
+          const { data: popular } = await supabase
+            .from('datasets')
+            .select('*')
+            .order('downloads', { ascending: false })
+            .limit(1)
+            .single();
+            
+          if (popular) {
+            setFeaturedDataset(popular);
+          }
+        } else {
+          setFeaturedDataset(featured);
+        }
+        
+        // Get count of health datasets for the floating card
+        const { count } = await supabase
+          .from('datasets')
+          .select('*', { count: 'exact', head: true })
+          .eq('category', 'Health');
+          
+        if (count !== null) {
+          setHealthCount(count);
+        }
+      } catch (error) {
+        console.error('Error fetching featured dataset:', error);
+      }
+    };
+    
+    fetchFeaturedData();
+  }, []);
+
   return (
     <div className={`relative transition-all duration-700 delay-300 transform ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
       <div className="relative z-10 border border-border/50 rounded-2xl p-6 shadow-lg bg-background">
@@ -16,8 +73,8 @@ const FeaturedDatasetCard = ({ isLoaded }: FeaturedDatasetCardProps) => {
         </div>
         
         <div className="mb-6">
-          <h3 className="text-lg font-medium mb-2">Economic Indicators Dataset</h3>
-          <p className="text-sm text-foreground/70">Comprehensive collection of economic indicators across different regions.</p>
+          <h3 className="text-lg font-medium mb-2">{featuredDataset.title}</h3>
+          <p className="text-sm text-foreground/70">{featuredDataset.description}</p>
         </div>
         
         <div className="relative h-48 bg-muted rounded-lg overflow-hidden mb-6">
@@ -29,12 +86,12 @@ const FeaturedDatasetCard = ({ isLoaded }: FeaturedDatasetCardProps) => {
         </div>
         
         <div className="flex flex-wrap gap-2 mb-4">
-          <span className="text-xs bg-secondary px-2 py-1 rounded-full">Economics</span>
-          <span className="text-xs bg-secondary px-2 py-1 rounded-full">CSV</span>
-          <span className="text-xs bg-secondary px-2 py-1 rounded-full">Updated Weekly</span>
+          <span className="text-xs bg-secondary px-2 py-1 rounded-full">{featuredDataset.category}</span>
+          <span className="text-xs bg-secondary px-2 py-1 rounded-full">{featuredDataset.format}</span>
+          <span className="text-xs bg-secondary px-2 py-1 rounded-full">{featuredDataset.date}</span>
         </div>
         
-        <Link to="/datasets/1">
+        <Link to={`/datasets/${featuredDataset.id}`}>
           <Button variant="outline" size="sm" className="w-full rounded-lg">
             View Dataset
           </Button>
@@ -48,7 +105,7 @@ const FeaturedDatasetCard = ({ isLoaded }: FeaturedDatasetCardProps) => {
           </div>
           <div>
             <h4 className="text-sm font-medium">Health Datasets</h4>
-            <p className="text-xs text-foreground/70">346 datasets available</p>
+            <p className="text-xs text-foreground/70">{healthCount} datasets available</p>
           </div>
         </div>
         <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
