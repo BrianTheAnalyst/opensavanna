@@ -12,6 +12,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import Datasets from "./pages/Datasets";
 import DatasetDetail from "./pages/dataset-detail";
+import DatasetEditPage from "./pages/dataset-edit";
 import UploadPage from "./pages/Upload";
 import Api from "./pages/Api";
 import About from "./pages/About";
@@ -40,6 +41,7 @@ const App = () => {
               <Route path="/" element={<Index />} />
               <Route path="/datasets" element={<Datasets />} />
               <Route path="/datasets/:id" element={<DatasetDetail />} />
+              <Route path="/datasets/edit/:id" element={<DatasetEditPage />} />
               <Route path="/upload" element={<UploadPage />} />
               <Route path="/api" element={<Api />} />
               <Route path="/about" element={<About />} />
