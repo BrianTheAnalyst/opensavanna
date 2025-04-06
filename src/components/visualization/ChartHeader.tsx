@@ -1,54 +1,61 @@
 
 import React from 'react';
-import { BarChart3, LineChart, PieChart, Download } from 'lucide-react';
-import { TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Download, BarChart3, LineChart, PieChart } from 'lucide-react';
 
 interface ChartHeaderProps {
   title?: string;
   description?: string;
   activeTab: string;
-  setActiveTab: (tab: string) => void;
-  onDownload: () => void;
+  setActiveTab: (value: string) => void;
+  onDownload?: () => void;
 }
 
-export const ChartHeader = ({
-  title,
+export const ChartHeader: React.FC<ChartHeaderProps> = ({
+  title = 'Visualization',
   description,
   activeTab,
   setActiveTab,
   onDownload
-}: ChartHeaderProps) => {
+}) => {
   return (
-    <div className="p-6 pb-0">
-      {title && <h3 className="text-xl font-medium mb-1">{title}</h3>}
-      {description && <p className="text-foreground/70 mb-4">{description}</p>}
-      
-      <div className="flex items-center justify-between mb-4">
-        <TabsList className="glass">
-          <TabsTrigger value="bar" className="flex items-center">
-            <BarChart3 className="h-4 w-4 mr-1" />
-            <span className="hidden sm:inline">Bar Chart</span>
-          </TabsTrigger>
-          <TabsTrigger value="line" className="flex items-center">
-            <LineChart className="h-4 w-4 mr-1" />
-            <span className="hidden sm:inline">Line Chart</span>
-          </TabsTrigger>
-          <TabsTrigger value="pie" className="flex items-center">
-            <PieChart className="h-4 w-4 mr-1" />
-            <span className="hidden sm:inline">Pie Chart</span>
-          </TabsTrigger>
-        </TabsList>
+    <div className="p-6 pb-2">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+        <div>
+          <h3 className="text-lg font-medium">{title}</h3>
+          {description && (
+            <p className="text-foreground/70 text-sm">{description}</p>
+          )}
+        </div>
         
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={onDownload}
-          className="text-xs"
-        >
-          <Download className="h-3 w-3 mr-1" />
-          Download Data
-        </Button>
+        <div className="flex items-center gap-2">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid grid-cols-3 h-8">
+              <TabsTrigger value="bar" className="p-1 px-2">
+                <BarChart3 className="h-4 w-4" />
+              </TabsTrigger>
+              <TabsTrigger value="line" className="p-1 px-2">
+                <LineChart className="h-4 w-4" />
+              </TabsTrigger>
+              <TabsTrigger value="pie" className="p-1 px-2">
+                <PieChart className="h-4 w-4" />
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+          
+          {onDownload && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-8 gap-1" 
+              onClick={onDownload}
+            >
+              <Download className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Data</span>
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );
