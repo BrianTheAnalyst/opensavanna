@@ -191,10 +191,10 @@ const VisualizationContainer: React.FC<VisualizationContainerProps> = ({
       <div className="border-t border-border/50 p-4 bg-muted/30">
         <div className="flex items-center justify-between">
           <div className="text-xs text-foreground/60">
-            Visualization based on {dataset.records || 'available'} records from {dataset.title}
+            Visualization based on {dataset.dataPoints || 'available'} records from {dataset.title}
           </div>
           <div className="text-xs text-foreground/60">
-            Last updated: {dataset.updated || 'Recently'}
+            Last updated: {dataset.date || 'Recently'}
           </div>
         </div>
       </div>
