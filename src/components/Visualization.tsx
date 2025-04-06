@@ -4,9 +4,7 @@ import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, 
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { BarChart3, LineChart as LineChartIcon, PieChart as PieChartIcon, Download } from 'lucide-react';
+import { TabsContent } from "@/components/ui/tabs";
 import { ChartHeader } from './visualization/ChartHeader';
 import { ChartFooter } from './visualization/ChartFooter';
 import { toast } from 'sonner';
@@ -92,6 +90,20 @@ const Visualization = ({ data, title, description }: VisualizationProps) => {
     );
   }
   
+  // Render the appropriate chart based on activeTab
+  const renderChart = () => {
+    switch (activeTab) {
+      case 'bar':
+        return <BarChartContent data={chartData} colors={colors} />;
+      case 'line':
+        return <LineChartContent data={chartData} colors={colors} />;
+      case 'pie':
+        return <PieChartContent data={chartData} colors={colors} />;
+      default:
+        return <BarChartContent data={chartData} colors={colors} />;
+    }
+  };
+  
   return (
     <div className="glass border border-border/50 rounded-xl overflow-hidden">
       <ChartHeader 
@@ -103,19 +115,7 @@ const Visualization = ({ data, title, description }: VisualizationProps) => {
       />
       
       <div className="p-6 pt-0">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsContent value="bar" className="mt-0">
-            <BarChartContent data={chartData} colors={colors} />
-          </TabsContent>
-          
-          <TabsContent value="line" className="mt-0">
-            <LineChartContent data={chartData} colors={colors} />
-          </TabsContent>
-          
-          <TabsContent value="pie" className="mt-0">
-            <PieChartContent data={chartData} colors={colors} />
-          </TabsContent>
-        </Tabs>
+        {renderChart()}
       </div>
       
       <ChartFooter />
