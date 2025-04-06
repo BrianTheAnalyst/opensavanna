@@ -6,7 +6,7 @@ import {
   RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis
 } from 'recharts';
 import { Dataset } from '@/types/dataset';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
@@ -192,6 +192,226 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
     currentItems: getCurrentItems.length
   });
 
+  // Render the appropriate chart based on selected tab
+  const renderChart = () => {
+    if (!isDataReady || getCurrentItems.length === 0) {
+      return (
+        <div className="h-full flex items-center justify-center">
+          <p className="text-muted-foreground">No data available for visualization</p>
+        </div>
+      );
+    }
+
+    switch (selectedTab) {
+      case 'bar':
+        return (
+          <ResponsiveContainer width="100%" height="100%">
+            <ComposedChart
+              data={getCurrentItems}
+              margin={{ top: 20, right: 20, bottom: 60, left: 20 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis 
+                dataKey={nameKey} 
+                tick={{ fontSize: 12 }}
+                angle={-45}
+                textAnchor="end"
+                height={60}
+              />
+              <YAxis tick={{ fontSize: 12 }} />
+              <Tooltip 
+                contentStyle={{ 
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                  border: 'none'
+                }} 
+              />
+              <Legend />
+              <Bar 
+                dataKey={dataKey} 
+                fill="#6366f1" 
+                radius={[4, 4, 0, 0]}
+              >
+                {getCurrentItems.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Bar>
+            </ComposedChart>
+          </ResponsiveContainer>
+        );
+      
+      case 'line':
+        return (
+          <ResponsiveContainer width="100%" height="100%">
+            <ComposedChart
+              data={getCurrentItems}
+              margin={{ top: 20, right: 20, bottom: 60, left: 20 }}
+            >
+              <CartesianGrid stroke="#f5f5f5" />
+              <XAxis 
+                dataKey={nameKey} 
+                tick={{ fontSize: 12 }}
+                angle={-45}
+                textAnchor="end"
+                height={60}
+              />
+              <YAxis tick={{ fontSize: 12 }} />
+              <Tooltip 
+                contentStyle={{ 
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                  border: 'none'
+                }} 
+              />
+              <Legend />
+              <Line 
+                type="monotone" 
+                dataKey={dataKey} 
+                stroke="#6366f1"
+                strokeWidth={2}
+                dot={{ r: 5, strokeWidth: 1 }}
+                activeDot={{ r: 7, strokeWidth: 1 }}
+              />
+            </ComposedChart>
+          </ResponsiveContainer>
+        );
+      
+      case 'pie':
+        return (
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={getCurrentItems}
+                cx="50%"
+                cy="50%"
+                innerRadius={60}
+                outerRadius={120}
+                fill="#8884d8"
+                dataKey={dataKey}
+                nameKey={nameKey}
+                label={({ name, value, percent }) => 
+                  `${name}: ${value} (${(percent * 100).toFixed(0)}%)`
+                }
+                labelLine={false}
+              >
+                {getCurrentItems.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip 
+                contentStyle={{ 
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                  border: 'none'
+                }} 
+              />
+              <Legend layout="vertical" verticalAlign="middle" align="right" />
+            </PieChart>
+          </ResponsiveContainer>
+        );
+      
+      case 'radar':
+        return (
+          <ResponsiveContainer width="100%" height="100%">
+            <RadarChart cx="50%" cy="50%" outerRadius="80%" data={getCurrentItems}>
+              <PolarGrid />
+              <PolarAngleAxis dataKey={nameKey} />
+              <PolarRadiusAxis angle={30} domain={[0, 'auto']} />
+              <Radar 
+                name={dataKey} 
+                dataKey={dataKey} 
+                stroke="#6366f1" 
+                fill="#6366f1" 
+                fillOpacity={0.5} 
+              />
+              <Tooltip 
+                contentStyle={{ 
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                  border: 'none'
+                }} 
+              />
+              <Legend />
+            </RadarChart>
+          </ResponsiveContainer>
+        );
+      
+      case 'area':
+        return (
+          <ResponsiveContainer width="100%" height="100%">
+            <ComposedChart
+              data={getCurrentItems}
+              margin={{ top: 20, right: 20, bottom: 60, left: 20 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis 
+                dataKey={nameKey} 
+                tick={{ fontSize: 12 }}
+                angle={-45}
+                textAnchor="end"
+                height={60}
+              />
+              <YAxis tick={{ fontSize: 12 }} />
+              <Tooltip 
+                contentStyle={{ 
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                  border: 'none'
+                }} 
+              />
+              <Legend />
+              <Area 
+                type="monotone" 
+                dataKey={dataKey} 
+                fill="#6366f1" 
+                stroke="#6366f1"
+                fillOpacity={0.8}
+              />
+              <Scatter dataKey={dataKey} fill="#ec4899" />
+            </ComposedChart>
+          </ResponsiveContainer>
+        );
+      
+      case 'composed':
+        return (
+          <ResponsiveContainer width="100%" height="100%">
+            <ComposedChart
+              data={getCurrentItems}
+              margin={{ top: 20, right: 20, bottom: 60, left: 20 }}
+            >
+              <CartesianGrid stroke="#f5f5f5" />
+              <XAxis 
+                dataKey={nameKey} 
+                scale="band" 
+                tick={{ fontSize: 12 }}
+                angle={-45}
+                textAnchor="end"
+                height={60}
+              />
+              <YAxis tick={{ fontSize: 12 }} />
+              <Tooltip 
+                contentStyle={{ 
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                  border: 'none'
+                }} 
+              />
+              <Legend />
+              <Bar dataKey={dataKey} barSize={20} fill="#6366f1" />
+              <Line type="monotone" dataKey={dataKey} stroke="#8b5cf6" />
+            </ComposedChart>
+          </ResponsiveContainer>
+        );
+      
+      default:
+        return (
+          <div className="h-full flex items-center justify-center">
+            <p className="text-muted-foreground">Select a visualization type</p>
+          </div>
+        );
+    }
+  };
+
   if (!isDataReady) {
     return (
       <div className="glass border border-border/50 rounded-xl p-6">
@@ -225,7 +445,7 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="flex-1">
           <p className="text-sm font-medium mb-2">Select Visualization Type</p>
-          <Tabs value={selectedTab} onValueChange={setSelectedTab}>
+          <Tabs value={selectedTab} onValueChange={setSelectedTab} defaultValue="bar">
             <TabsList className="glass grid grid-cols-3 lg:grid-cols-6">
               <TabsTrigger value="bar">Bar</TabsTrigger>
               <TabsTrigger value="line">Line</TabsTrigger>
@@ -269,205 +489,7 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
       </div>
       
       <div className="h-96 mb-4 bg-background/30 rounded-lg">
-        {/* Bar Chart */}
-        <TabsContent value="bar" className="h-full mt-0">
-          <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart
-              data={getCurrentItems}
-              margin={{ top: 20, right: 20, bottom: 60, left: 20 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey={nameKey} 
-                tick={{ fontSize: 12 }}
-                angle={-45}
-                textAnchor="end"
-                height={60}
-              />
-              <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip 
-                contentStyle={{ 
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                  border: 'none'
-                }} 
-              />
-              <Legend />
-              <Bar 
-                dataKey={dataKey} 
-                fill="#6366f1" 
-                radius={[4, 4, 0, 0]}
-              >
-                {getCurrentItems.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Bar>
-            </ComposedChart>
-          </ResponsiveContainer>
-        </TabsContent>
-        
-        {/* Line Chart */}
-        <TabsContent value="line" className="h-full mt-0">
-          <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart
-              data={getCurrentItems}
-              margin={{ top: 20, right: 20, bottom: 60, left: 20 }}
-            >
-              <CartesianGrid stroke="#f5f5f5" />
-              <XAxis 
-                dataKey={nameKey} 
-                tick={{ fontSize: 12 }}
-                angle={-45}
-                textAnchor="end"
-                height={60}
-              />
-              <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip 
-                contentStyle={{ 
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                  border: 'none'
-                }} 
-              />
-              <Legend />
-              <Line 
-                type="monotone" 
-                dataKey={dataKey} 
-                stroke="#6366f1"
-                strokeWidth={2}
-                dot={{ r: 5, strokeWidth: 1 }}
-                activeDot={{ r: 7, strokeWidth: 1 }}
-              />
-            </ComposedChart>
-          </ResponsiveContainer>
-        </TabsContent>
-        
-        {/* Pie Chart */}
-        <TabsContent value="pie" className="h-full mt-0">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={getCurrentItems}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={120}
-                fill="#8884d8"
-                dataKey={dataKey}
-                nameKey={nameKey}
-                label={({ name, value, percent }) => 
-                  `${name}: ${value} (${(percent * 100).toFixed(0)}%)`
-                }
-                labelLine={false}
-              >
-                {getCurrentItems.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip 
-                contentStyle={{ 
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                  border: 'none'
-                }} 
-              />
-              <Legend layout="vertical" verticalAlign="middle" align="right" />
-            </PieChart>
-          </ResponsiveContainer>
-        </TabsContent>
-        
-        {/* Radar Chart */}
-        <TabsContent value="radar" className="h-full mt-0">
-          <ResponsiveContainer width="100%" height="100%">
-            <RadarChart cx="50%" cy="50%" outerRadius="80%" data={getCurrentItems}>
-              <PolarGrid />
-              <PolarAngleAxis dataKey={nameKey} />
-              <PolarRadiusAxis angle={30} domain={[0, 'auto']} />
-              <Radar 
-                name={dataKey} 
-                dataKey={dataKey} 
-                stroke="#6366f1" 
-                fill="#6366f1" 
-                fillOpacity={0.5} 
-              />
-              <Tooltip 
-                contentStyle={{ 
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                  border: 'none'
-                }} 
-              />
-              <Legend />
-            </RadarChart>
-          </ResponsiveContainer>
-        </TabsContent>
-        
-        {/* Area Chart */}
-        <TabsContent value="area" className="h-full mt-0">
-          <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart
-              data={getCurrentItems}
-              margin={{ top: 20, right: 20, bottom: 60, left: 20 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey={nameKey} 
-                tick={{ fontSize: 12 }}
-                angle={-45}
-                textAnchor="end"
-                height={60}
-              />
-              <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip 
-                contentStyle={{ 
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                  border: 'none'
-                }} 
-              />
-              <Legend />
-              <Area 
-                type="monotone" 
-                dataKey={dataKey} 
-                fill="#6366f1" 
-                stroke="#6366f1"
-                fillOpacity={0.8}
-              />
-              <Scatter dataKey={dataKey} fill="#ec4899" />
-            </ComposedChart>
-          </ResponsiveContainer>
-        </TabsContent>
-        
-        {/* Composed Chart */}
-        <TabsContent value="composed" className="h-full mt-0">
-          <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart
-              data={getCurrentItems}
-              margin={{ top: 20, right: 20, bottom: 60, left: 20 }}
-            >
-              <CartesianGrid stroke="#f5f5f5" />
-              <XAxis 
-                dataKey={nameKey} 
-                scale="band" 
-                tick={{ fontSize: 12 }}
-                angle={-45}
-                textAnchor="end"
-                height={60}
-              />
-              <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip 
-                contentStyle={{ 
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                  border: 'none'
-                }} 
-              />
-              <Legend />
-              <Bar dataKey={dataKey} barSize={20} fill="#6366f1" />
-              <Line type="monotone" dataKey={dataKey} stroke="#8b5cf6" />
-            </ComposedChart>
-          </ResponsiveContainer>
-        </TabsContent>
+        {renderChart()}
       </div>
       
       {/* Pagination controls - only show for charts that support pagination */}
