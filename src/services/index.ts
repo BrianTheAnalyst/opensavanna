@@ -11,7 +11,7 @@ export {
   assignUserRole, 
   removeUserRole, 
   getUserRoles,
-  UserRole 
 } from './userRoleService';
+export type { UserRole } from './userRoleService';
 export { sampleVisData } from '@/data/visualizationData';
 export type { Dataset, DatasetFilters } from '@/types/dataset';

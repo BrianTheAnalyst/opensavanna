@@ -1,4 +1,3 @@
-
 import { Dataset } from '@/types/dataset';
 import { Metric, MetricGenerationData } from './types';
 import { generateBaseMetrics } from './baseMetrics';
@@ -65,4 +64,3 @@ export const generateDatasetMetrics = (dataset: Dataset, visualizationData: any[
 
 export { Metric } from './types';
 export type { MetricType, MetricColor } from './types';
-
