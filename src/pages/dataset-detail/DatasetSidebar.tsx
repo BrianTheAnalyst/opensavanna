@@ -27,7 +27,7 @@ const DatasetSidebar = ({ dataset }: DatasetSidebarProps) => {
   const handleDownload = async () => {
     setIsDownloading(true);
     try {
-      await downloadDataset(dataset);
+      await downloadDataset(dataset.id);
     } finally {
       setIsDownloading(false);
     }
