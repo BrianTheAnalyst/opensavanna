@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Map, PieChart, FileText, Database } from 'lucide-react';
@@ -8,9 +7,8 @@ import Hero from '@/components/Hero';
 import DatasetGrid from '@/components/DatasetGrid';
 import Visualization from '@/components/Visualization';
 import Footer from '@/components/Footer';
-import { getDatasets } from '@/services/datasetService';
+import { getDatasets, getCategoryCounts } from '@/services/datasetService';
 import { Dataset } from '@/types/dataset';
-import { supabase } from '@/integrations/supabase/client';
 
 const Index = () => {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -36,54 +34,40 @@ const Index = () => {
         
         setFeaturedDatasets(featured);
         
-        // Get category counts from the database
-        const { data: categoryCounts } = await supabase
-          .from('datasets')
-          .select('category, count')
-          .then(result => {
-            if (result.error) {
-              console.error('Error fetching category counts:', result.error);
-              return { data: null };
-            }
-            return result;
-          });
+        // Get category counts using our new function
+        const categoryCounts = await getCategoryCounts();
         
-        // Generate visualization data based on actual categories in the database
-        const categoryData = categoryCounts ? categoryCounts : [];
-        
-        // If we have categories from the database, use them for visualization
         if (categoryCounts && categoryCounts.length > 0) {
-          setVisData(
-            categoryCounts.map(item => ({
-              name: item.category,
-              value: parseInt(item.count)
+          setVisData(categoryCounts);
+          
+          // Update category counts in the UI
+          setCategories(prev => 
+            prev.map(cat => ({
+              ...cat,
+              count: categoryCounts.find(c => 
+                c.name.toLowerCase() === cat.title.toLowerCase()
+              )?.value || 0
             }))
           );
         } else {
-          // If no categories or counts, fetch distinct categories and count them
-          const { data } = await supabase
-            .from('datasets')
-            .select('category');
+          // Fallback if we couldn't get category counts
+          const categoryMap: Record<string, number> = {};
           
-          if (data) {
-            // Count occurrences of each category
-            const categoryMap = data.reduce((acc, item) => {
-              acc[item.category] = (acc[item.category] || 0) + 1;
-              return acc;
-            }, {} as Record<string, number>);
-            
-            // Convert to array format for visualization
-            const visDataArray = Object.entries(categoryMap).map(([name, value]) => ({ name, value }));
-            setVisData(visDataArray);
-            
-            // Update category counts in the UI
-            setCategories(prev => 
-              prev.map(cat => ({
-                ...cat,
-                count: categoryMap[cat.title.toLowerCase()] || 0
-              }))
-            );
-          }
+          datasets.forEach(dataset => {
+            const category = dataset.category;
+            categoryMap[category] = (categoryMap[category] || 0) + 1;
+          });
+          
+          const visDataArray = Object.entries(categoryMap).map(([name, value]) => ({ name, value }));
+          setVisData(visDataArray);
+          
+          // Update category counts in the UI
+          setCategories(prev => 
+            prev.map(cat => ({
+              ...cat,
+              count: categoryMap[cat.title.toLowerCase()] || 0
+            }))
+          );
         }
         
         setIsLoaded(true);

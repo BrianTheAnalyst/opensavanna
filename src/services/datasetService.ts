@@ -221,6 +221,39 @@ const transformSampleDataForCategory = (sampleData: any[], category: string): an
   }
 };
 
+// Get category counts for analytics
+export const getCategoryCounts = async (): Promise<{ name: string, value: number }[]> => {
+  try {
+    // Get all categories first
+    const { data: categoriesData, error: categoriesError } = await supabase
+      .from('datasets')
+      .select('category');
+    
+    if (categoriesError) {
+      console.error('Error fetching categories:', categoriesError);
+      return [];
+    }
+    
+    if (!categoriesData || categoriesData.length === 0) {
+      return [];
+    }
+    
+    // Count occurrences of each category
+    const categoryMap: Record<string, number> = {};
+    
+    categoriesData.forEach(item => {
+      const category = item.category;
+      categoryMap[category] = (categoryMap[category] || 0) + 1;
+    });
+    
+    // Convert to array format for visualization
+    return Object.entries(categoryMap).map(([name, value]) => ({ name, value }));
+  } catch (error) {
+    console.error('Error getting category counts:', error);
+    return [];
+  }
+};
+
 // ADMIN FUNCTIONS
 
 // Update a dataset
