@@ -1,5 +1,6 @@
+
 import { Dataset } from '@/types/dataset';
-import { Metric, MetricGenerationData } from './types';
+import type { Metric, MetricGenerationData } from './types';
 import { generateBaseMetrics } from './baseMetrics';
 import { generateEconomicsMetrics } from './economicsMetrics';
 import { generateHealthMetrics } from './healthMetrics';
@@ -62,5 +63,5 @@ export const generateDatasetMetrics = (dataset: Dataset, visualizationData: any[
   }
 };
 
-export { Metric } from './types';
-export type { MetricType, MetricColor } from './types';
+// Re-export types properly
+export type { Metric, MetricType, MetricColor } from './types';
