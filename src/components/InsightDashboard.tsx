@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Dataset } from '@/types/dataset';
-import { generateDatasetMetrics } from './insights/MetricsGenerator';
+import { generateDatasetMetrics } from './insights/metrics';
 import { MetricsDisplay } from './insights/MetricsDisplay';
 import { InsightsDisplay } from './insights/InsightsDisplay';
 import { DatasetCharts } from './insights/DatasetCharts';

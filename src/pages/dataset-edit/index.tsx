@@ -3,7 +3,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { getDatasetById, isUserAdmin } from '@/services/datasetService';
+import { getDatasetById } from '@/services/datasetService';
+import { isUserAdmin } from '@/services/userRoleService';
 import DatasetEditForm from '@/components/admin/DatasetEditForm';
 
 const DatasetEditPage = () => {

@@ -6,5 +6,6 @@ export * from './datasetAnalyticsService';
 export * from './datasetAdminService'; 
 export * from './datasetUploadService';
 export * from './datasetDownloadService';
+export * from './userRoleService';
 export { sampleVisData } from '@/data/visualizationData';
 export type { Dataset, DatasetFilters } from '@/types/dataset';

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import ChartInsight from '../ChartInsight';
-import { Metric } from './MetricsGenerator';
+import { Metric } from './metrics';
 
 interface MetricsDisplayProps {
   metrics: Metric[];

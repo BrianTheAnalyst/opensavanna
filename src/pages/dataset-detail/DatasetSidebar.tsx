@@ -1,11 +1,10 @@
-
 import { useState, useEffect } from 'react';
 import { Download, Info, Calendar, FileText, Globe } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Dataset } from '@/types/dataset';
 import { downloadDataset } from '@/services/datasetDownloadService';
 import AdminDatasetControls from '@/components/admin/AdminDatasetControls';
-import { isUserAdmin } from '@/services/datasetService';
+import { isUserAdmin } from '@/services/userRoleService';
 
 interface DatasetSidebarProps {
   dataset: Dataset;

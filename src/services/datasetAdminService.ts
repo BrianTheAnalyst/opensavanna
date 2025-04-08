@@ -2,25 +2,11 @@
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Dataset } from "@/types/dataset";
+import { isUserAdmin as checkUserAdmin } from "./userRoleService";
 
 // Check if user is an admin
 export const isUserAdmin = async (): Promise<boolean> => {
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return false;
-    
-    // For now, we'll use email domain to determine admin status
-    // In a production app, you'd use proper role-based access control
-    const email = user.email;
-    if (email && (email.endsWith('@admin.com') || email.endsWith('@dataplatform.org'))) {
-      return true;
-    }
-    
-    return false;
-  } catch (error) {
-    console.error('Error checking admin status:', error);
-    return false;
-  }
+  return checkUserAdmin();
 };
 
 // Update a dataset
