@@ -63,4 +63,6 @@ export const generateDatasetMetrics = (dataset: Dataset, visualizationData: any[
   }
 };
 
-export { Metric, MetricType, MetricColor } from './types';
+export { Metric } from './types';
+export type { MetricType, MetricColor } from './types';
+
