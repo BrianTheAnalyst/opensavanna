@@ -88,10 +88,11 @@ export const addDataset = async (
         console.error('Error updating dataset with file URL:', updateError);
       } else {
         // Update the return data with the file URL
+        // Create a new object with the proper type cast to include dataPoints
         const updatedData = {
-          ...data,
+          ...(data as any),
           file: publicURL.publicUrl
-        };
+        } as Dataset;
         
         // Add the dataPoints property if available
         if (updateData.dataPoints) {
@@ -99,7 +100,7 @@ export const addDataset = async (
         }
         
         toast.success('Dataset processed successfully');
-        return updatedData as Dataset;
+        return updatedData;
       }
       
       toast.success('Dataset processed successfully');
@@ -113,3 +114,4 @@ export const addDataset = async (
     return null;
   }
 };
+
