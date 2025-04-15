@@ -38,9 +38,13 @@ const DatasetOverview = ({ dataset }: DatasetOverviewProps) => {
           </div>
           
           {dataset.description && (
-            <div className="mt-4 pt-4 border-t border-border/30">
-              <h3 className="text-base font-medium mb-2">Description</h3>
-              <p className="text-foreground/70">{dataset.description}</p>
+            <div className="mt-6 pt-6 border-t border-border/30">
+              <h3 className="text-lg font-medium mb-3">Description</h3>
+              <div className="bg-muted/20 rounded-lg p-4">
+                <p className="text-foreground/80 whitespace-pre-wrap leading-relaxed">
+                  {dataset.description}
+                </p>
+              </div>
             </div>
           )}
         </div>
