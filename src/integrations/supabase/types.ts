@@ -57,6 +57,51 @@ export type Database = {
         }
         Relationships: []
       }
+      processed_files: {
+        Row: {
+          created_at: string
+          errors: string[] | null
+          file_size_kb: number
+          file_type: string
+          id: string
+          original_filename: string
+          processed_path: string | null
+          processing_status: string
+          storage_path: string
+          summary: Json | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          errors?: string[] | null
+          file_size_kb: number
+          file_type: string
+          id?: string
+          original_filename: string
+          processed_path?: string | null
+          processing_status?: string
+          storage_path: string
+          summary?: Json | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          errors?: string[] | null
+          file_size_kb?: number
+          file_type?: string
+          id?: string
+          original_filename?: string
+          processed_path?: string | null
+          processing_status?: string
+          storage_path?: string
+          summary?: Json | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
