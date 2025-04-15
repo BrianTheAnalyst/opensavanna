@@ -2,6 +2,7 @@
 import { Dataset } from '@/types/dataset';
 import Visualization from '@/components/Visualization';
 import { sampleVisData } from '@/services';
+import { Info } from 'lucide-react';
 
 interface DatasetOverviewProps {
   dataset: Dataset;
@@ -39,11 +40,14 @@ const DatasetOverview = ({ dataset }: DatasetOverviewProps) => {
           
           {dataset.description && (
             <div className="mt-6 pt-6 border-t border-border/30">
-              <h3 className="text-lg font-medium mb-3">Description</h3>
+              <div className="flex items-center mb-3">
+                <Info className="h-5 w-5 text-primary mr-2" />
+                <h3 className="text-lg font-medium">Detailed Description</h3>
+              </div>
               <div className="bg-muted/20 rounded-lg p-4">
-                <p className="text-foreground/80 whitespace-pre-wrap leading-relaxed">
+                <div className="prose prose-sm text-foreground/80 whitespace-pre-wrap leading-relaxed">
                   {dataset.description}
-                </p>
+                </div>
               </div>
             </div>
           )}
@@ -71,3 +75,4 @@ const DatasetOverview = ({ dataset }: DatasetOverviewProps) => {
 import DatasetSidebar from './DatasetSidebar';
 
 export default DatasetOverview;
+
