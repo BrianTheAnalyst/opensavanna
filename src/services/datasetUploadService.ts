@@ -88,10 +88,18 @@ export const addDataset = async (
         console.error('Error updating dataset with file URL:', updateError);
       } else {
         // Update the return data with the file URL
-        data.file = publicURL.publicUrl;
+        const updatedData = {
+          ...data,
+          file: publicURL.publicUrl
+        };
+        
+        // Add the dataPoints property if available
         if (updateData.dataPoints) {
-          data.dataPoints = updateData.dataPoints;
+          updatedData.dataPoints = updateData.dataPoints;
         }
+        
+        toast.success('Dataset processed successfully');
+        return updatedData as Dataset;
       }
       
       toast.success('Dataset processed successfully');

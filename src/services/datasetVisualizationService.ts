@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Dataset } from "@/types/dataset";
@@ -190,7 +189,7 @@ const formatDataForVisualization = (data: any[], category: string): any[] => {
   if (numericFields.length === 0) return [];
   
   // Choose appropriate fields based on category and available data
-  const valueField = numericFields[0];  
+  const valueField = numericFields[0] || 'value';  
   const nameField = nameFieldCandidates[0] || 'index';
   
   // Format the data for visualization, limiting to 20 items
@@ -199,5 +198,19 @@ const formatDataForVisualization = (data: any[], category: string): any[] => {
     value: Number(item[valueField] || 0),
     // Include original data for reference
     rawData: { ...item }
+  }));
+};
+
+// Add the missing function that's being imported in datasetService.ts
+export const transformSampleDataForCategory = (category: string, data: any[]): any[] => {
+  // Basic implementation to transform data based on category
+  if (!data || data.length === 0) return [];
+  
+  // Just return the data as is for now - this function would normally customize
+  // the visualization data based on the category
+  return data.map(item => ({
+    ...item,
+    // Apply any category-specific transformations here
+    value: typeof item.value === 'number' ? item.value : 0
   }));
 };

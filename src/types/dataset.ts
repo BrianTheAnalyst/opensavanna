@@ -13,7 +13,7 @@ export interface Dataset {
   file?: string;
   license?: string;
   fileSize?: string;
-  dataPoints?: string;
+  dataPoints?: number | string; // Adding dataPoints as either number or string
   timespan?: string;
   source?: string;
   tags?: string[];
