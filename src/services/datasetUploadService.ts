@@ -2,6 +2,7 @@
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Dataset } from "@/types/dataset";
+import { processDatasetFile } from "./datasetProcessingService";
 
 // Add a new dataset
 export const addDataset = async (
@@ -41,11 +42,12 @@ export const addDataset = async (
       return null;
     }
     
-    // If a file was provided, upload it to storage
+    // If a file was provided, upload and process it
     if (file && data.id) {
       const fileExt = file.name.split('.').pop();
       const filePath = `${data.id}/${Date.now()}.${fileExt}`;
       
+      // Upload file to storage
       const { error: uploadError } = await supabase.storage
         .from('dataset_files')
         .upload(filePath, file);
@@ -61,10 +63,25 @@ export const addDataset = async (
         .from('dataset_files')
         .getPublicUrl(filePath);
       
-      // Update the dataset with the file URL
+      // Process the uploaded file to extract real data and insights
+      toast.info('Processing dataset file...');
+      
+      // Process the file in the background
+      const processedData = await processDatasetFile(file, data.id);
+      
+      // Update the dataset with the file URL and any additional metadata
+      const updateData: any = { 
+        file: publicURL.publicUrl 
+      };
+      
+      // If we successfully processed the data, add data points count
+      if (processedData && Array.isArray(processedData)) {
+        updateData.dataPoints = processedData.length;
+      }
+      
       const { error: updateError } = await supabase
         .from('datasets')
-        .update({ file: publicURL.publicUrl })
+        .update(updateData)
         .eq('id', data.id);
       
       if (updateError) {
@@ -72,7 +89,12 @@ export const addDataset = async (
       } else {
         // Update the return data with the file URL
         data.file = publicURL.publicUrl;
+        if (updateData.dataPoints) {
+          data.dataPoints = updateData.dataPoints;
+        }
       }
+      
+      toast.success('Dataset processed successfully');
     }
     
     toast.success('Dataset added successfully');

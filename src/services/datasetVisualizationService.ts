@@ -23,8 +23,28 @@ export const getDatasetVisualization = async (id: string): Promise<any> => {
       toast.error('Dataset not found');
       return [];
     }
+
+    // Check if we have processed data for this dataset
+    const { data: processedFiles, error: processedError } = await supabase
+      .from('processed_files')
+      .select('*')
+      .eq('storage_path', `${dataset.id}/%`)
+      .order('created_at', { ascending: false })
+      .limit(1);
     
-    // If there's a file URL, try to fetch and parse the data
+    if (!processedError && processedFiles && processedFiles.length > 0) {
+      const processedFile = processedFiles[0];
+      
+      // If we have a summary with the processed file, use that to generate visualization data
+      if (processedFile.summary) {
+        const visualizationData = generateVisualizationDataFromSummary(processedFile.summary, dataset.category);
+        if (visualizationData.length > 0) {
+          return visualizationData;
+        }
+      }
+    }
+    
+    // If there's a file URL but no processed data, try to fetch and parse the file
     if (dataset.file) {
       try {
         const response = await fetch(dataset.file);
@@ -39,22 +59,20 @@ export const getDatasetVisualization = async (id: string): Promise<any> => {
         } else if (dataset.format.toLowerCase() === 'json') {
           const json = await response.json();
           return formatJSONForVisualization(json, dataset.category);
+        } else if (dataset.format.toLowerCase() === 'geojson') {
+          const json = await response.json();
+          return formatGeoJSONForVisualization(json, dataset.category);
         } else {
-          // For other formats, fall back to sample data
-          console.log('Unsupported format, using sample data');
-          const { sampleVisData } = await import('@/data/visualizationData');
-          return transformSampleDataForCategory(sampleVisData, dataset.category);
+          console.log('Unsupported format');
+          return [];
         }
       } catch (error) {
         console.error('Error processing dataset file:', error);
-        // Fall back to sample data on error
-        const { sampleVisData } = await import('@/data/visualizationData');
-        return transformSampleDataForCategory(sampleVisData, dataset.category);
+        return [];
       }
     } else {
-      // No file available, use sample data
-      const { sampleVisData } = await import('@/data/visualizationData');
-      return transformSampleDataForCategory(sampleVisData, dataset.category);
+      // No file available
+      return [];
     }
   } catch (error) {
     console.error('Error fetching visualization data:', error);
@@ -63,10 +81,56 @@ export const getDatasetVisualization = async (id: string): Promise<any> => {
   }
 };
 
+// Generate visualization data from processed file summary
+const generateVisualizationDataFromSummary = (summary: any, category: string): any[] => {
+  const result = [];
+  
+  // For numeric fields, create data points showing distribution
+  if (summary.numeric_fields) {
+    Object.entries(summary.numeric_fields).forEach(([field, stats]: [string, any]) => {
+      result.push({
+        name: `${field} (min)`,
+        value: stats.min
+      });
+      result.push({
+        name: `${field} (max)`,
+        value: stats.max
+      });
+      result.push({
+        name: `${field} (avg)`,
+        value: stats.mean
+      });
+    });
+  }
+  
+  // For categorical fields with distribution data, use that
+  if (summary.categorical_fields) {
+    Object.entries(summary.categorical_fields).forEach(([field, fieldInfo]: [string, any]) => {
+      if (fieldInfo.distribution) {
+        // Only take top 10 values for visualization
+        const entries = Object.entries(fieldInfo.distribution)
+          .sort(([, countA]: [string, number], [, countB]: [string, number]) => (countB as number) - (countA as number))
+          .slice(0, 10);
+        
+        entries.forEach(([value, count]: [string, any]) => {
+          result.push({
+            name: `${field}: ${value}`,
+            value: count
+          });
+        });
+      }
+    });
+  }
+  
+  return result.length > 0 ? result : [];
+};
+
 // Helper function to parse CSV data
 const parseCSVData = (csvText: string, category: string): any[] => {
   // Basic CSV parsing - for production use a robust CSV parser library
   const lines = csvText.split('\n');
+  if (lines.length <= 1) return [];
+  
   const headers = lines[0].split(',').map(h => h.trim());
   
   // Convert CSV to array of objects
@@ -92,78 +156,48 @@ const formatJSONForVisualization = (jsonData: any, category: string): any[] => {
   return formatDataForVisualization(dataArray, category);
 };
 
+// Format GeoJSON data for visualization
+const formatGeoJSONForVisualization = (geoJson: any, category: string): any[] => {
+  if (!geoJson.features || !Array.isArray(geoJson.features)) {
+    return [];
+  }
+  
+  // Extract properties from features for visualization
+  const data = geoJson.features.map((feature: any) => ({
+    ...feature.properties,
+    geometry_type: feature.geometry?.type
+  }));
+  
+  return formatDataForVisualization(data, category);
+};
+
 // Common function to format data for visualization
 const formatDataForVisualization = (data: any[], category: string): any[] => {
   // Extract key fields based on category
   if (data.length === 0) return [];
   
-  // For each category, determine key fields for name and value
-  let nameField = 'name';
-  let valueField = 'value';
+  // First, find the numeric field to use for values
+  const numericFields = Object.keys(data[0])
+    .filter(key => typeof data[0][key] === 'number')
+    .sort();
   
-  switch (category.toLowerCase()) {
-    case 'economics':
-      nameField = data[0].category || data[0].sector || data[0].region || Object.keys(data[0])[0];
-      valueField = data[0].amount || data[0].value || data[0].gdp || Object.keys(data[0])[1];
-      break;
-    case 'health':
-      nameField = data[0].condition || data[0].disease || data[0].region || Object.keys(data[0])[0];
-      valueField = data[0].cases || data[0].patients || data[0].value || Object.keys(data[0])[1];
-      break;
-    case 'education':
-      nameField = data[0].subject || data[0].level || data[0].region || Object.keys(data[0])[0];
-      valueField = data[0].students || data[0].score || data[0].value || Object.keys(data[0])[1];
-      break;
-    default:
-      // Try to determine fields automatically
-      nameField = Object.keys(data[0]).find(key => 
-        typeof data[0][key] === 'string' && !key.includes('id')) || Object.keys(data[0])[0];
-      valueField = Object.keys(data[0]).find(key => 
-        typeof data[0][key] === 'number') || Object.keys(data[0])[1];
-  }
+  // Then, find a good candidate for the name field
+  const nameFieldCandidates = Object.keys(data[0])
+    .filter(key => typeof data[0][key] === 'string')
+    .sort();
   
-  // Format the data for visualization
-  return data.map(item => ({
-    name: String(item[nameField] || 'Unknown'),
+  // If we have no numeric fields, we can't create a visualization
+  if (numericFields.length === 0) return [];
+  
+  // Choose appropriate fields based on category and available data
+  const valueField = numericFields[0];  
+  const nameField = nameFieldCandidates[0] || 'index';
+  
+  // Format the data for visualization, limiting to 20 items
+  return data.slice(0, 20).map((item, index) => ({
+    name: nameField !== 'index' ? String(item[nameField] || 'Item ' + index) : 'Item ' + index,
     value: Number(item[valueField] || 0),
     // Include original data for reference
     rawData: { ...item }
   }));
-};
-
-// Transform sample data to match the dataset category
-export const transformSampleDataForCategory = (sampleData: any[], category: string): any[] => {
-  // Clone the sample data
-  const transformed = [...sampleData];
-  
-  // Customize names based on category
-  switch (category.toLowerCase()) {
-    case 'economics':
-      return transformed.map((item, index) => ({
-        ...item,
-        name: ['GDP', 'Exports', 'Imports', 'Investment', 'Consumption'][index % 5]
-      }));
-    case 'health':
-      return transformed.map((item, index) => ({
-        ...item,
-        name: ['Hospitals', 'Clinics', 'Patients', 'Doctors', 'Nurses'][index % 5]
-      }));
-    case 'education':
-      return transformed.map((item, index) => ({
-        ...item,
-        name: ['Primary', 'Secondary', 'University', 'Vocational', 'Research'][index % 5]
-      }));
-    case 'environment':
-      return transformed.map((item, index) => ({
-        ...item,
-        name: ['Forests', 'Lakes', 'Parks', 'Emissions', 'Protected Areas'][index % 5]
-      }));
-    case 'transport':
-      return transformed.map((item, index) => ({
-        ...item,
-        name: ['Roads', 'Railways', 'Airports', 'Seaports', 'Public Transit'][index % 5]
-      }));
-    default:
-      return transformed;
-  }
 };

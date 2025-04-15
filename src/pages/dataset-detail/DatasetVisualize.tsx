@@ -1,4 +1,5 @@
 
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Dataset } from '@/types/dataset';
 import LoadingVisualization from '@/components/visualization/LoadingVisualization';
@@ -6,14 +7,17 @@ import NoVisualizationData from '@/components/visualization/NoVisualizationData'
 import VisualizationContainer from '@/components/visualization/VisualizationContainer';
 import VisualizationAbout from '@/components/visualization/VisualizationAbout';
 import { useDatasetVisualization } from '@/hooks/useDatasetVisualization';
+import DatasetAnalytics from '@/components/DatasetAnalytics';
+import { supabase } from "@/integrations/supabase/client";
 
 interface DatasetVisualizeProps {
   datasetProp?: Dataset;
   visualizationDataProp?: any[];
 }
 
-const DatasetVisualize: React.FC<DatasetVisualizeProps> = ({ datasetProp, visualizationDataProp }) => {
+const DatasetVisualize = ({ datasetProp, visualizationDataProp }: DatasetVisualizeProps) => {
   const { id } = useParams();
+  const [processedFileData, setProcessedFileData] = useState<any>(null);
   
   const {
     dataset,
@@ -29,6 +33,30 @@ const DatasetVisualize: React.FC<DatasetVisualizeProps> = ({ datasetProp, visual
     datasetProp,
     visualizationDataProp
   });
+  
+  // Fetch processed file data when dataset is loaded
+  useEffect(() => {
+    const fetchProcessedFileData = async () => {
+      if (!dataset?.id) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('processed_files')
+          .select('*')
+          .eq('storage_path', `${dataset.id}/%`)
+          .order('created_at', { ascending: false })
+          .limit(1);
+          
+        if (!error && data && data.length > 0) {
+          setProcessedFileData(data[0]);
+        }
+      } catch (err) {
+        console.error('Error fetching processed file data:', err);
+      }
+    };
+    
+    fetchProcessedFileData();
+  }, [dataset?.id]);
   
   if (isLoading) {
     return <LoadingVisualization />;
@@ -54,6 +82,12 @@ const DatasetVisualize: React.FC<DatasetVisualizeProps> = ({ datasetProp, visual
         error={error || undefined}
         isLoading={false}
       />
+      
+      {processedFileData && (
+        <div className="my-6">
+          <DatasetAnalytics processedFileData={processedFileData} />
+        </div>
+      )}
       
       <VisualizationAbout dataset={dataset} />
     </>
