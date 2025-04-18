@@ -3,6 +3,7 @@ import { Dataset } from '@/types/dataset';
 import Visualization from '@/components/Visualization';
 import { sampleVisData } from '@/services';
 import { Info } from 'lucide-react';
+import DatasetSidebarInfo from '@/components/dataset/DatasetSidebarInfo';
 
 interface DatasetOverviewProps {
   dataset: Dataset;
@@ -66,13 +67,9 @@ const DatasetOverview = ({ dataset }: DatasetOverviewProps) => {
         </div>
       </div>
       
-      <DatasetSidebar dataset={dataset} />
+      <DatasetSidebarInfo dataset={dataset} />
     </div>
   );
 };
 
-// Importing the DatasetSidebar component in the same file to avoid circular dependencies
-import DatasetSidebar from './DatasetSidebar';
-
 export default DatasetOverview;
-

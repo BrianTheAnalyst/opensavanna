@@ -1,6 +1,8 @@
+
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Dataset } from "@/types/dataset";
+import { parseCSVData, formatJSONForVisualization, formatGeoJSONForVisualization } from "@/utils/dataFormatUtils";
 
 // Get dataset visualization data
 export const getDatasetVisualization = async (id: string): Promise<any> => {
@@ -23,6 +25,29 @@ export const getDatasetVisualization = async (id: string): Promise<any> => {
       return [];
     }
 
+    // Try to get processed data first
+    const processedData = await getProcessedDataForDataset(dataset);
+    if (processedData.length > 0) {
+      return processedData;
+    }
+    
+    // If no processed data, try to parse from file
+    if (dataset.file) {
+      return await parseDataFromFile(dataset);
+    }
+    
+    // No file available
+    return [];
+  } catch (error) {
+    console.error('Error fetching visualization data:', error);
+    // Return empty dataset on error
+    return [];
+  }
+};
+
+// Get processed data for a dataset
+const getProcessedDataForDataset = async (dataset: Dataset): Promise<any[]> => {
+  try {
     // Check if we have processed data for this dataset
     const { data: processedFiles, error: processedError } = await supabase
       .from('processed_files')
@@ -43,39 +68,37 @@ export const getDatasetVisualization = async (id: string): Promise<any> => {
       }
     }
     
-    // If there's a file URL but no processed data, try to fetch and parse the file
-    if (dataset.file) {
-      try {
-        const response = await fetch(dataset.file);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch file: ${response.statusText}`);
-        }
-        
-        // Handle different file formats
-        if (dataset.format.toLowerCase() === 'csv') {
-          const text = await response.text();
-          return parseCSVData(text, dataset.category);
-        } else if (dataset.format.toLowerCase() === 'json') {
-          const json = await response.json();
-          return formatJSONForVisualization(json, dataset.category);
-        } else if (dataset.format.toLowerCase() === 'geojson') {
-          const json = await response.json();
-          return formatGeoJSONForVisualization(json, dataset.category);
-        } else {
-          console.log('Unsupported format');
-          return [];
-        }
-      } catch (error) {
-        console.error('Error processing dataset file:', error);
-        return [];
-      }
+    return [];
+  } catch (error) {
+    console.error('Error getting processed data:', error);
+    return [];
+  }
+};
+
+// Parse data from file URL
+const parseDataFromFile = async (dataset: Dataset): Promise<any[]> => {
+  try {
+    const response = await fetch(dataset.file as string);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch file: ${response.statusText}`);
+    }
+    
+    // Handle different file formats
+    if (dataset.format.toLowerCase() === 'csv') {
+      const text = await response.text();
+      return parseCSVData(text, dataset.category);
+    } else if (dataset.format.toLowerCase() === 'json') {
+      const json = await response.json();
+      return formatJSONForVisualization(json, dataset.category);
+    } else if (dataset.format.toLowerCase() === 'geojson') {
+      const json = await response.json();
+      return formatGeoJSONForVisualization(json, dataset.category);
     } else {
-      // No file available
+      console.log('Unsupported format');
       return [];
     }
   } catch (error) {
-    console.error('Error fetching visualization data:', error);
-    // Return empty dataset on error
+    console.error('Error processing dataset file:', error);
     return [];
   }
 };
@@ -122,83 +145,6 @@ const generateVisualizationDataFromSummary = (summary: any, category: string): a
   }
   
   return result.length > 0 ? result : [];
-};
-
-// Helper function to parse CSV data
-const parseCSVData = (csvText: string, category: string): any[] => {
-  // Basic CSV parsing - for production use a robust CSV parser library
-  const lines = csvText.split('\n');
-  if (lines.length <= 1) return [];
-  
-  const headers = lines[0].split(',').map(h => h.trim());
-  
-  // Convert CSV to array of objects
-  const parsedData = lines.slice(1).filter(line => line.trim()).map(line => {
-    const values = line.split(',').map(v => v.trim());
-    const obj: any = {};
-    headers.forEach((header, index) => {
-      // Try to convert numerical values
-      const value = values[index];
-      obj[header] = !isNaN(Number(value)) ? Number(value) : value;
-    });
-    return obj;
-  });
-  
-  // Format data for visualization
-  return formatDataForVisualization(parsedData, category);
-};
-
-// Format JSON data for visualization
-const formatJSONForVisualization = (jsonData: any, category: string): any[] => {
-  // Handle both array and object formats
-  const dataArray = Array.isArray(jsonData) ? jsonData : [jsonData];
-  return formatDataForVisualization(dataArray, category);
-};
-
-// Format GeoJSON data for visualization
-const formatGeoJSONForVisualization = (geoJson: any, category: string): any[] => {
-  if (!geoJson.features || !Array.isArray(geoJson.features)) {
-    return [];
-  }
-  
-  // Extract properties from features for visualization
-  const data = geoJson.features.map((feature: any) => ({
-    ...feature.properties,
-    geometry_type: feature.geometry?.type
-  }));
-  
-  return formatDataForVisualization(data, category);
-};
-
-// Common function to format data for visualization
-const formatDataForVisualization = (data: any[], category: string): any[] => {
-  // Extract key fields based on category
-  if (data.length === 0) return [];
-  
-  // First, find the numeric field to use for values
-  const numericFields = Object.keys(data[0])
-    .filter(key => typeof data[0][key] === 'number')
-    .sort();
-  
-  // Then, find a good candidate for the name field
-  const nameFieldCandidates = Object.keys(data[0])
-    .filter(key => typeof data[0][key] === 'string')
-    .sort();
-  
-  // If we have no numeric fields, we can't create a visualization
-  if (numericFields.length === 0) return [];
-  
-  // Choose appropriate fields based on category and available data
-  const valueField = numericFields[0] || 'value';  
-  const nameField = nameFieldCandidates[0] || 'index';
-  
-  // Format the data for visualization, limiting to 20 items
-  return data.slice(0, 20).map((item, index) => ({
-    name: nameField !== 'index' ? String(item[nameField] || 'Item ' + index) : 'Item ' + index,
-    value: Number(item[valueField] || 0),
-    // Include original data for reference
-    rawData: { ...item }
-  }));
 };
 
 // Add the missing function that's being imported in datasetService.ts

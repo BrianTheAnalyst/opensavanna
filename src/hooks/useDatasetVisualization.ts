@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { toast } from 'sonner';
 import { Dataset } from '@/types/dataset';
 import { getDatasetById, getDatasetVisualization } from '@/services/datasetService';
@@ -11,24 +11,50 @@ interface UseDatasetVisualizationProps {
   visualizationDataProp?: any[];
 }
 
+interface UseDatasetVisualizationResult {
+  dataset: Dataset | null;
+  visualizationData: any[];
+  isLoading: boolean;
+  error: string | null;
+  insights: string[];
+  analysisMode: 'overview' | 'detailed' | 'advanced';
+  setAnalysisMode: (mode: 'overview' | 'detailed' | 'advanced') => void;
+  handleRetry: () => Promise<void>;
+}
+
 export function useDatasetVisualization({
   id,
   datasetProp,
   visualizationDataProp
-}: UseDatasetVisualizationProps) {
+}: UseDatasetVisualizationProps): UseDatasetVisualizationResult {
   const [dataset, setDataset] = useState<Dataset | null>(datasetProp || null);
   const [visualizationData, setVisualizationData] = useState<any[] | null>(visualizationDataProp || null);
   const [isLoading, setIsLoading] = useState(!datasetProp);
   const [error, setError] = useState<string | null>(null);
   const [insights, setInsights] = useState<string[]>([]);
   const [analysisMode, setAnalysisMode] = useState<'overview' | 'detailed' | 'advanced'>('overview');
+  const [retryCount, setRetryCount] = useState(0);
+
+  // Function to generate insights memoized to prevent unnecessary recalculations
+  const generateInsightsForData = useCallback((data: any[], category: string, title: string) => {
+    try {
+      return generateInsights(data, category, title);
+    } catch (err) {
+      console.error("Error generating insights:", err);
+      return ["Unable to generate insights for this dataset."];
+    }
+  }, []);
 
   const fetchDatasetAndVisualize = useCallback(async () => {
     // Skip fetching if data was passed as prop
     if (datasetProp && visualizationDataProp) {
       try {
         // Still generate insights based on provided data
-        const generatedInsights = generateInsights(visualizationDataProp, datasetProp.category, datasetProp.title);
+        const generatedInsights = generateInsightsForData(
+          visualizationDataProp, 
+          datasetProp.category, 
+          datasetProp.title
+        );
         setInsights(generatedInsights);
         setIsLoading(false);
         return;
@@ -68,7 +94,7 @@ export function useDatasetVisualization({
         setVisualizationData(visData);
         
         // Generate insights based on the data
-        const generatedInsights = generateInsights(visData, datasetData.category, datasetData.title);
+        const generatedInsights = generateInsightsForData(visData, datasetData.category, datasetData.title);
         setInsights(generatedInsights);
 
         toast.success("Insights generated from your dataset");
@@ -80,7 +106,7 @@ export function useDatasetVisualization({
         setVisualizationData(fallbackData);
         
         // Generate insights based on the fallback data
-        const generatedInsights = generateInsights(fallbackData, datasetData.category, datasetData.title);
+        const generatedInsights = generateInsightsForData(fallbackData, datasetData.category, datasetData.title);
         setInsights(generatedInsights);
         
         toast.info("Using sample data for visualization");
@@ -102,13 +128,20 @@ export function useDatasetVisualization({
     } finally {
       setIsLoading(false);
     }
-  }, [id, datasetProp, visualizationDataProp]);
+  }, [id, datasetProp, visualizationDataProp, generateInsightsForData]);
   
   useEffect(() => {
     fetchDatasetAndVisualize();
+  }, [fetchDatasetAndVisualize, retryCount]);
+
+  // Handler for retrying data fetch
+  const handleRetry = useCallback(async () => {
+    setRetryCount(prev => prev + 1);
+    return fetchDatasetAndVisualize();
   }, [fetchDatasetAndVisualize]);
 
-  return {
+  // Memoize the result to prevent unnecessary rerenders
+  const result = useMemo(() => ({
     dataset,
     visualizationData: visualizationData || [],
     isLoading,
@@ -116,6 +149,8 @@ export function useDatasetVisualization({
     insights,
     analysisMode,
     setAnalysisMode,
-    handleRetry: fetchDatasetAndVisualize
-  };
+    handleRetry
+  }), [dataset, visualizationData, isLoading, error, insights, analysisMode, setAnalysisMode, handleRetry]);
+
+  return result;
 }
