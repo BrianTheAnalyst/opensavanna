@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Entity, EntityRelationship } from '@/types/entity';
-import { getEntityRelationships } from '@/services/entityService';
+import { getEntityRelationships, getEntityById } from '@/services/entityService';
 import { Loader2, ZoomIn, ZoomOut, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -63,12 +63,8 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({
               : relationship.sourceEntityId;
             
             if (!processedNodes.has(relatedEntityId)) {
-              // Fetch the entity data to get its name and type
-              const { data: entityData } = await supabase
-                .from('entities')
-                .select('*')
-                .eq('id', relatedEntityId)
-                .maybeSingle();
+              // Fetch the entity data
+              const entityData = await getEntityById(relatedEntityId);
               
               if (entityData) {
                 const relatedNode: GraphNode = {
@@ -212,6 +208,3 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({
 };
 
 export default KnowledgeGraph;
-
-// Import Supabase for entity data
-import { supabase } from "@/integrations/supabase/client";
