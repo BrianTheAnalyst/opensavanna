@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -18,6 +17,8 @@ import Api from "./pages/Api";
 import About from "./pages/About";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import EntityDetail from './pages/entity-detail/EntityDetail';
+import EntitiesExplorer from './pages/entities/EntitiesExplorer';
 
 // Create a client with proper configuration
 const queryClient = new QueryClient({
@@ -47,6 +48,8 @@ const App = () => {
               <Route path="/about" element={<About />} />
               <Route path="/auth" element={<Auth />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="/entities" element={<EntitiesExplorer />} />
+              <Route path="/entities/:id" element={<EntityDetail />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

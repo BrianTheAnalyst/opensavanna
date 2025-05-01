@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -97,6 +96,10 @@ const Navbar = () => {
             }`}
           >
             About
+          </Link>
+          {/* Add link to entities in the navigation menu */}
+          <Link to="/entities" className="text-foreground hover:text-foreground/80 transition-colors">
+            Entities
           </Link>
         </nav>
 
