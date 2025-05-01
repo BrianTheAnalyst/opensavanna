@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
-import { UploadCloud, Info, FileType, Check } from 'lucide-react';
+import { UploadCloud, Info, FileType, Check, AlertTriangle } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ const formSchema = z.object({
   category: z.string().min(1, { message: "Please select a category" }),
   country: z.string().min(1, { message: "Please select a country" }),
   format: z.string().min(1, { message: "Please select a format" }),
+  source: z.string().min(3, { message: "Please provide the data source" }),
   file: z.any().optional() // Make file optional
 });
 
@@ -63,7 +65,8 @@ const UploadPage = () => {
       description: "",
       category: "",
       country: "",
-      format: ""
+      format: "",
+      source: ""
     }
   });
   
@@ -100,13 +103,16 @@ const UploadPage = () => {
     setIsUploading(true);
     
     try {
-      // Send to Supabase
+      // Send to Supabase with verification status set to "pending"
       const result = await addDataset({
         title: data.title,
         description: data.description,
         category: data.category,
         format: data.format,
-        country: data.country
+        country: data.country,
+        source: data.source,
+        verified: false,
+        verificationStatus: 'pending'
       }, selectedFile || undefined);
       
       if (result) {
@@ -133,7 +139,8 @@ const UploadPage = () => {
     { label: 'Education', value: 'Education' },
     { label: 'Environment', value: 'Environment' },
     { label: 'Demographics', value: 'Demographics' },
-    { label: 'Government', value: 'Government' }
+    { label: 'Government', value: 'Government' },
+    { label: 'Energy', value: 'Energy' }
   ];
   
   const countries = [
@@ -146,7 +153,12 @@ const UploadPage = () => {
     { label: 'Kenya', value: 'Kenya' },
     { label: 'Nigeria', value: 'Nigeria' },
     { label: 'Ghana', value: 'Ghana' },
-    { label: 'Ethiopia', value: 'Ethiopia' }
+    { label: 'Ethiopia', value: 'Ethiopia' },
+    { label: 'Uganda', value: 'Uganda' },
+    { label: 'Tanzania', value: 'Tanzania' },
+    { label: 'Rwanda', value: 'Rwanda' },
+    { label: 'Egypt', value: 'Egypt' },
+    { label: 'Morocco', value: 'Morocco' }
   ];
   
   const formats = [
@@ -169,9 +181,13 @@ const UploadPage = () => {
               <h1 className="text-3xl md:text-4xl font-medium tracking-tight mb-4">
                 Upload a New Dataset
               </h1>
-              <p className="text-foreground/70 mb-4">
-                Share your datasets with the community. We accept CSV, JSON, and GeoJSON formats.
+              <p className="text-foreground/70 mb-2">
+                Share your datasets with the African data commons community. All uploads require verification before publishing.
               </p>
+              <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-4 inline-flex items-center text-sm text-amber-800">
+                <AlertTriangle className="h-4 w-4 mr-2 flex-shrink-0" />
+                <span>Submissions are reviewed by our team before being published to ensure data quality and compliance with African data protection laws.</span>
+              </div>
               {!isLoggedIn && (
                 <p className="text-destructive mb-4">
                   You need to be logged in to upload datasets.
@@ -218,6 +234,24 @@ const UploadPage = () => {
                                 className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
                                 rows={4}
                                 placeholder="Describe the dataset, its source, and potential uses"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      {/* Source field */}
+                      <FormField
+                        control={form.control}
+                        name="source"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Source</FormLabel>
+                            <FormControl>
+                              <Input 
+                                placeholder="Specify the source of this data (e.g., government agency, research institute)" 
                                 {...field}
                               />
                             </FormControl>
@@ -348,8 +382,11 @@ const UploadPage = () => {
                           className="w-full"
                           disabled={isUploading || !isLoggedIn}
                         >
-                          {isUploading ? 'Uploading...' : 'Upload Dataset'}
+                          {isUploading ? 'Uploading...' : 'Submit for Verification'}
                         </Button>
+                        <p className="text-sm text-center mt-2 text-muted-foreground">
+                          Your dataset will be reviewed by our team before being published
+                        </p>
                       </div>
                     </form>
                   </Form>
@@ -358,9 +395,12 @@ const UploadPage = () => {
                     <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                       <Check className="h-8 w-8 text-primary" />
                     </div>
-                    <h3 className="text-xl font-medium mb-2">Upload Successful!</h3>
-                    <p className="text-foreground/70 mb-6">
-                      Your dataset has been uploaded and is now available for the community.
+                    <h3 className="text-xl font-medium mb-2">Submission Successful!</h3>
+                    <p className="text-foreground/70 mb-2">
+                      Your dataset has been submitted and is pending verification.
+                    </p>
+                    <p className="text-sm text-muted-foreground mb-6">
+                      Our team will review your submission to ensure data quality and compliance with African data protection laws.
                     </p>
                     <Button onClick={() => navigate('/datasets')}>
                       View All Datasets
@@ -379,6 +419,7 @@ const UploadPage = () => {
                         <li>Ensure your data is properly structured with clear headers and consistent formatting.</li>
                         <li>Include metadata and sources to provide context for your dataset.</li>
                         <li>Remove any personal or sensitive information before uploading.</li>
+                        <li>Ensure your data complies with African data protection laws.</li>
                         <li>For geospatial data, ensure coordinates are in standard format (WGS84).</li>
                       </ul>
                     </div>

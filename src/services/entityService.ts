@@ -169,7 +169,7 @@ export const linkDatasetToEntity = async (
   relevance: number = 1
 ): Promise<boolean> => {
   try {
-    // Fix: Get the user ID first and then use it in the insert
+    // Get the user ID first and then use it in the insert
     const { data: userData } = await supabase.auth.getUser();
     const userId = userData?.user?.id;
     
@@ -180,7 +180,7 @@ export const linkDatasetToEntity = async (
         entity_id: entityId,
         relationship_type: relationshipType,
         relevance: relevance,
-        created_by: userId // Fixed: use the retrieved userId directly
+        created_by: userId
       });
     
     if (error) {
@@ -249,7 +249,7 @@ export const createEntityRelationship = async (
         source_entity_id: sourceEntityId,
         target_entity_id: targetEntityId,
         type,
-        properties: properties || null, // Fix: Ensure properties is either an object or null
+        properties: properties || null,
         created_by: user.user?.id
       })
       .select()

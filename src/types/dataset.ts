@@ -22,6 +22,12 @@ export interface Dataset {
     description: string;
     type: string;
   }>;
+  verified?: boolean;
+  verificationStatus?: 'pending' | 'approved' | 'rejected';
+  verificationNotes?: string;
+  verifiedAt?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 // Dataset filter options
@@ -30,4 +36,6 @@ export interface DatasetFilters {
   category?: string;
   format?: string;
   country?: string;
+  verified?: boolean;
 }
+

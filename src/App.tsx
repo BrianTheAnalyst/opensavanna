@@ -1,62 +1,83 @@
-import React from "react";
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { 
-  QueryClient, 
-  QueryClientProvider 
-} from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/hooks/useAuth";
-import Index from "./pages/Index";
-import Datasets from "./pages/Datasets";
-import DatasetDetail from "./pages/dataset-detail";
-import DatasetEditPage from "./pages/dataset-edit";
-import UploadPage from "./pages/Upload";
-import Api from "./pages/Api";
-import About from "./pages/About";
-import Auth from "./pages/Auth";
-import NotFound from "./pages/NotFound";
-import EntityDetail from './pages/entity-detail/EntityDetail';
-import EntitiesExplorer from './pages/entities/EntitiesExplorer';
 
-// Create a client with proper configuration
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      retry: 1
-    }
-  }
-});
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 
-const App = () => {
+// Import pages
+import IndexPage from "@/pages/Index";
+import AboutPage from "@/pages/About";
+import DatasetsPage from "@/pages/Datasets";
+import DatasetDetailPage from "@/pages/dataset-detail";
+import DatasetEditPage from "@/pages/dataset-edit";
+import UploadPage from "@/pages/Upload";
+import NotFoundPage from "@/pages/NotFound";
+import ApiPage from "@/pages/Api";
+import AuthPage from "@/pages/Auth";
+import InsightsPage from "@/pages/Insights";
+import DatasetVerificationPage from "@/pages/admin/DatasetVerification";
+import EntityDetail from "@/pages/entity-detail/EntityDetail";
+import EntitiesExplorer from "@/pages/entities/EntitiesExplorer";
+
+// Create router
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <IndexPage />,
+    errorElement: <NotFoundPage />,
+  },
+  {
+    path: "/about",
+    element: <AboutPage />,
+  },
+  {
+    path: "/datasets",
+    element: <DatasetsPage />,
+  },
+  {
+    path: "/datasets/:id",
+    element: <DatasetDetailPage />,
+  },
+  {
+    path: "/dataset-edit/:id",
+    element: <DatasetEditPage />,
+  },
+  {
+    path: "/upload",
+    element: <UploadPage />,
+  },
+  {
+    path: "/api",
+    element: <ApiPage />,
+  },
+  {
+    path: "/auth",
+    element: <AuthPage />,
+  },
+  {
+    path: "/insights",
+    element: <InsightsPage />,
+  },
+  {
+    path: "/entities",
+    element: <EntitiesExplorer />,
+  },
+  {
+    path: "/entities/:id",
+    element: <EntityDetail />,
+  },
+  {
+    path: "/admin/verification",
+    element: <DatasetVerificationPage />,
+  },
+]);
+
+function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <AuthProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/datasets" element={<Datasets />} />
-              <Route path="/datasets/:id" element={<DatasetDetail />} />
-              <Route path="/datasets/edit/:id" element={<DatasetEditPage />} />
-              <Route path="/upload" element={<UploadPage />} />
-              <Route path="/api" element={<Api />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/auth" element={<Auth />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="/entities" element={<EntitiesExplorer />} />
-              <Route path="/entities/:id" element={<EntityDetail />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </AuthProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+      <RouterProvider router={router} />
+      <Toaster />
+    </ThemeProvider>
   );
-};
+}
 
 export default App;
