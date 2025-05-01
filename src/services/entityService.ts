@@ -262,14 +262,24 @@ export const createEntityRelationship = async (
     }
     
     toast.success('Relationship created successfully');
+    
+    // Fix: Properly handle the JSON data types by checking their type before assigning
+    const properties_data = typeof data.properties === 'object' && data.properties !== null 
+      ? data.properties as Record<string, any> 
+      : {};
+      
+    const metadata_data = typeof data.metadata === 'object' && data.metadata !== null 
+      ? data.metadata as Record<string, any> 
+      : {};
+    
     return {
       id: data.id,
       sourceEntityId: data.source_entity_id,
       targetEntityId: data.target_entity_id,
       type: data.type,
       weight: data.weight,
-      properties: data.properties || {}, // Fix: Convert null to empty object for consistency
-      metadata: data.metadata || {}, // Fix: Convert null to empty object for consistency
+      properties: properties_data,
+      metadata: metadata_data,
       created_at: data.created_at,
       updated_at: data.updated_at
     };
