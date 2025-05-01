@@ -1,73 +1,7 @@
 
 import { toast } from "sonner";
 import { Entity, EntityType, EntityRelationship } from "@/types/entity";
-
-// Mock data - replace with actual database implementation once tables are created
-const mockEntities: Entity[] = [
-  {
-    id: '1',
-    name: 'San Francisco',
-    type: 'Place',
-    description: 'Major city in California, United States',
-    aliases: ['SF', 'San Fran'],
-    properties: {
-      population: 873965,
-      region: 'West Coast'
-    }
-  },
-  {
-    id: '2',
-    name: 'Climate Change',
-    type: 'Topic',
-    description: 'Long-term change in temperature and weather patterns',
-  },
-  {
-    id: '3',
-    name: 'World Health Organization',
-    type: 'Organization',
-    description: 'Specialized agency of the United Nations responsible for international public health',
-    aliases: ['WHO'],
-  },
-  {
-    id: '4',
-    name: 'COVID-19 Pandemic',
-    type: 'Event',
-    description: 'Global pandemic caused by SARS-CoV-2',
-  },
-  {
-    id: '5',
-    name: 'Jane Doe',
-    type: 'Person',
-    description: 'Environmental researcher focused on climate impacts',
-  }
-];
-
-const mockRelationships: EntityRelationship[] = [
-  {
-    id: '101',
-    sourceEntityId: '2',
-    targetEntityId: '1',
-    type: 'impacts',
-  },
-  {
-    id: '102',
-    sourceEntityId: '3',
-    targetEntityId: '4',
-    type: 'manages',
-  },
-  {
-    id: '103',
-    sourceEntityId: '5',
-    targetEntityId: '2',
-    type: 'studies',
-  },
-  {
-    id: '104',
-    sourceEntityId: '1',
-    targetEntityId: '4',
-    type: 'affected_by',
-  }
-];
+import { supabase } from "@/integrations/supabase/client";
 
 // Get entities with optional filtering
 export const getEntities = async (
@@ -75,22 +9,30 @@ export const getEntities = async (
   search?: string
 ): Promise<Entity[]> => {
   try {
-    // Filter mock data based on parameters
-    let result = [...mockEntities];
+    // Create base query
+    let query = supabase
+      .from('entities')
+      .select('*');
     
+    // Apply filters if provided
     if (type) {
-      result = result.filter(entity => entity.type === type);
+      query = query.eq('type', type);
     }
     
     if (search) {
-      const searchLower = search.toLowerCase();
-      result = result.filter(entity => 
-        entity.name.toLowerCase().includes(searchLower) || 
-        entity.description?.toLowerCase().includes(searchLower)
-      );
+      query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
     }
     
-    return result;
+    // Execute query
+    const { data, error } = await query;
+    
+    if (error) {
+      console.error('Error fetching entities:', error);
+      toast.error('Failed to load entities');
+      return [];
+    }
+    
+    return data as Entity[];
   } catch (error) {
     console.error('Error in getEntities:', error);
     toast.error('Failed to load entities');
@@ -101,14 +43,19 @@ export const getEntities = async (
 // Get a single entity by ID
 export const getEntityById = async (id: string): Promise<Entity | null> => {
   try {
-    const entity = mockEntities.find(e => e.id === id);
+    const { data, error } = await supabase
+      .from('entities')
+      .select('*')
+      .eq('id', id)
+      .single();
     
-    if (!entity) {
+    if (error) {
+      console.error('Error fetching entity by id:', error);
       toast.error('Entity not found');
       return null;
     }
     
-    return entity;
+    return data as Entity;
   } catch (error) {
     console.error('Error in getEntityById:', error);
     toast.error('Failed to load entity');
@@ -122,15 +69,57 @@ export const getEntityRelationships = async (
   relationshipType?: string
 ): Promise<EntityRelationship[]> => {
   try {
-    let result = mockRelationships.filter(rel => 
-      rel.sourceEntityId === entityId || rel.targetEntityId === entityId
-    );
+    // We need to fetch relationships where the entity is either the source or the target
+    // First, get relationships where entity is the source
+    let querySource = supabase
+      .from('entity_relationships')
+      .select('*')
+      .eq('source_entity_id', entityId);
     
+    // Add relationship type filter if provided
     if (relationshipType) {
-      result = result.filter(rel => rel.type === relationshipType);
+      querySource = querySource.eq('type', relationshipType);
     }
     
-    return result;
+    const { data: sourceRelationships, error: sourceError } = await querySource;
+    
+    if (sourceError) {
+      console.error('Error fetching source relationships:', sourceError);
+      return [];
+    }
+    
+    // Then, get relationships where entity is the target
+    let queryTarget = supabase
+      .from('entity_relationships')
+      .select('*')
+      .eq('target_entity_id', entityId);
+    
+    // Add relationship type filter if provided
+    if (relationshipType) {
+      queryTarget = queryTarget.eq('type', relationshipType);
+    }
+    
+    const { data: targetRelationships, error: targetError } = await queryTarget;
+    
+    if (targetError) {
+      console.error('Error fetching target relationships:', targetError);
+      return [];
+    }
+    
+    // Combine and format the relationships
+    const relationships = [...(sourceRelationships || []), ...(targetRelationships || [])].map(rel => ({
+      id: rel.id,
+      sourceEntityId: rel.source_entity_id,
+      targetEntityId: rel.target_entity_id,
+      type: rel.type,
+      weight: rel.weight,
+      properties: rel.properties,
+      metadata: rel.metadata,
+      created_at: rel.created_at,
+      updated_at: rel.updated_at
+    }));
+    
+    return relationships as EntityRelationship[];
   } catch (error) {
     console.error('Error in getEntityRelationships:', error);
     toast.error('Failed to load relationships');
@@ -138,11 +127,33 @@ export const getEntityRelationships = async (
   }
 };
 
-// Get datasets related to an entity - still uses Supabase since datasets table exists
+// Get datasets related to an entity - uses the dataset_entity_relationships table
 export const getDatasetsByEntity = async (entityId: string): Promise<any[]> => {
   try {
-    // For now, return mock data since we don't have the mapping table yet
-    return [];
+    // Join the dataset_entity_relationships table with the datasets table
+    const { data, error } = await supabase
+      .from('dataset_entity_relationships')
+      .select(`
+        relevance,
+        relationship_type,
+        datasets:dataset_id (*)
+      `)
+      .eq('entity_id', entityId);
+    
+    if (error) {
+      console.error('Error fetching related datasets:', error);
+      toast.error('Failed to load related datasets');
+      return [];
+    }
+    
+    // Transform the data to get the datasets with relationship info
+    const datasets = data?.map(item => ({
+      ...item.datasets,
+      relationshipType: item.relationship_type,
+      relevance: item.relevance
+    })) || [];
+    
+    return datasets;
   } catch (error) {
     console.error('Error in getDatasetsByEntity:', error);
     toast.error('Failed to load related datasets');
@@ -150,7 +161,7 @@ export const getDatasetsByEntity = async (entityId: string): Promise<any[]> => {
   }
 };
 
-// Link a dataset to an entity - still uses Supabase since datasets table exists
+// Link a dataset to an entity
 export const linkDatasetToEntity = async (
   datasetId: string,
   entityId: string,
@@ -158,12 +169,103 @@ export const linkDatasetToEntity = async (
   relevance: number = 1
 ): Promise<boolean> => {
   try {
-    // For now, just simulate success
+    const { error } = await supabase
+      .from('dataset_entity_relationships')
+      .insert({
+        dataset_id: datasetId,
+        entity_id: entityId,
+        relationship_type: relationshipType,
+        relevance: relevance,
+        created_by: supabase.auth.getUser().then(({ data }) => data.user?.id)
+      });
+    
+    if (error) {
+      console.error('Error linking dataset to entity:', error);
+      toast.error('Failed to link dataset to entity');
+      return false;
+    }
+    
     toast.success('Dataset linked to entity successfully');
     return true;
   } catch (error) {
     console.error('Error in linkDatasetToEntity:', error);
     toast.error('Failed to link dataset to entity');
     return false;
+  }
+};
+
+// Create a new entity
+export const createEntity = async (entity: Omit<Entity, 'id' | 'created_at' | 'updated_at'>): Promise<Entity | null> => {
+  try {
+    const { data: user } = await supabase.auth.getUser();
+    
+    const { data, error } = await supabase
+      .from('entities')
+      .insert({
+        ...entity,
+        created_by: user.user?.id
+      })
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error creating entity:', error);
+      toast.error('Failed to create entity');
+      return null;
+    }
+    
+    toast.success('Entity created successfully');
+    return data as Entity;
+  } catch (error) {
+    console.error('Error in createEntity:', error);
+    toast.error('Failed to create entity');
+    return null;
+  }
+};
+
+// Create a new relationship between entities
+export const createEntityRelationship = async (
+  sourceEntityId: string,
+  targetEntityId: string,
+  type: string,
+  properties?: Record<string, any>
+): Promise<EntityRelationship | null> => {
+  try {
+    const { data: user } = await supabase.auth.getUser();
+    
+    const { data, error } = await supabase
+      .from('entity_relationships')
+      .insert({
+        source_entity_id: sourceEntityId,
+        target_entity_id: targetEntityId,
+        type,
+        properties,
+        created_by: user.user?.id
+      })
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error creating relationship:', error);
+      toast.error('Failed to create relationship');
+      return null;
+    }
+    
+    toast.success('Relationship created successfully');
+    return {
+      id: data.id,
+      sourceEntityId: data.source_entity_id,
+      targetEntityId: data.target_entity_id,
+      type: data.type,
+      weight: data.weight,
+      properties: data.properties,
+      metadata: data.metadata,
+      created_at: data.created_at,
+      updated_at: data.updated_at
+    };
+  } catch (error) {
+    console.error('Error in createEntityRelationship:', error);
+    toast.error('Failed to create relationship');
+    return null;
   }
 };
