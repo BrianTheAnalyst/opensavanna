@@ -249,7 +249,7 @@ export const createEntityRelationship = async (
         source_entity_id: sourceEntityId,
         target_entity_id: targetEntityId,
         type,
-        properties,
+        properties: properties || null, // Fix: Ensure properties is either an object or null
         created_by: user.user?.id
       })
       .select()
@@ -268,8 +268,8 @@ export const createEntityRelationship = async (
       targetEntityId: data.target_entity_id,
       type: data.type,
       weight: data.weight,
-      properties: data.properties,
-      metadata: data.metadata,
+      properties: data.properties || {}, // Fix: Convert null to empty object for consistency
+      metadata: data.metadata || {}, // Fix: Convert null to empty object for consistency
       created_at: data.created_at,
       updated_at: data.updated_at
     };
