@@ -169,6 +169,10 @@ export const linkDatasetToEntity = async (
   relevance: number = 1
 ): Promise<boolean> => {
   try {
+    // Fix: Get the user ID first and then use it in the insert
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData?.user?.id;
+    
     const { error } = await supabase
       .from('dataset_entity_relationships')
       .insert({
@@ -176,7 +180,7 @@ export const linkDatasetToEntity = async (
         entity_id: entityId,
         relationship_type: relationshipType,
         relevance: relevance,
-        created_by: supabase.auth.getUser().then(({ data }) => data.user?.id)
+        created_by: userId // Fixed: use the retrieved userId directly
       });
     
     if (error) {
@@ -199,12 +203,18 @@ export const createEntity = async (entity: Omit<Entity, 'id' | 'created_at' | 'u
   try {
     const { data: user } = await supabase.auth.getUser();
     
+    // Fix: Ensure properties and metadata are properly typed as Record<string, any> or null
+    const entityData = {
+      ...entity,
+      // Convert properties and metadata to ensure they're properly typed
+      properties: entity.properties || null,
+      metadata: entity.metadata || null,
+      created_by: user.user?.id
+    };
+    
     const { data, error } = await supabase
       .from('entities')
-      .insert({
-        ...entity,
-        created_by: user.user?.id
-      })
+      .insert(entityData)
       .select()
       .single();
     
