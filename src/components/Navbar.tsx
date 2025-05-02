@@ -25,6 +25,7 @@ import {
 import { hasUserRole } from '@/services/userRoleService';
 import { useEffect, useState } from 'react';
 import { Badge } from './ui/badge';
+import { cn } from '@/lib/utils';
 
 const Navbar = () => {
   const { user, signOut } = useAuth();
@@ -90,7 +91,7 @@ const Navbar = () => {
                 </NavigationMenuItem>
                 
                 <NavigationMenuItem>
-                  <NavigationMenuTrigger active={location.pathname.includes('/datasets')}>
+                  <NavigationMenuTrigger className={cn(location.pathname.includes('/datasets') ? 'text-primary' : '')}>
                     Datasets
                   </NavigationMenuTrigger>
                   <NavigationMenuContent>
@@ -138,7 +139,7 @@ const Navbar = () => {
                 
                 <NavigationMenuItem>
                   <Link to="/entities">
-                    <NavigationMenuLink className={navigationMenuTriggerStyle()} active={isActive('/entities')}>
+                    <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), isActive('/entities') ? 'text-primary' : '')}>
                       Entities
                     </NavigationMenuLink>
                   </Link>
@@ -146,7 +147,7 @@ const Navbar = () => {
                 
                 <NavigationMenuItem>
                   <Link to="/insights">
-                    <NavigationMenuLink className={navigationMenuTriggerStyle()} active={isActive('/insights')}>
+                    <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), isActive('/insights') ? 'text-primary' : '')}>
                       <BarChart2 className="h-4 w-4 mr-1" />
                       Insights
                     </NavigationMenuLink>
@@ -155,7 +156,7 @@ const Navbar = () => {
                 
                 <NavigationMenuItem>
                   <Link to="/about">
-                    <NavigationMenuLink className={navigationMenuTriggerStyle()} active={isActive('/about')}>
+                    <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), isActive('/about') ? 'text-primary' : '')}>
                       About
                     </NavigationMenuLink>
                   </Link>
@@ -163,7 +164,7 @@ const Navbar = () => {
                 
                 <NavigationMenuItem>
                   <Link to="/api">
-                    <NavigationMenuLink className={navigationMenuTriggerStyle()} active={isActive('/api')}>
+                    <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), isActive('/api') ? 'text-primary' : '')}>
                       API
                     </NavigationMenuLink>
                   </Link>

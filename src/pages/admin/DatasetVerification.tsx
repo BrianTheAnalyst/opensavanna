@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
@@ -23,6 +22,27 @@ type DatasetWithVerification = Dataset & {
   source?: string;
   email?: string; // Submitter email
 };
+
+// Define the raw data type from Supabase
+interface RawDatasetWithUser {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  format: string;
+  country: string;
+  date: string;
+  downloads: number;
+  featured?: boolean;
+  file?: string;
+  verificationStatus: 'pending' | 'approved' | 'rejected';
+  verificationNotes?: string;
+  source?: string;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+  users: { email: string } | null;
+}
 
 const DatasetVerificationPage = () => {
   const [datasets, setDatasets] = useState<DatasetWithVerification[]>([]);
@@ -58,7 +78,7 @@ const DatasetVerificationPage = () => {
     setIsLoading(true);
     try {
       // Query datasets with verification status matching the active tab
-      const { data, error } = await supabase
+      const { data: rawData, error } = await supabase
         .from('datasets')
         .select('*, users:user_id(email)')
         .eq('verificationStatus', activeTab)
@@ -67,10 +87,13 @@ const DatasetVerificationPage = () => {
       if (error) throw error;
       
       // Format datasets with user email
-      const formattedData = data.map(item => ({
-        ...item,
-        email: item.users ? item.users.email : 'Unknown'
-      })) as DatasetWithVerification[];
+      const formattedData = (rawData as RawDatasetWithUser[]).map(item => {
+        return {
+          ...item,
+          email: item.users?.email || 'Unknown',
+          verificationStatus: item.verificationStatus || 'pending'
+        } as DatasetWithVerification;
+      });
       
       setDatasets(formattedData);
     } catch (error) {
@@ -100,14 +123,16 @@ const DatasetVerificationPage = () => {
     
     try {
       // Update dataset verification status
+      const updateData = {
+        verificationStatus: action === 'approve' ? 'approved' : 'rejected',
+        verified: action === 'approve',
+        verificationNotes: feedbackNote || null,
+        verifiedAt: action === 'approve' ? new Date().toISOString() : null
+      };
+      
       const { error } = await supabase
         .from('datasets')
-        .update({
-          verificationStatus: action === 'approve' ? 'approved' : 'rejected',
-          verified: action === 'approve',
-          verificationNotes: feedbackNote || null,
-          verifiedAt: action === 'approve' ? new Date().toISOString() : null
-        })
+        .update(updateData)
         .eq('id', selectedDataset.id);
       
       if (error) throw error;

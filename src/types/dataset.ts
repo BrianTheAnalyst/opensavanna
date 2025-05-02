@@ -13,7 +13,7 @@ export interface Dataset {
   file?: string;
   license?: string;
   fileSize?: string;
-  dataPoints?: number | string; // Adding dataPoints as either number or string
+  dataPoints?: number | string;
   timespan?: string;
   source?: string;
   tags?: string[];
@@ -38,4 +38,3 @@ export interface DatasetFilters {
   country?: string;
   verified?: boolean;
 }
-
