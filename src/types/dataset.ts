@@ -28,6 +28,7 @@ export interface Dataset {
   verifiedAt?: string;
   created_at?: string;
   updated_at?: string;
+  user_id?: string;
 }
 
 // Dataset filter options

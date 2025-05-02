@@ -45,16 +45,10 @@ export const DatasetReviewDialog = ({ dataset, onClose, onProcessed }: DatasetRe
         verifiedAt: action === 'approve' ? new Date().toISOString() : null
       };
       
-      // Fixed: Use correct typing that matches the Supabase database schema
+      // Use type assertion to match the Supabase database schema
       const { error } = await supabase
         .from('datasets')
-        .update({
-          // These fields need to be added to the database schema
-          verificationStatus: updateData.verificationStatus,
-          verified: updateData.verified,
-          verificationNotes: updateData.verificationNotes,
-          verifiedAt: updateData.verifiedAt
-        })
+        .update(updateData as any)
         .eq('id', dataset.id);
       
       if (error) throw error;

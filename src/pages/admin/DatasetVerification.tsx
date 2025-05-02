@@ -16,8 +16,8 @@ interface DatasetWithEmail extends Dataset {
   email?: string;
 }
 
-// Define the raw data type from Supabase
-interface RawDatasetWithUser {
+// Define a simpler type for the raw data from Supabase
+interface DatasetResponse {
   id: string;
   title: string;
   description: string;
@@ -25,7 +25,7 @@ interface RawDatasetWithUser {
   format: string;
   country: string;
   date: string;
-  downloads: number;
+  downloads: number | null;
   featured?: boolean;
   file?: string;
   verificationStatus?: 'pending' | 'approved' | 'rejected';
@@ -76,30 +76,10 @@ const DatasetVerificationPage = () => {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-
-      // Fixed: Explicitly type the response and safely map it
-      interface DatasetResponse {
-        id: string;
-        title: string;
-        description: string;
-        category: string;
-        format: string;
-        country: string;
-        date: string;
-        downloads: number | null;
-        featured?: boolean;
-        file?: string;
-        verificationStatus?: 'pending' | 'approved' | 'rejected';
-        verificationNotes?: string;
-        source?: string;
-        created_at: string;
-        updated_at: string;
-        user_id: string;
-        users: { email: string } | null;
-      }
       
       // Safely map the data to our DatasetWithEmail type
-      const formattedData = (rawData as DatasetResponse[])?.map(item => {
+      // Use type assertion to avoid the deep/infinite type instantiation error
+      const formattedData = (rawData as any[])?.map(item => {
         return {
           ...item,
           email: item.users?.email || 'Unknown',
