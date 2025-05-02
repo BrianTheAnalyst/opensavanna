@@ -89,4 +89,4 @@ const DatasetVerificationCard = ({ dataset, onReview }: DatasetVerificationCardP
 };
 
 export default DatasetVerificationCard;
-export { StatusBadge };
+// Fixed: Remove duplicate export, only export once at the top of the file

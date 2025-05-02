@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { isUserAdmin } from '@/services/userRoleService';
 import { Dataset } from '@/types/dataset';
-import DatasetVerificationCard from '@/components/admin/DatasetVerificationCard';
+import DatasetVerificationCard, { StatusBadge } from '@/components/admin/DatasetVerificationCard';
 import DatasetReviewDialog from '@/components/admin/DatasetReviewDialog';
 import EmptyDatasetState from '@/components/admin/EmptyDatasetState';
 
@@ -77,13 +77,34 @@ const DatasetVerificationPage = () => {
       
       if (error) throw error;
 
-      // Safely cast and map the data
-      const formattedData = rawData?.map(item => {
-        const typedItem = item as unknown as RawDatasetWithUser;
+      // Fixed: Explicitly type the response and safely map it
+      interface DatasetResponse {
+        id: string;
+        title: string;
+        description: string;
+        category: string;
+        format: string;
+        country: string;
+        date: string;
+        downloads: number | null;
+        featured?: boolean;
+        file?: string;
+        verificationStatus?: 'pending' | 'approved' | 'rejected';
+        verificationNotes?: string;
+        source?: string;
+        created_at: string;
+        updated_at: string;
+        user_id: string;
+        users: { email: string } | null;
+      }
+      
+      // Safely map the data to our DatasetWithEmail type
+      const formattedData = (rawData as DatasetResponse[])?.map(item => {
         return {
-          ...typedItem,
-          email: typedItem.users?.email || 'Unknown',
-          verificationStatus: typedItem.verificationStatus || 'pending'
+          ...item,
+          email: item.users?.email || 'Unknown',
+          verificationStatus: item.verificationStatus || 'pending',
+          downloads: item.downloads || 0
         } as DatasetWithEmail;
       }) || [];
       
