@@ -29,6 +29,21 @@ export interface Dataset {
   created_at?: string;
   updated_at?: string;
   user_id?: string;
+  aiAnalysis?: {
+    summary?: string;
+    insights?: string[];
+    correlations?: Array<{
+      field1: string;
+      field2: string;
+      strength: number;
+      description: string;
+    }>;
+    anomalies?: Array<{
+      field: string;
+      description: string;
+      impact: string;
+    }>;
+  };
 }
 
 // Dataset filter options
