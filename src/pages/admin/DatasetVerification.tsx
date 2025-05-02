@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
@@ -14,10 +13,11 @@ import EmptyDatasetState from '@/components/admin/EmptyDatasetState';
 
 interface DatasetWithEmail extends Dataset {
   email?: string;
+  users?: { email: string } | null;
 }
 
-// Define a simple type for raw data from Supabase to avoid deep type inference
-interface RawDatasetResponse {
+// Define a base type for raw data from Supabase
+interface SupabaseDatasetItem {
   id: string;
   title: string;
   description: string;
@@ -28,14 +28,13 @@ interface RawDatasetResponse {
   downloads: number | null;
   featured?: boolean;
   file?: string;
+  source?: string;
   verificationStatus?: 'pending' | 'approved' | 'rejected';
   verificationNotes?: string;
-  source?: string;
   created_at: string;
   updated_at: string;
   user_id: string;
   users: { email: string } | null;
-  [key: string]: any; // Allow for any other properties
 }
 
 const DatasetVerificationPage = () => {
@@ -78,17 +77,16 @@ const DatasetVerificationPage = () => {
       
       if (error) throw error;
       
-      // Use a simple type assertion to avoid deep type inference issues
-      const rawData = (data || []) as RawDatasetResponse[];
+      // First cast to unknown to avoid type instantiation depth issues
+      const rawItems = data as unknown as SupabaseDatasetItem[];
       
-      const formattedData = rawData.map(item => {
-        return {
-          ...item,
-          email: item.users?.email || 'Unknown',
-          verificationStatus: item.verificationStatus || 'pending',
-          downloads: item.downloads || 0
-        } as DatasetWithEmail;
-      });
+      // Then map the items to our expected DatasetWithEmail type
+      const formattedData: DatasetWithEmail[] = (rawItems || []).map(item => ({
+        ...item,
+        email: item.users?.email || 'Unknown',
+        verificationStatus: item.verificationStatus || 'pending',
+        downloads: item.downloads || 0
+      }));
       
       setDatasets(formattedData);
     } catch (error) {

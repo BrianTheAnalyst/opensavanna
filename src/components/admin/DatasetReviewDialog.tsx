@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from "@/components/ui/button";
@@ -37,15 +36,14 @@ export const DatasetReviewDialog = ({ dataset, onClose, onProcessed }: DatasetRe
     setIsProcessing(true);
     
     try {
-      // Define the update data with proper typing
-      const updateData = {
+      // Define the update data with proper typing for Dataset type
+      const updateData: Partial<Dataset> = {
         verificationStatus: action === 'approve' ? 'approved' : 'rejected',
         verified: action === 'approve',
         verificationNotes: feedbackNote || null,
         verifiedAt: action === 'approve' ? new Date().toISOString() : null
       };
       
-      // Use a type assertion to match the Supabase schema
       const { error } = await supabase
         .from('datasets')
         .update(updateData)
