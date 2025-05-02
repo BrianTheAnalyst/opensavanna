@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ExternalLink, Clock, CheckCircle, X } from 'lucide-react';
 import { Dataset } from '@/types/dataset';
 
@@ -13,6 +14,8 @@ interface DatasetWithEmail extends Dataset {
 interface DatasetVerificationCardProps {
   dataset: DatasetWithEmail;
   onReview: (dataset: DatasetWithEmail) => void;
+  isSelected: boolean;
+  onSelect: (datasetId: string, checked: boolean) => void;
 }
 
 // Status badge component
@@ -29,12 +32,18 @@ export const StatusBadge = ({ status }: { status: string }) => {
   }
 };
 
-const DatasetVerificationCard = ({ dataset, onReview }: DatasetVerificationCardProps) => {
+const DatasetVerificationCard = ({ dataset, onReview, isSelected, onSelect }: DatasetVerificationCardProps) => {
   return (
     <Card key={dataset.id} className="p-6">
       <div className="flex flex-col md:flex-row justify-between gap-4">
         <div className="flex-1">
           <div className="flex items-center gap-3">
+            <Checkbox 
+              id={`select-dataset-${dataset.id}`}
+              checked={isSelected}
+              onCheckedChange={(checked) => onSelect(dataset.id, !!checked)}
+              aria-label={`Select ${dataset.title} for batch processing`}
+            />
             <h3 className="text-lg font-medium">{dataset.title}</h3>
             <StatusBadge status={dataset.verificationStatus || 'pending'} />
           </div>

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
@@ -10,6 +11,7 @@ import { Dataset } from '@/types/dataset';
 import DatasetVerificationCard from '@/components/admin/DatasetVerificationCard';
 import DatasetReviewDialog from '@/components/admin/DatasetReviewDialog';
 import EmptyDatasetState from '@/components/admin/EmptyDatasetState';
+import BatchActionBar from '@/components/admin/BatchActionBar';
 
 interface DatasetWithEmail extends Dataset {
   email?: string;
@@ -40,7 +42,9 @@ interface SupabaseDatasetItem {
 const DatasetVerificationPage = () => {
   const [datasets, setDatasets] = useState<DatasetWithEmail[]>([]);
   const [selectedDataset, setSelectedDataset] = useState<DatasetWithEmail | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
+  const [isBatchProcessing, setIsBatchProcessing] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [activeTab, setActiveTab] = useState('pending');
   const navigate = useNavigate();
@@ -77,11 +81,13 @@ const DatasetVerificationPage = () => {
       
       if (error) throw error;
       
-      // First cast to unknown to avoid type instantiation depth issues
-      const rawItems = data as unknown as SupabaseDatasetItem[];
+      // Use two-step type casting to avoid excessive instantiation depth
+      // First cast to unknown then to our target type
+      const rawItems = data as unknown;
+      const typedItems = rawItems as SupabaseDatasetItem[];
       
       // Then map the items to our expected DatasetWithEmail type
-      const formattedData: DatasetWithEmail[] = (rawItems || []).map(item => ({
+      const formattedData: DatasetWithEmail[] = (typedItems || []).map(item => ({
         ...item,
         email: item.users?.email || 'Unknown',
         verificationStatus: item.verificationStatus || 'pending',
@@ -89,6 +95,8 @@ const DatasetVerificationPage = () => {
       }));
       
       setDatasets(formattedData);
+      // Clear selection when datasets change
+      setSelectedIds(new Set());
     } catch (error) {
       console.error('Error loading datasets:', error);
       toast.error('Failed to load datasets');
@@ -101,6 +109,74 @@ const DatasetVerificationPage = () => {
   const handleDatasetProcessed = (datasetId: string) => {
     setDatasets(datasets.filter(d => d.id !== datasetId));
     setSelectedDataset(null);
+    // Remove from selected IDs if present
+    if (selectedIds.has(datasetId)) {
+      const newSelectedIds = new Set(selectedIds);
+      newSelectedIds.delete(datasetId);
+      setSelectedIds(newSelectedIds);
+    }
+  };
+  
+  // Handle batch approval
+  const handleBatchApprove = async () => {
+    await processBatch('approve');
+  };
+  
+  // Handle batch rejection
+  const handleBatchReject = async () => {
+    await processBatch('reject');
+  };
+  
+  // Process batch of datasets
+  const processBatch = async (action: 'approve' | 'reject') => {
+    if (selectedIds.size === 0) return;
+    
+    setIsBatchProcessing(true);
+    const selectedIdsArray = Array.from(selectedIds);
+    
+    try {
+      const updateData = {
+        verificationStatus: action === 'approve' ? 'approved' : 'rejected',
+        verified: action === 'approve',
+        verifiedAt: new Date().toISOString()
+      };
+      
+      const { error } = await supabase
+        .from('datasets')
+        .update(updateData)
+        .in('id', selectedIdsArray);
+      
+      if (error) throw error;
+      
+      toast.success(`${selectedIds.size} datasets ${action === 'approve' ? 'approved' : 'rejected'} successfully`);
+      
+      // Refresh the list
+      await loadDatasets();
+    } catch (error) {
+      console.error(`Error processing batch ${action}:`, error);
+      toast.error(`Failed to ${action} datasets`);
+    } finally {
+      setIsBatchProcessing(false);
+      setSelectedIds(new Set());
+    }
+  };
+  
+  // Toggle dataset selection
+  const toggleDatasetSelection = (datasetId: string, selected: boolean) => {
+    const newSelectedIds = new Set(selectedIds);
+    
+    if (selected) {
+      newSelectedIds.add(datasetId);
+    } else {
+      newSelectedIds.delete(datasetId);
+    }
+    
+    setSelectedIds(newSelectedIds);
+  };
+  
+  // Clear all selections
+  const clearSelection = () => {
+    setSelectedIds(new Set());
   };
 
   // Loading spinner component
@@ -135,6 +211,15 @@ const DatasetVerificationPage = () => {
               </TabsList>
             </Tabs>
             
+            {/* Batch Action Bar */}
+            <BatchActionBar 
+              selectedCount={selectedIds.size}
+              onBatchApprove={handleBatchApprove}
+              onBatchReject={handleBatchReject}
+              onClearSelection={clearSelection}
+              isProcessing={isBatchProcessing}
+            />
+            
             {isLoading ? (
               <LoadingSpinner />
             ) : datasets.length === 0 ? (
@@ -145,7 +230,9 @@ const DatasetVerificationPage = () => {
                   <DatasetVerificationCard 
                     key={dataset.id} 
                     dataset={dataset} 
-                    onReview={setSelectedDataset} 
+                    onReview={setSelectedDataset}
+                    isSelected={selectedIds.has(dataset.id)}
+                    onSelect={toggleDatasetSelection}
                   />
                 ))}
               </div>
