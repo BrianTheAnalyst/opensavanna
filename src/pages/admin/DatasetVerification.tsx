@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
@@ -16,12 +17,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-type DatasetWithVerification = Dataset & {
-  verificationStatus: 'pending' | 'approved' | 'rejected';
-  verificationNotes?: string;
-  source?: string;
+interface DatasetWithVerification extends Dataset {
   email?: string; // Submitter email
-};
+}
 
 // Define the raw data type from Supabase
 interface RawDatasetWithUser {
@@ -35,7 +33,7 @@ interface RawDatasetWithUser {
   downloads: number;
   featured?: boolean;
   file?: string;
-  verificationStatus: 'pending' | 'approved' | 'rejected';
+  verificationStatus?: 'pending' | 'approved' | 'rejected';
   verificationNotes?: string;
   source?: string;
   created_at: string;
@@ -85,15 +83,16 @@ const DatasetVerificationPage = () => {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      
-      // Format datasets with user email
-      const formattedData = (rawData as RawDatasetWithUser[]).map(item => {
+
+      // Safely cast and map the data
+      const formattedData = rawData?.map(item => {
+        const typedItem = item as unknown as RawDatasetWithUser;
         return {
-          ...item,
-          email: item.users?.email || 'Unknown',
-          verificationStatus: item.verificationStatus || 'pending'
+          ...typedItem,
+          email: typedItem.users?.email || 'Unknown',
+          verificationStatus: typedItem.verificationStatus || 'pending'
         } as DatasetWithVerification;
-      });
+      }) || [];
       
       setDatasets(formattedData);
     } catch (error) {
@@ -246,7 +245,7 @@ const DatasetVerificationPage = () => {
                       <div className="flex-1">
                         <div className="flex items-center gap-3">
                           <h3 className="text-lg font-medium">{dataset.title}</h3>
-                          <StatusBadge status={dataset.verificationStatus} />
+                          <StatusBadge status={dataset.verificationStatus || 'pending'} />
                         </div>
                         <p className="text-sm text-foreground/70 mt-1 mb-2">{dataset.description}</p>
                         
