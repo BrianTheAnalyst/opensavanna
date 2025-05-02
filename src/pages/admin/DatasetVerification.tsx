@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { isUserAdmin } from '@/services/userRoleService';
 import { Dataset } from '@/types/dataset';
-import DatasetVerificationCard, { StatusBadge } from '@/components/admin/DatasetVerificationCard';
+import DatasetVerificationCard from '@/components/admin/DatasetVerificationCard';
 import DatasetReviewDialog from '@/components/admin/DatasetReviewDialog';
 import EmptyDatasetState from '@/components/admin/EmptyDatasetState';
 
@@ -77,16 +77,18 @@ const DatasetVerificationPage = () => {
       
       if (error) throw error;
       
-      // Safely map the data to our DatasetWithEmail type
-      // Use type assertion to avoid the deep/infinite type instantiation error
-      const formattedData = (rawData as any[])?.map(item => {
+      // Safe type assertion and mapping
+      // Explicitly casting to any[] to avoid deep type instantiation issues
+      const rawDatasets: any[] = rawData || [];
+      
+      const formattedData = rawDatasets.map(item => {
         return {
           ...item,
           email: item.users?.email || 'Unknown',
           verificationStatus: item.verificationStatus || 'pending',
           downloads: item.downloads || 0
         } as DatasetWithEmail;
-      }) || [];
+      });
       
       setDatasets(formattedData);
     } catch (error) {

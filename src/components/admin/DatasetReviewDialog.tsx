@@ -45,10 +45,10 @@ export const DatasetReviewDialog = ({ dataset, onClose, onProcessed }: DatasetRe
         verifiedAt: action === 'approve' ? new Date().toISOString() : null
       };
       
-      // Use type assertion to match the Supabase database schema
+      // Use a more explicit type casting to avoid type errors
       const { error } = await supabase
         .from('datasets')
-        .update(updateData as any)
+        .update(updateData as unknown as Partial<Dataset>)
         .eq('id', dataset.id);
       
       if (error) throw error;
