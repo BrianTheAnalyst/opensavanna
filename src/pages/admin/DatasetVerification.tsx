@@ -7,37 +7,11 @@ import Footer from '@/components/Footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { isUserAdmin } from '@/services/userRoleService';
-import { Dataset } from '@/types/dataset';
+import { DatasetWithEmail, SupabaseDatasetItem } from '@/types/dataset';
 import DatasetVerificationCard from '@/components/admin/DatasetVerificationCard';
 import DatasetReviewDialog from '@/components/admin/DatasetReviewDialog';
 import EmptyDatasetState from '@/components/admin/EmptyDatasetState';
 import BatchActionBar from '@/components/admin/BatchActionBar';
-
-interface DatasetWithEmail extends Dataset {
-  email?: string;
-  users?: { email: string } | null;
-}
-
-// Define a base type for raw data from Supabase
-interface SupabaseDatasetItem {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  format: string;
-  country: string;
-  date: string;
-  downloads: number | null;
-  featured?: boolean;
-  file?: string;
-  source?: string;
-  verificationStatus?: 'pending' | 'approved' | 'rejected';
-  verificationNotes?: string;
-  created_at: string;
-  updated_at: string;
-  user_id: string;
-  users: { email: string } | null;
-}
 
 const DatasetVerificationPage = () => {
   const [datasets, setDatasets] = useState<DatasetWithEmail[]>([]);
@@ -82,9 +56,7 @@ const DatasetVerificationPage = () => {
       if (error) throw error;
       
       // Use two-step type casting to avoid excessive instantiation depth
-      // First cast to unknown then to our target type
-      const rawItems = data as unknown;
-      const typedItems = rawItems as SupabaseDatasetItem[];
+      const typedItems = data as unknown as SupabaseDatasetItem[];
       
       // Then map the items to our expected DatasetWithEmail type
       const formattedData: DatasetWithEmail[] = (typedItems || []).map(item => ({
@@ -102,6 +74,44 @@ const DatasetVerificationPage = () => {
       toast.error('Failed to load datasets');
     } finally {
       setIsLoading(false);
+    }
+  };
+  
+  // Send notification emails for batch operations
+  const sendBatchNotifications = async (datasetIds: string[], status: 'approved' | 'rejected') => {
+    try {
+      // Filter datasets by the selected IDs
+      const selectedDatasets = datasets.filter(dataset => datasetIds.includes(dataset.id));
+      
+      // Send notification for each dataset
+      const emailPromises = selectedDatasets.map(dataset => {
+        if (!dataset.email) {
+          console.warn(`No email available for dataset ${dataset.id}`);
+          return Promise.resolve();
+        }
+        
+        return fetch('https://dwngyvatnoeyoaplwoba.supabase.co/functions/v1/send-dataset-notification', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userEmail: dataset.email,
+            datasetTitle: dataset.title,
+            status: status,
+            feedback: status === 'approved' 
+              ? 'Your dataset has been approved in our batch review process.' 
+              : 'Your dataset was rejected during our review process. Please review our dataset guidelines and consider resubmitting.'
+          }),
+        }).catch(error => {
+          console.error(`Failed to send notification for dataset ${dataset.id}:`, error);
+        });
+      });
+      
+      await Promise.all(emailPromises);
+      console.log(`Batch notifications sent for ${status} datasets`);
+    } catch (error) {
+      console.error('Error sending batch notifications:', error);
     }
   };
   
@@ -143,10 +153,13 @@ const DatasetVerificationPage = () => {
       
       const { error } = await supabase
         .from('datasets')
-        .update(updateData)
+        .update(updateData as any) // Type assertion needed
         .in('id', selectedIdsArray);
       
       if (error) throw error;
+      
+      // Send notification emails
+      await sendBatchNotifications(selectedIdsArray, action === 'approve' ? 'approved' : 'rejected');
       
       toast.success(`${selectedIds.size} datasets ${action === 'approve' ? 'approved' : 'rejected'} successfully`);
       

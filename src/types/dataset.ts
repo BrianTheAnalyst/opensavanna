@@ -39,3 +39,32 @@ export interface DatasetFilters {
   country?: string;
   verified?: boolean;
 }
+
+// Dataset with user email
+export interface DatasetWithEmail extends Dataset {
+  email?: string;
+  users?: { email: string } | null;
+}
+
+// For better type safety when handling Supabase response
+export interface SupabaseDatasetItem {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  format: string;
+  country: string;
+  date: string;
+  downloads: number | null;
+  featured?: boolean;
+  file?: string;
+  source?: string;
+  verificationStatus?: 'pending' | 'approved' | 'rejected';
+  verificationNotes?: string;
+  verified?: boolean;
+  verifiedAt?: string;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+  users: { email: string } | null;
+}

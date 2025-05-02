@@ -4,14 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from '@/components/ui/separator';
-import { Dataset } from '@/types/dataset';
+import { DatasetWithEmail } from '@/types/dataset';
 import { AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-
-interface DatasetWithEmail extends Dataset {
-  email?: string;
-}
 
 interface DatasetReviewDialogProps {
   dataset: DatasetWithEmail | null;
@@ -29,6 +25,39 @@ export const DatasetReviewDialog = ({ dataset, onClose, onProcessed }: DatasetRe
     }
   }, [dataset]);
 
+  // Send email notification
+  const sendNotificationEmail = async (dataset: DatasetWithEmail, status: 'approved' | 'rejected') => {
+    if (!dataset.email) {
+      console.warn('No email address available for notification');
+      return;
+    }
+    
+    try {
+      const response = await fetch('https://dwngyvatnoeyoaplwoba.supabase.co/functions/v1/send-dataset-notification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userEmail: dataset.email,
+          datasetTitle: dataset.title,
+          status: status,
+          feedback: feedbackNote
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to send notification: ${response.statusText}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error sending notification email:', error);
+      // We don't want to block the approval/rejection process if email fails
+      toast.error('Could not send notification email, but dataset was processed');
+    }
+  };
+
   // Process verification action
   const processVerification = async (action: 'approve' | 'reject') => {
     if (!dataset) return;
@@ -36,20 +65,23 @@ export const DatasetReviewDialog = ({ dataset, onClose, onProcessed }: DatasetRe
     setIsProcessing(true);
     
     try {
-      // Define the update data with proper typing for Dataset type
-      const updateData: Partial<Dataset> = {
+      // Define the update data with proper typing
+      const updateData = {
         verificationStatus: action === 'approve' ? 'approved' : 'rejected',
         verified: action === 'approve',
         verificationNotes: feedbackNote || null,
-        verifiedAt: action === 'approve' ? new Date().toISOString() : null
+        verifiedAt: new Date().toISOString()
       };
       
       const { error } = await supabase
         .from('datasets')
-        .update(updateData)
+        .update(updateData as any) // Type assertion needed due to Supabase typing limitations
         .eq('id', dataset.id);
       
       if (error) throw error;
+      
+      // Send email notification
+      await sendNotificationEmail(dataset, action === 'approve' ? 'approved' : 'rejected');
       
       toast.success(`Dataset ${action === 'approve' ? 'approved' : 'rejected'} successfully`);
       onProcessed(dataset.id);
@@ -118,6 +150,10 @@ export const DatasetReviewDialog = ({ dataset, onClose, onProcessed }: DatasetRe
                   <p className="text-sm text-foreground/50">Source</p>
                   <p className="text-sm">{dataset.source || 'Not specified'}</p>
                 </div>
+                <div>
+                  <p className="text-sm text-foreground/50">Submitter</p>
+                  <p className="text-sm">{dataset.email || 'Unknown'}</p>
+                </div>
               </div>
             </div>
           </div>
@@ -135,6 +171,9 @@ export const DatasetReviewDialog = ({ dataset, onClose, onProcessed }: DatasetRe
               onChange={e => setFeedbackNote(e.target.value)}
               rows={4}
             />
+            <p className="text-sm text-muted-foreground mt-2">
+              This feedback will be shared with the dataset submitter in the notification email.
+            </p>
           </div>
           
           <Alert>
