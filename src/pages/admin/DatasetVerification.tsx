@@ -4,21 +4,16 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { CheckCircle, AlertCircle, Clock, X, ExternalLink } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { isUserAdmin } from '@/services/userRoleService';
 import { Dataset } from '@/types/dataset';
-import { Separator } from '@/components/ui/separator';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import DatasetVerificationCard from '@/components/admin/DatasetVerificationCard';
+import DatasetReviewDialog from '@/components/admin/DatasetReviewDialog';
+import EmptyDatasetState from '@/components/admin/EmptyDatasetState';
 
-interface DatasetWithVerification extends Dataset {
-  email?: string; // Submitter email
+interface DatasetWithEmail extends Dataset {
+  email?: string;
 }
 
 // Define the raw data type from Supabase
@@ -43,16 +38,14 @@ interface RawDatasetWithUser {
 }
 
 const DatasetVerificationPage = () => {
-  const [datasets, setDatasets] = useState<DatasetWithVerification[]>([]);
-  const [selectedDataset, setSelectedDataset] = useState<DatasetWithVerification | null>(null);
+  const [datasets, setDatasets] = useState<DatasetWithEmail[]>([]);
+  const [selectedDataset, setSelectedDataset] = useState<DatasetWithEmail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [feedbackNote, setFeedbackNote] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
   const [activeTab, setActiveTab] = useState('pending');
   const navigate = useNavigate();
 
-  // Load datasets pending verification
+  // Load datasets based on verification status
   useEffect(() => {
     const checkAdminAndLoadData = async () => {
       // Check if user is admin
@@ -91,7 +84,7 @@ const DatasetVerificationPage = () => {
           ...typedItem,
           email: typedItem.users?.email || 'Unknown',
           verificationStatus: typedItem.verificationStatus || 'pending'
-        } as DatasetWithVerification;
+        } as DatasetWithEmail;
       }) || [];
       
       setDatasets(formattedData);
@@ -103,100 +96,19 @@ const DatasetVerificationPage = () => {
     }
   };
   
-  // Open dataset for review
-  const openDatasetReview = (dataset: DatasetWithVerification) => {
-    setSelectedDataset(dataset);
-    setFeedbackNote('');
-  };
-  
-  // Close dataset review dialog
-  const closeDatasetReview = () => {
+  // Handle dataset processed event
+  const handleDatasetProcessed = (datasetId: string) => {
+    setDatasets(datasets.filter(d => d.id !== datasetId));
     setSelectedDataset(null);
   };
-  
-  // Process verification
-  const processVerification = async (action: 'approve' | 'reject') => {
-    if (!selectedDataset) return;
-    
-    setIsProcessing(true);
-    
-    try {
-      // Update dataset verification status
-      const updateData = {
-        verificationStatus: action === 'approve' ? 'approved' : 'rejected',
-        verified: action === 'approve',
-        verificationNotes: feedbackNote || null,
-        verifiedAt: action === 'approve' ? new Date().toISOString() : null
-      };
-      
-      const { error } = await supabase
-        .from('datasets')
-        .update(updateData)
-        .eq('id', selectedDataset.id);
-      
-      if (error) throw error;
-      
-      toast.success(`Dataset ${action === 'approve' ? 'approved' : 'rejected'} successfully`);
-      
-      // Update local state by removing the processed dataset
-      setDatasets(datasets.filter(d => d.id !== selectedDataset.id));
-      closeDatasetReview();
-      
-      // Send notification to the user (in a real app this would trigger an email)
-      // This is a placeholder for future email notification functionality
-      console.log(`Notification would be sent to ${selectedDataset.email} about dataset ${action}`);
-      
-    } catch (error) {
-      console.error(`Error ${action}ing dataset:`, error);
-      toast.error(`Failed to ${action} dataset`);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-  
-  // Status badge component
-  const StatusBadge = ({ status }: { status: string }) => {
-    switch (status) {
-      case 'pending':
-        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200"><Clock className="w-3 h-3 mr-1" />Pending</Badge>;
-      case 'approved':
-        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200"><CheckCircle className="w-3 h-3 mr-1" />Approved</Badge>;
-      case 'rejected':
-        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200"><X className="w-3 h-3 mr-1" />Rejected</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
-  
-  // Preview data component
-  const DataPreview = ({ dataset }: { dataset: DatasetWithVerification }) => {
-    const [preview, setPreview] = useState<string>('Loading preview...');
-    
-    useEffect(() => {
-      const loadPreview = async () => {
-        if (dataset.file) {
-          try {
-            const response = await fetch(dataset.file);
-            const text = await response.text();
-            // Show first 500 chars as preview
-            setPreview(text.slice(0, 500) + (text.length > 500 ? '...' : ''));
-          } catch (error) {
-            setPreview('Unable to load file preview');
-          }
-        } else {
-          setPreview('No file available');
-        }
-      };
-      
-      loadPreview();
-    }, [dataset.file]);
-    
-    return (
-      <div className="border rounded-md p-3 bg-muted/30 overflow-x-auto">
-        <pre className="text-xs font-mono whitespace-pre-wrap">{preview}</pre>
-      </div>
-    );
-  };
+
+  // Loading spinner component
+  const LoadingSpinner = () => (
+    <div className="text-center py-12">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-3"></div>
+      <p className="text-foreground/70">Loading datasets...</p>
+    </div>
+  );
   
   if (!isAdmin) {
     return null;
@@ -223,77 +135,17 @@ const DatasetVerificationPage = () => {
             </Tabs>
             
             {isLoading ? (
-              <div className="text-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-3"></div>
-                <p className="text-foreground/70">Loading datasets...</p>
-              </div>
+              <LoadingSpinner />
             ) : datasets.length === 0 ? (
-              <div className="text-center py-12 border border-dashed border-border rounded-xl">
-                <div className="text-4xl mb-3">📊</div>
-                <h3 className="text-lg font-medium mb-1">No datasets {activeTab}</h3>
-                <p className="text-foreground/70">
-                  {activeTab === 'pending' 
-                    ? 'There are no datasets pending verification at this time.' 
-                    : `No datasets have been ${activeTab} yet.`}
-                </p>
-              </div>
+              <EmptyDatasetState activeTab={activeTab} />
             ) : (
               <div className="space-y-4">
                 {datasets.map((dataset) => (
-                  <Card key={dataset.id} className="p-6">
-                    <div className="flex flex-col md:flex-row justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3">
-                          <h3 className="text-lg font-medium">{dataset.title}</h3>
-                          <StatusBadge status={dataset.verificationStatus || 'pending'} />
-                        </div>
-                        <p className="text-sm text-foreground/70 mt-1 mb-2">{dataset.description}</p>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-sm">
-                          <div>
-                            <span className="text-foreground/50">Category:</span> {dataset.category}
-                          </div>
-                          <div>
-                            <span className="text-foreground/50">Format:</span> {dataset.format}
-                          </div>
-                          <div>
-                            <span className="text-foreground/50">Country/Region:</span> {dataset.country}
-                          </div>
-                          <div>
-                            <span className="text-foreground/50">Source:</span> {dataset.source || 'Not specified'}
-                          </div>
-                          <div>
-                            <span className="text-foreground/50">Submitter:</span> {dataset.email}
-                          </div>
-                          <div>
-                            <span className="text-foreground/50">Submitted:</span> {new Date(dataset.created_at || '').toLocaleDateString()}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex flex-col gap-2 justify-center items-start md:items-end">
-                        <Button 
-                          variant="default" 
-                          size="sm" 
-                          onClick={() => openDatasetReview(dataset)}
-                        >
-                          Review Dataset
-                        </Button>
-                        
-                        {dataset.file && (
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            className="text-xs"
-                            onClick={() => window.open(dataset.file, '_blank')}
-                          >
-                            <ExternalLink className="h-3 w-3 mr-1" />
-                            View File
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </Card>
+                  <DatasetVerificationCard 
+                    key={dataset.id} 
+                    dataset={dataset} 
+                    onReview={setSelectedDataset} 
+                  />
                 ))}
               </div>
             )}
@@ -304,92 +156,11 @@ const DatasetVerificationPage = () => {
       <Footer />
       
       {/* Dataset Review Dialog */}
-      <Dialog open={!!selectedDataset} onOpenChange={open => !open && closeDatasetReview()}>
-        <DialogContent className="max-w-3xl">
-          {selectedDataset && (
-            <>
-              <DialogHeader>
-                <DialogTitle>Review Dataset: {selectedDataset.title}</DialogTitle>
-                <DialogDescription>
-                  Verify this dataset complies with African data protection laws and quality standards
-                </DialogDescription>
-              </DialogHeader>
-              
-              <div className="space-y-4 my-4">
-                <div>
-                  <h4 className="text-sm font-medium mb-2">Dataset Details</h4>
-                  <div className="glass border border-border/50 rounded-lg p-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-sm text-foreground/50">Description</p>
-                        <p className="text-sm">{selectedDataset.description}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-foreground/50">Source</p>
-                        <p className="text-sm">{selectedDataset.source || 'Not specified'}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div>
-                  <h4 className="text-sm font-medium mb-2">Data Preview</h4>
-                  <DataPreview dataset={selectedDataset} />
-                </div>
-                
-                <div>
-                  <h4 className="text-sm font-medium mb-2">Verification Notes</h4>
-                  <Textarea 
-                    placeholder="Add notes about this dataset (compliance, quality, follow-up needed, etc.)"
-                    value={feedbackNote}
-                    onChange={e => setFeedbackNote(e.target.value)}
-                    rows={4}
-                  />
-                </div>
-                
-                <Alert>
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    Verify this dataset meets quality standards and complies with African data protection laws before approval.
-                  </AlertDescription>
-                </Alert>
-              </div>
-              
-              <Separator />
-              
-              <DialogFooter>
-                <div className="flex flex-col-reverse sm:flex-row sm:justify-between w-full gap-2">
-                  <Button 
-                    variant="secondary" 
-                    onClick={closeDatasetReview}
-                    disabled={isProcessing}
-                  >
-                    Cancel
-                  </Button>
-                  
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="destructive" 
-                      onClick={() => processVerification('reject')}
-                      disabled={isProcessing}
-                    >
-                      {isProcessing ? 'Processing...' : 'Reject Dataset'}
-                    </Button>
-                    
-                    <Button 
-                      variant="default"
-                      onClick={() => processVerification('approve')} 
-                      disabled={isProcessing}
-                    >
-                      {isProcessing ? 'Processing...' : 'Approve Dataset'}
-                    </Button>
-                  </div>
-                </div>
-              </DialogFooter>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+      <DatasetReviewDialog
+        dataset={selectedDataset}
+        onClose={() => setSelectedDataset(null)}
+        onProcessed={handleDatasetProcessed}
+      />
     </div>
   );
 };
