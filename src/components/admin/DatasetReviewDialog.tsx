@@ -37,7 +37,7 @@ export const DatasetReviewDialog = ({ dataset, onClose, onProcessed }: DatasetRe
     setIsProcessing(true);
     
     try {
-      // Update dataset verification status
+      // Define the update data with proper typing
       const updateData = {
         verificationStatus: action === 'approve' ? 'approved' : 'rejected',
         verified: action === 'approve',
@@ -45,10 +45,10 @@ export const DatasetReviewDialog = ({ dataset, onClose, onProcessed }: DatasetRe
         verifiedAt: action === 'approve' ? new Date().toISOString() : null
       };
       
-      // Use a more explicit type casting to avoid type errors
+      // Use a type assertion to match the Supabase schema
       const { error } = await supabase
         .from('datasets')
-        .update(updateData as unknown as Partial<Dataset>)
+        .update(updateData)
         .eq('id', dataset.id);
       
       if (error) throw error;

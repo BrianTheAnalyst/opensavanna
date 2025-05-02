@@ -16,8 +16,8 @@ interface DatasetWithEmail extends Dataset {
   email?: string;
 }
 
-// Define a simpler type for the raw data from Supabase
-interface DatasetResponse {
+// Define a simple type for raw data from Supabase to avoid deep type inference
+interface RawDatasetResponse {
   id: string;
   title: string;
   description: string;
@@ -35,6 +35,7 @@ interface DatasetResponse {
   updated_at: string;
   user_id: string;
   users: { email: string } | null;
+  [key: string]: any; // Allow for any other properties
 }
 
 const DatasetVerificationPage = () => {
@@ -69,7 +70,7 @@ const DatasetVerificationPage = () => {
     setIsLoading(true);
     try {
       // Query datasets with verification status matching the active tab
-      const { data: rawData, error } = await supabase
+      const { data, error } = await supabase
         .from('datasets')
         .select('*, users:user_id(email)')
         .eq('verificationStatus', activeTab)
@@ -77,11 +78,10 @@ const DatasetVerificationPage = () => {
       
       if (error) throw error;
       
-      // Safe type assertion and mapping
-      // Explicitly casting to any[] to avoid deep type instantiation issues
-      const rawDatasets: any[] = rawData || [];
+      // Use a simple type assertion to avoid deep type inference issues
+      const rawData = (data || []) as RawDatasetResponse[];
       
-      const formattedData = rawDatasets.map(item => {
+      const formattedData = rawData.map(item => {
         return {
           ...item,
           email: item.users?.email || 'Unknown',
