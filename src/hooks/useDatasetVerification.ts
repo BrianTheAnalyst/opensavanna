@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { DatasetWithEmail } from "@/types/dataset";
+import { DatasetWithEmail, AIAnalysis } from "@/types/dataset";
 import { isUserAdmin } from '@/services/userRoleService';
 import { useNavigate } from 'react-router-dom';
 import { Json } from '@/integrations/supabase/types';
@@ -51,18 +51,29 @@ export const useDatasetVerification = () => {
       // Safely transform the data
       const formattedData: DatasetWithEmail[] = (data || []).map(item => {
         // Safely extract email from the users object
-        const userEmail = item.users && typeof item.users === 'object' && 'email' in item.users 
+        const email = item.users && typeof item.users === 'object' && 'email' in item.users 
           ? String(item.users.email) 
           : 'Unknown';
           
+        // Parse aiAnalysis if it exists
+        let parsedAiAnalysis: AIAnalysis | undefined = undefined;
+        if (item.aiAnalysis) {
+          try {
+            // Convert from Json type to AIAnalysis type
+            parsedAiAnalysis = item.aiAnalysis as unknown as AIAnalysis;
+          } catch (e) {
+            console.error("Error parsing aiAnalysis:", e);
+          }
+        }
+        
         // Create a properly typed dataset with email
         const dataset: DatasetWithEmail = {
           ...item,
-          email: userEmail,
+          email,
+          aiAnalysis: parsedAiAnalysis,
           // Ensure required properties have default values if they're missing
-          verificationStatus: item.verificationStatus || 'pending',
+          verificationStatus: item.verificationStatus as 'pending' | 'approved' | 'rejected' || 'pending',
           downloads: item.downloads || 0,
-          users: undefined // Remove the users property as we've extracted what we need
         };
         
         return dataset;
@@ -147,21 +158,22 @@ export const useDatasetVerification = () => {
     const selectedIdsArray = Array.from(selectedIds);
     
     try {
-      const verificationStatus = action === 'approve' ? 'approved' : 'rejected';
+      const status = action === 'approve' ? 'approved' : 'rejected';
       
-      // The update data object needs to match the dataset structure expected by Supabase
+      // Update datasets with correct type definitions
       const { error } = await supabase
         .from('datasets')
         .update({
-          verificationStatus: verificationStatus,
-          verified: action === 'approve'
+          verificationStatus: status,
+          verified: action === 'approve',
+          verifiedAt: action === 'approve' ? new Date().toISOString() : undefined
         })
         .in('id', selectedIdsArray);
       
       if (error) throw error;
       
       // Send notification emails
-      await sendBatchNotifications(selectedIdsArray, action === 'approve' ? 'approved' : 'rejected');
+      await sendBatchNotifications(selectedIdsArray, status === 'approved' ? 'approved' : 'rejected');
       
       toast.success(`${selectedIds.size} datasets ${action === 'approve' ? 'approved' : 'rejected'} successfully`);
       
