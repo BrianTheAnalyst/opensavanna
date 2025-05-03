@@ -12,9 +12,12 @@ export const isUserAdmin = async (): Promise<boolean> => {
 // Update a dataset
 export const updateDataset = async (id: string, updates: Partial<Dataset>): Promise<Dataset | null> => {
   try {
+    // Convert AIAnalysis to JSON format Supabase expects
+    const supabaseUpdates = { ...updates };
+    
     const { data, error } = await supabase
       .from('datasets')
-      .update(updates)
+      .update(supabaseUpdates)
       .eq('id', id)
       .select()
       .maybeSingle();

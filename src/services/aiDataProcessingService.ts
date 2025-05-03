@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { Dataset } from "@/types/dataset";
+import { Dataset, AIAnalysis } from "@/types/dataset";
 import { toast } from "sonner";
 
 // Process dataset with AI
@@ -41,7 +41,12 @@ export const getDatasetAIInsights = async (datasetId: string): Promise<string[]>
     }
 
     // Safely access aiAnalysis and its insights property
-    return data?.aiAnalysis?.insights || [];
+    if (data?.aiAnalysis && typeof data.aiAnalysis === 'object') {
+      const analysis = data.aiAnalysis as AIAnalysis;
+      return analysis.insights || [];
+    }
+    
+    return [];
   } catch (error) {
     console.error('Error getting AI insights:', error);
     return [];

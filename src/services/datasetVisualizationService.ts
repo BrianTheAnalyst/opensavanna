@@ -28,14 +28,14 @@ export const getDatasetVisualization = async (id: string): Promise<any> => {
     }
 
     // Try to get processed data first
-    const processedData = await getProcessedDataForDataset(dataset);
+    const processedData = await getProcessedDataForDataset(dataset as unknown as Dataset);
     if (processedData.length > 0) {
       return processedData;
     }
     
     // If no processed data, try to parse from file
     if (dataset.file) {
-      return await parseDataFromFile(dataset);
+      return await parseDataFromFile(dataset as unknown as Dataset);
     }
     
     // No file available

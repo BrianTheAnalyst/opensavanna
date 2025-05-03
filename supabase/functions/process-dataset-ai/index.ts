@@ -58,6 +58,8 @@ serve(async (req: Request) => {
       anomalies: identifyAnomalies(fileSummary)
     };
 
+    console.log("Generated AI analysis:", JSON.stringify(aiAnalysis));
+
     // Update the dataset with AI analysis
     const { data: updateResult, error: updateError } = await supabase
       .from("datasets")

@@ -65,7 +65,7 @@ export interface DatasetWithEmail extends Dataset {
 }
 
 // For better type safety when handling Supabase response
-export interface SupabaseDatasetItem {
+export type SupabaseDatasetResponse = {
   id: string;
   title: string;
   description: string;
@@ -85,5 +85,5 @@ export interface SupabaseDatasetItem {
   updated_at: string;
   user_id: string;
   users: { email: string } | null;
-  aiAnalysis?: AIAnalysis;
-}
+  aiAnalysis?: any;
+};
