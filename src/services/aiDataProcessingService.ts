@@ -35,12 +35,13 @@ export const getDatasetAIInsights = async (datasetId: string): Promise<string[]>
       .eq('id', datasetId)
       .maybeSingle();
 
-    if (error || !data) {
+    if (error) {
       console.error('Error fetching AI insights:', error);
       return [];
     }
 
-    return data.aiAnalysis?.insights || [];
+    // Safely access aiAnalysis and its insights property
+    return data?.aiAnalysis?.insights || [];
   } catch (error) {
     console.error('Error getting AI insights:', error);
     return [];

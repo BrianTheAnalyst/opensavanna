@@ -59,6 +59,7 @@ export type Database = {
       }
       datasets: {
         Row: {
+          aiAnalysis: Json | null
           category: string
           country: string
           created_at: string | null
@@ -74,6 +75,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          aiAnalysis?: Json | null
           category: string
           country: string
           created_at?: string | null
@@ -89,6 +91,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          aiAnalysis?: Json | null
           category?: string
           country?: string
           created_at?: string | null

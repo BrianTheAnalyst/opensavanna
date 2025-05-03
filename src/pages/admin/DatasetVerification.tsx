@@ -7,11 +7,34 @@ import Footer from '@/components/Footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { isUserAdmin } from '@/services/userRoleService';
-import { DatasetWithEmail, SupabaseDatasetItem } from '@/types/dataset';
+import { DatasetWithEmail } from '@/types/dataset';
 import DatasetVerificationCard from '@/components/admin/DatasetVerificationCard';
 import DatasetReviewDialog from '@/components/admin/DatasetReviewDialog';
 import EmptyDatasetState from '@/components/admin/EmptyDatasetState';
 import BatchActionBar from '@/components/admin/BatchActionBar';
+
+interface SupabaseDatasetResponse {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  format: string;
+  country: string;
+  date: string;
+  downloads: number | null;
+  featured?: boolean;
+  file?: string;
+  source?: string;
+  verificationStatus?: 'pending' | 'approved' | 'rejected';
+  verificationNotes?: string;
+  verified?: boolean;
+  verifiedAt?: string;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+  users: { email: string } | null;
+  aiAnalysis?: any;
+}
 
 const DatasetVerificationPage = () => {
   const [datasets, setDatasets] = useState<DatasetWithEmail[]>([]);
@@ -55,8 +78,8 @@ const DatasetVerificationPage = () => {
       
       if (error) throw error;
       
-      // Use two-step type casting to avoid excessive instantiation depth
-      const typedItems = data as unknown as SupabaseDatasetItem[];
+      // Simplified type casting to avoid excessive instantiation depth
+      const typedItems = data as unknown as SupabaseDatasetResponse[];
       
       // Then map the items to our expected DatasetWithEmail type
       const formattedData: DatasetWithEmail[] = (typedItems || []).map(item => ({
@@ -153,7 +176,7 @@ const DatasetVerificationPage = () => {
       
       const { error } = await supabase
         .from('datasets')
-        .update(updateData as any) // Type assertion needed
+        .update(updateData)
         .in('id', selectedIdsArray);
       
       if (error) throw error;
