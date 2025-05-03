@@ -62,7 +62,7 @@ export interface DatasetFilters {
 
 // Dataset with user email
 export interface DatasetWithEmail extends Dataset {
-  email?: string;
+  email: string;
   users?: { email: string } | null; // Make users optional and nullable
 }
 

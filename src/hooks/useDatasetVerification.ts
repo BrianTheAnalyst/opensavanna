@@ -1,11 +1,14 @@
 
 import { useState, useEffect } from 'react';
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { DatasetWithEmail, AIAnalysis } from "@/types/dataset";
+import { DatasetWithEmail } from "@/types/dataset";
 import { isUserAdmin } from '@/services/userRoleService';
 import { useNavigate } from 'react-router-dom';
-import { Json } from '@/integrations/supabase/types';
+import { 
+  fetchDatasetsByVerificationStatus, 
+  updateDatasetVerificationStatus, 
+  sendBatchNotifications 
+} from '@/services/datasetVerificationService';
 
 export const useDatasetVerification = () => {
   const [datasets, setDatasets] = useState<DatasetWithEmail[]>([]);
@@ -39,92 +42,14 @@ export const useDatasetVerification = () => {
   const loadDatasets = async () => {
     setIsLoading(true);
     try {
-      // Query datasets with verification status matching the active tab
-      const { data, error } = await supabase
-        .from('datasets')
-        .select('*, users:user_id(email)')
-        .eq('verificationStatus', activeTab)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      
-      // Safely transform the data
-      const formattedData: DatasetWithEmail[] = (data || []).map(item => {
-        // Safely extract email from the users object
-        const email = item.users && typeof item.users === 'object' && 'email' in item.users 
-          ? String(item.users.email) 
-          : 'Unknown';
-          
-        // Parse aiAnalysis if it exists
-        let parsedAiAnalysis: AIAnalysis | undefined = undefined;
-        if (item.aiAnalysis) {
-          try {
-            // Convert from Json type to AIAnalysis type
-            parsedAiAnalysis = item.aiAnalysis as unknown as AIAnalysis;
-          } catch (e) {
-            console.error("Error parsing aiAnalysis:", e);
-          }
-        }
-        
-        // Create a properly typed dataset with email
-        const dataset: DatasetWithEmail = {
-          ...item,
-          email,
-          aiAnalysis: parsedAiAnalysis,
-          // Ensure required properties have default values if they're missing
-          verificationStatus: item.verificationStatus as 'pending' | 'approved' | 'rejected' || 'pending',
-          downloads: item.downloads || 0,
-        };
-        
-        return dataset;
-      });
-      
-      setDatasets(formattedData);
+      const data = await fetchDatasetsByVerificationStatus(activeTab as 'pending' | 'approved' | 'rejected');
+      setDatasets(data);
       // Clear selection when datasets change
       setSelectedIds(new Set());
     } catch (error) {
       console.error('Error loading datasets:', error);
-      toast.error('Failed to load datasets');
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  // Send notification emails for batch operations
-  const sendBatchNotifications = async (datasetIds: string[], status: 'approved' | 'rejected') => {
-    try {
-      // Filter datasets by the selected IDs
-      const selectedDatasets = datasets.filter(dataset => datasetIds.includes(dataset.id));
-      
-      // Send notification for each dataset
-      const emailPromises = selectedDatasets.map(dataset => {
-        if (!dataset.email) {
-          console.warn(`No email available for dataset ${dataset.id}`);
-          return Promise.resolve();
-        }
-        
-        return fetch('https://dwngyvatnoeyoaplwoba.supabase.co/functions/v1/send-dataset-notification', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userEmail: dataset.email,
-            datasetTitle: dataset.title,
-            status: status,
-            feedback: status === 'approved' 
-              ? 'Your dataset has been approved in our batch review process.' 
-              : 'Your dataset was rejected during our review process. Please review our dataset guidelines and consider resubmitting.'
-          }),
-        }).catch(error => {
-          console.error(`Failed to send notification for dataset ${dataset.id}:`, error);
-        });
-      });
-      
-      await Promise.all(emailPromises);
-      console.log(`Batch notifications sent for ${status} datasets`);
-    } catch (error) {
-      console.error('Error sending batch notifications:', error);
     }
   };
   
@@ -161,19 +86,13 @@ export const useDatasetVerification = () => {
       const status = action === 'approve' ? 'approved' : 'rejected';
       
       // Update datasets with correct type definitions
-      const { error } = await supabase
-        .from('datasets')
-        .update({
-          verificationStatus: status,
-          verified: action === 'approve',
-          verifiedAt: action === 'approve' ? new Date().toISOString() : undefined
-        })
-        .in('id', selectedIdsArray);
+      const success = await updateDatasetVerificationStatus(selectedIdsArray, status);
       
-      if (error) throw error;
+      if (!success) throw new Error('Failed to update datasets');
       
       // Send notification emails
-      await sendBatchNotifications(selectedIdsArray, status === 'approved' ? 'approved' : 'rejected');
+      const selectedDatasets = datasets.filter(dataset => selectedIds.has(dataset.id));
+      await sendBatchNotifications(selectedDatasets, status);
       
       toast.success(`${selectedIds.size} datasets ${action === 'approve' ? 'approved' : 'rejected'} successfully`);
       
