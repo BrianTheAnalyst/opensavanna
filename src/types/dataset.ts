@@ -1,4 +1,6 @@
 
+import { Json } from '@/integrations/supabase/types';
+
 // Dataset related types
 export interface Dataset {
   id: string;
@@ -61,7 +63,7 @@ export interface DatasetFilters {
 // Dataset with user email
 export interface DatasetWithEmail extends Dataset {
   email?: string;
-  users?: { email: string } | null;
+  users?: { email: string } | null; // Make users optional and nullable
 }
 
 // For better type safety when handling Supabase response
@@ -85,5 +87,5 @@ export type SupabaseDatasetResponse = {
   updated_at: string;
   user_id: string;
   users: { email: string } | null;
-  aiAnalysis?: any;
+  aiAnalysis?: Json;
 };

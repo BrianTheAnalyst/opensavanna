@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { DatasetWithEmail } from "@/types/dataset";
 import { isUserAdmin } from '@/services/userRoleService';
 import { useNavigate } from 'react-router-dom';
+import { Json } from '@/integrations/supabase/types';
 
 export const useDatasetVerification = () => {
   const [datasets, setDatasets] = useState<DatasetWithEmail[]>([]);
@@ -49,16 +50,22 @@ export const useDatasetVerification = () => {
       
       // Safely transform the data
       const formattedData: DatasetWithEmail[] = (data || []).map(item => {
+        // Safely extract email from the users object
         const userEmail = item.users && typeof item.users === 'object' && 'email' in item.users 
-          ? item.users.email as string 
+          ? String(item.users.email) 
           : 'Unknown';
           
-        return {
+        // Create a properly typed dataset with email
+        const dataset: DatasetWithEmail = {
           ...item,
           email: userEmail,
+          // Ensure required properties have default values if they're missing
           verificationStatus: item.verificationStatus || 'pending',
-          downloads: item.downloads || 0
-        } as DatasetWithEmail;
+          downloads: item.downloads || 0,
+          users: undefined // Remove the users property as we've extracted what we need
+        };
+        
+        return dataset;
       });
       
       setDatasets(formattedData);
@@ -140,16 +147,15 @@ export const useDatasetVerification = () => {
     const selectedIdsArray = Array.from(selectedIds);
     
     try {
-      // Create the update data object with the correct type
-      const updateData = {
-        verificationStatus: action === 'approve' ? 'approved' : 'rejected',
-        verified: action === 'approve',
-        verifiedAt: new Date().toISOString()
-      };
+      const verificationStatus = action === 'approve' ? 'approved' : 'rejected';
       
+      // The update data object needs to match the dataset structure expected by Supabase
       const { error } = await supabase
         .from('datasets')
-        .update(updateData)
+        .update({
+          verificationStatus: verificationStatus,
+          verified: action === 'approve'
+        })
         .in('id', selectedIdsArray);
       
       if (error) throw error;

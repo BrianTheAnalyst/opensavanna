@@ -1,7 +1,8 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
-import { UploadCloud, Check } from 'lucide-react';
+import { UploadCloud } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -17,7 +18,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { addDataset } from '@/services/api';
 import { useUploadForm } from '@/hooks/useUploadForm';
-import UploadSuccess from './UploadSuccess';
+import UploadSuccess from './UploadSuccess'; // Import the component from separate file
 
 // Form validation schema
 const formSchema = z.object({
@@ -308,29 +309,6 @@ const UploadForm = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
         </div>
       </form>
     </Form>
-  );
-};
-
-// Upload success component
-const UploadSuccess = () => {
-  const navigate = useNavigate();
-  
-  return (
-    <div className="text-center py-8">
-      <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-        <Check className="h-8 w-8 text-primary" />
-      </div>
-      <h3 className="text-xl font-medium mb-2">Submission Successful!</h3>
-      <p className="text-foreground/70 mb-2">
-        Your dataset has been submitted and is pending verification.
-      </p>
-      <p className="text-sm text-muted-foreground mb-6">
-        Our team will review your submission to ensure data quality and compliance with African data protection laws.
-      </p>
-      <Button onClick={() => navigate('/datasets')}>
-        View All Datasets
-      </Button>
-    </div>
   );
 };
 
