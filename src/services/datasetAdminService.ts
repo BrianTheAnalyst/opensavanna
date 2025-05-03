@@ -13,11 +13,12 @@ export const isUserAdmin = async (): Promise<boolean> => {
 export const updateDataset = async (id: string, updates: Partial<Dataset>): Promise<Dataset | null> => {
   try {
     // Convert any complex objects to JSON format Supabase expects
-    const supabaseUpdates = { ...updates };
+    const supabaseUpdates: Record<string, any> = { ...updates };
     
     // Handle AIAnalysis specially by converting it to a plain object if it exists
-    if (supabaseUpdates.aiAnalysis) {
-      supabaseUpdates.aiAnalysis = supabaseUpdates.aiAnalysis as any;
+    if (updates.aiAnalysis) {
+      // Convert to a plain object that Supabase can store as JSON
+      supabaseUpdates.aiAnalysis = JSON.parse(JSON.stringify(updates.aiAnalysis));
     }
     
     const { data, error } = await supabase

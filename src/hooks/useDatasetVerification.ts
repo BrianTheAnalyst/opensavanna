@@ -47,12 +47,19 @@ export const useDatasetVerification = () => {
       
       if (error) throw error;
       
-      const formattedData: DatasetWithEmail[] = (data || []).map(item => ({
-        ...item,
-        email: item.users?.email || 'Unknown',
-        verificationStatus: item.verificationStatus || 'pending',
-        downloads: item.downloads || 0
-      } as DatasetWithEmail));
+      // Safely transform the data
+      const formattedData: DatasetWithEmail[] = (data || []).map(item => {
+        const userEmail = item.users && typeof item.users === 'object' && 'email' in item.users 
+          ? item.users.email as string 
+          : 'Unknown';
+          
+        return {
+          ...item,
+          email: userEmail,
+          verificationStatus: item.verificationStatus || 'pending',
+          downloads: item.downloads || 0
+        } as DatasetWithEmail;
+      });
       
       setDatasets(formattedData);
       // Clear selection when datasets change
@@ -133,6 +140,7 @@ export const useDatasetVerification = () => {
     const selectedIdsArray = Array.from(selectedIds);
     
     try {
+      // Create the update data object with the correct type
       const updateData = {
         verificationStatus: action === 'approve' ? 'approved' : 'rejected',
         verified: action === 'approve',
