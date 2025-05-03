@@ -23,16 +23,16 @@ export const addDataset = async (
     const formattedDate = `Updated ${currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`;
     
     // Create the dataset entry without aiAnalysis first
-    const newDataset = {
+    const newDataset: any = {
       ...dataset,
       date: formattedDate,
       downloads: 0,
       user_id: user.id
     };
     
-    // Remove aiAnalysis if it exists to prevent type issues
+    // Remove aiAnalysis if it exists to prevent type issues with Supabase
     if ('aiAnalysis' in newDataset) {
-      delete (newDataset as any).aiAnalysis;
+      delete newDataset.aiAnalysis;
     }
     
     const { data, error } = await supabase

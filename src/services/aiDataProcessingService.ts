@@ -41,8 +41,8 @@ export const getDatasetAIInsights = async (datasetId: string): Promise<string[]>
     }
 
     // Safely access aiAnalysis and its insights property
-    if (data?.aiAnalysis && typeof data.aiAnalysis === 'object') {
-      const analysis = data.aiAnalysis as AIAnalysis;
+    if (data?.aiAnalysis) {
+      const analysis = data.aiAnalysis as unknown as AIAnalysis;
       return analysis.insights || [];
     }
     
