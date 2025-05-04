@@ -30,13 +30,15 @@ export const updateDatasetVerificationStatus = async (
   status: 'approved' | 'rejected'
 ): Promise<boolean> => {
   try {
+    const updates = {
+      verificationStatus: status,
+      verified: status === 'approved',
+      verifiedAt: status === 'approved' ? new Date().toISOString() : undefined
+    };
+
     const { error } = await supabase
       .from('datasets')
-      .update({
-        verificationStatus: status,
-        verified: status === 'approved',
-        verifiedAt: status === 'approved' ? new Date().toISOString() : undefined
-      })
+      .update(updates)
       .in('id', datasetIds);
     
     if (error) throw error;
