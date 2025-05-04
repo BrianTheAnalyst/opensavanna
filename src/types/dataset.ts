@@ -27,7 +27,7 @@ export interface Dataset {
   verified?: boolean;
   verificationStatus?: 'pending' | 'approved' | 'rejected';
   verificationNotes?: string;
-  verifiedAt?: string;
+  verifiedAt?: string | null;
   created_at?: string;
   updated_at?: string;
   user_id?: string;
