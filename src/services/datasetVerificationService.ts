@@ -31,6 +31,7 @@ export const updateDatasetVerificationStatus = async (
   status: 'approved' | 'rejected'
 ): Promise<boolean> => {
   try {
+    // Define the update object with the correct type that Supabase expects
     const updates = {
       verificationStatus: status,
       verified: status === 'approved',

@@ -12,12 +12,12 @@ export interface Dataset {
   date: string;
   downloads: number;
   featured?: boolean;
-  file?: string;
-  license?: string;
-  fileSize?: string;
-  dataPoints?: number | string;
-  timespan?: string;
-  source?: string;
+  file?: string | null;
+  license?: string | null;
+  fileSize?: string | null;
+  dataPoints?: number | string | null;
+  timespan?: string | null;
+  source?: string | null;
   tags?: string[];
   dataFields?: Array<{
     name: string;
@@ -28,9 +28,9 @@ export interface Dataset {
   verificationStatus?: 'pending' | 'approved' | 'rejected';
   verificationNotes?: string;
   verifiedAt?: string | null;
-  created_at?: string;
-  updated_at?: string;
-  user_id?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  user_id?: string | null;
   aiAnalysis?: AIAnalysis;
 }
 
@@ -63,5 +63,4 @@ export interface DatasetFilters {
 // Dataset with user email - simplified to avoid circular references
 export interface DatasetWithEmail extends Dataset {
   email: string;
-  users?: { email: string } | null; // Keep this for backward compatibility
 }
