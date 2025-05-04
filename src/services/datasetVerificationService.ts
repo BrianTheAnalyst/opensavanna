@@ -1,7 +1,7 @@
 
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { DatasetWithEmail } from "@/types/dataset";
+import { DatasetWithEmail, SupabaseDatasetResponse } from "@/types/dataset";
 import { transformDatasetResponse } from "@/utils/datasetVerificationUtils";
 
 // Fetch datasets with verification status
