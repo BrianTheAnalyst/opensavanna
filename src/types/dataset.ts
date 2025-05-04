@@ -60,7 +60,8 @@ export interface DatasetFilters {
   verified?: boolean;
 }
 
-// Dataset with user email - defined without extending Dataset to avoid circular references
+// Dataset with user email - defined as a completely standalone interface
+// to avoid TypeScript circular reference issues
 export interface DatasetWithEmail {
   id: string;
   title: string;
@@ -80,8 +81,6 @@ export interface DatasetWithEmail {
   updated_at?: string | null;
   user_id?: string | null;
   email: string | null;
-  aiAnalysis?: AIAnalysis;
-  // Include any other fields needed from Dataset
   license?: string | null;
   fileSize?: string | null;
   dataPoints?: number | string | null;
@@ -93,4 +92,5 @@ export interface DatasetWithEmail {
     description: string;
     type: string;
   }>;
+  aiAnalysis?: AIAnalysis;
 }
