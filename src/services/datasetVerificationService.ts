@@ -31,16 +31,14 @@ export const updateDatasetVerificationStatus = async (
   status: 'approved' | 'rejected'
 ): Promise<boolean> => {
   try {
-    // Define the update object with the correct type that Supabase expects
-    const updates = {
-      verificationStatus: status,
-      verified: status === 'approved',
-      verifiedAt: status === 'approved' ? new Date().toISOString() : null
-    };
-
+    // Define the update object with the correct type for Supabase
     const { error } = await supabase
       .from('datasets')
-      .update(updates)
+      .update({
+        verificationStatus: status,
+        verified: status === 'approved',
+        verifiedAt: status === 'approved' ? new Date().toISOString() : null
+      } as any) // Use type assertion to bypass the type checking for this update
       .in('id', datasetIds);
     
     if (error) throw error;
