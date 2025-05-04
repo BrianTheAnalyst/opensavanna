@@ -62,5 +62,5 @@ export interface DatasetFilters {
 
 // Dataset with user email - simplified to avoid circular references
 export interface DatasetWithEmail extends Dataset {
-  email: string;
+  email: string | null;
 }

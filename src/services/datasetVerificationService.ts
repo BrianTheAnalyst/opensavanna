@@ -7,7 +7,7 @@ import { transformDatasetResponse } from "@/utils/datasetVerificationUtils";
 // Fetch datasets with verification status
 export const fetchDatasetsByVerificationStatus = async (status: 'pending' | 'approved' | 'rejected'): Promise<DatasetWithEmail[]> => {
   try {
-    // Query datasets with verification status
+    // Query datasets with verification status - use explicit typing for the response
     const { data, error } = await supabase
       .from('datasets')
       .select('*, users:user_id(email)')
