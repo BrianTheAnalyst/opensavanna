@@ -1,13 +1,13 @@
 
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { DatasetWithEmail, SupabaseDatasetResponse } from "@/types/dataset";
+import { DatasetWithEmail } from "@/types/dataset";
 import { transformDatasetResponse } from "@/utils/datasetVerificationUtils";
 
 // Fetch datasets with verification status
 export const fetchDatasetsByVerificationStatus = async (status: 'pending' | 'approved' | 'rejected'): Promise<DatasetWithEmail[]> => {
   try {
-    // Query datasets with verification status - explicitly type the response
+    // Query datasets with verification status
     const { data, error } = await supabase
       .from('datasets')
       .select('*, users:user_id(email)')
