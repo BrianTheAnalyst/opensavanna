@@ -16,7 +16,7 @@ export const fetchDatasetsByVerificationStatus = async (status: 'pending' | 'app
     
     if (error) throw error;
     
-    return transformDatasetResponse(data);
+    return transformDatasetResponse(data || []);
   } catch (error) {
     console.error('Error loading datasets:', error);
     toast.error('Failed to load datasets');
@@ -30,10 +30,11 @@ export const updateDatasetVerificationStatus = async (
   status: 'approved' | 'rejected'
 ): Promise<boolean> => {
   try {
+    // Define the update object without type annotations to avoid conflicts
     const updates = {
       verificationStatus: status,
       verified: status === 'approved',
-      verifiedAt: status === 'approved' ? new Date().toISOString() : undefined
+      verifiedAt: status === 'approved' ? new Date().toISOString() : null
     };
 
     const { error } = await supabase

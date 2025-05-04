@@ -82,7 +82,7 @@ export type SupabaseDatasetResponse = {
   verificationStatus?: 'pending' | 'approved' | 'rejected';
   verificationNotes?: string;
   verified?: boolean;
-  verifiedAt?: string;
+  verifiedAt?: string | null;
   created_at: string;
   updated_at: string;
   user_id: string;

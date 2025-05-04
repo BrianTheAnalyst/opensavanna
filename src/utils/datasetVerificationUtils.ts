@@ -1,10 +1,9 @@
 
-import { Json } from '@/integrations/supabase/types';
 import { DatasetWithEmail, AIAnalysis } from '@/types/dataset';
 
 // Transform API response to typed datasets with emails
 export const transformDatasetResponse = (data: any[]): DatasetWithEmail[] => {
-  return (data || []).map(item => {
+  return data.map(item => {
     // Safely extract email from the users object
     const email = item.users && typeof item.users === 'object' && 'email' in item.users 
       ? String(item.users.email) 
@@ -14,7 +13,7 @@ export const transformDatasetResponse = (data: any[]): DatasetWithEmail[] => {
     let parsedAiAnalysis: AIAnalysis | undefined = undefined;
     if (item.aiAnalysis) {
       try {
-        parsedAiAnalysis = item.aiAnalysis as unknown as AIAnalysis;
+        parsedAiAnalysis = item.aiAnalysis as AIAnalysis;
       } catch (e) {
         console.error("Error parsing aiAnalysis:", e);
       }
@@ -26,8 +25,8 @@ export const transformDatasetResponse = (data: any[]): DatasetWithEmail[] => {
       email,
       aiAnalysis: parsedAiAnalysis,
       // Ensure required properties have default values if they're missing
-      verificationStatus: item.verificationStatus as 'pending' | 'approved' | 'rejected' || 'pending',
-      downloads: item.downloads || 0,
+      verificationStatus: item.verificationStatus || 'pending',
+      downloads: typeof item.downloads === 'number' ? item.downloads : 0,
     };
     
     return dataset;
