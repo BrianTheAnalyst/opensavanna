@@ -13,6 +13,7 @@ export const transformDatasetResponse = (data: any[]): DatasetWithEmail[] => {
     let parsedAiAnalysis: AIAnalysis | undefined = undefined;
     if (item.aiAnalysis) {
       try {
+        // Direct assignment since we're already getting the correct type from the database
         parsedAiAnalysis = item.aiAnalysis as AIAnalysis;
       } catch (e) {
         console.error("Error parsing aiAnalysis:", e);

@@ -60,10 +60,10 @@ export interface DatasetFilters {
   verified?: boolean;
 }
 
-// Dataset with user email
-export interface DatasetWithEmail extends Dataset {
+// Dataset with user email - simplified to avoid circular references
+export interface DatasetWithEmail extends Omit<Dataset, 'users'> {
   email: string;
-  users?: { email: string } | null; // Make users optional and nullable
+  users?: { email: string } | null; // Keep this for backward compatibility
 }
 
 // For better type safety when handling Supabase response
