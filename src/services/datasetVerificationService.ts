@@ -31,7 +31,7 @@ export const updateDatasetVerificationStatus = async (
   status: 'approved' | 'rejected'
 ): Promise<boolean> => {
   try {
-    const updates: any = {
+    const updates = {
       verificationStatus: status,
       verified: status === 'approved',
       verifiedAt: status === 'approved' ? new Date().toISOString() : null

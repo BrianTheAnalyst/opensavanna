@@ -22,13 +22,13 @@ export const transformDatasetResponse = (data: any[]): DatasetWithEmail[] => {
     
     // Create a properly typed dataset with email
     const dataset: DatasetWithEmail = {
-      id: item.id,
-      title: item.title,
-      description: item.description,
-      category: item.category,
-      format: item.format,
-      country: item.country,
-      date: item.date,
+      id: item.id || '',
+      title: item.title || '',
+      description: item.description || '',
+      category: item.category || '',
+      format: item.format || '',
+      country: item.country || '',
+      date: item.date || '',
       email,
       aiAnalysis: parsedAiAnalysis,
       // Ensure required properties have default values if they're missing
