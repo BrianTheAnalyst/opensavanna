@@ -7,7 +7,7 @@ import { transformDatasetResponse } from "@/utils/datasetVerificationUtils";
 // Fetch datasets with verification status
 export const fetchDatasetsByVerificationStatus = async (status: 'pending' | 'approved' | 'rejected'): Promise<DatasetWithEmail[]> => {
   try {
-    // Query datasets with verification status - use explicit typing for the response
+    // Use any for intermediate type to avoid deep instantiation error
     const { data, error } = await supabase
       .from('datasets')
       .select('*, users:user_id(email)')
@@ -31,14 +31,16 @@ export const updateDatasetVerificationStatus = async (
   status: 'approved' | 'rejected'
 ): Promise<boolean> => {
   try {
-    // Define the update object with the correct type for Supabase
+    // Define the update object with explicit type assertion
+    const updateData = {
+      verificationStatus: status,
+      verified: status === 'approved',
+      verifiedAt: status === 'approved' ? new Date().toISOString() : null
+    };
+    
     const { error } = await supabase
       .from('datasets')
-      .update({
-        verificationStatus: status,
-        verified: status === 'approved',
-        verifiedAt: status === 'approved' ? new Date().toISOString() : null
-      } as any) // Use type assertion to bypass the type checking for this update
+      .update(updateData as any)
       .in('id', datasetIds);
     
     if (error) throw error;

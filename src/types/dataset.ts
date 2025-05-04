@@ -60,7 +60,37 @@ export interface DatasetFilters {
   verified?: boolean;
 }
 
-// Dataset with user email - simplified to avoid circular references
-export interface DatasetWithEmail extends Dataset {
+// Dataset with user email - defined without extending Dataset to avoid circular references
+export interface DatasetWithEmail {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  format: string;
+  country: string;
+  date: string;
+  downloads: number;
+  featured?: boolean;
+  file?: string | null;
+  verificationStatus?: 'pending' | 'approved' | 'rejected';
+  verified?: boolean;
+  verificationNotes?: string;
+  verifiedAt?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  user_id?: string | null;
   email: string | null;
+  aiAnalysis?: AIAnalysis;
+  // Include any other fields needed from Dataset
+  license?: string | null;
+  fileSize?: string | null;
+  dataPoints?: number | string | null;
+  timespan?: string | null;
+  source?: string | null;
+  tags?: string[];
+  dataFields?: Array<{
+    name: string;
+    description: string;
+    type: string;
+  }>;
 }
