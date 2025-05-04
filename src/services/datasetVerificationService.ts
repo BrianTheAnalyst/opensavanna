@@ -31,7 +31,6 @@ export const updateDatasetVerificationStatus = async (
   status: 'approved' | 'rejected'
 ): Promise<boolean> => {
   try {
-    // Use any type to bypass type checking for the update object
     const updates: any = {
       verificationStatus: status,
       verified: status === 'approved',
