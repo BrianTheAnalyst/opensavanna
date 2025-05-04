@@ -32,7 +32,6 @@ export const updateDatasetVerificationStatus = async (
 ): Promise<boolean> => {
   try {
     // Use any type to bypass type checking for the update object
-    // This is necessary due to limitations in the Supabase TypeScript definitions
     const updates: any = {
       verificationStatus: status,
       verified: status === 'approved',

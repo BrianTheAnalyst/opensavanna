@@ -13,6 +13,7 @@ export const transformDatasetResponse = (data: any[]): DatasetWithEmail[] => {
     let parsedAiAnalysis: AIAnalysis | undefined = undefined;
     if (item.aiAnalysis) {
       try {
+        // Use type assertion without additional processing
         parsedAiAnalysis = item.aiAnalysis as AIAnalysis;
       } catch (e) {
         console.error("Error parsing aiAnalysis:", e);
@@ -21,12 +22,20 @@ export const transformDatasetResponse = (data: any[]): DatasetWithEmail[] => {
     
     // Create a properly typed dataset with email
     const dataset: DatasetWithEmail = {
-      ...item,
+      id: item.id,
+      title: item.title,
+      description: item.description,
+      category: item.category,
+      format: item.format,
+      country: item.country,
+      date: item.date,
       email,
       aiAnalysis: parsedAiAnalysis,
       // Ensure required properties have default values if they're missing
       verificationStatus: item.verificationStatus || 'pending',
       downloads: typeof item.downloads === 'number' ? item.downloads : 0,
+      // Copy remaining properties
+      ...item,
     };
     
     return dataset;
