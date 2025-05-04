@@ -7,12 +7,12 @@ import { transformDatasetResponse } from "@/utils/datasetVerificationUtils";
 // Fetch datasets with verification status
 export const fetchDatasetsByVerificationStatus = async (status: 'pending' | 'approved' | 'rejected'): Promise<DatasetWithEmail[]> => {
   try {
-    // Use any for intermediate type to avoid deep instantiation error
+    // Explicitly use any for intermediate database response to avoid type inference issues
     const { data, error } = await supabase
       .from('datasets')
       .select('*, users:user_id(email)')
       .eq('verificationStatus', status)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false }) as { data: any[], error: any };
     
     if (error) throw error;
     
