@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { DatasetWithEmail } from "@/types/dataset";
@@ -7,24 +6,20 @@ import { transformDatasetResponse } from "@/utils/datasetVerificationUtils";
 // Fetch datasets with verification status
 export const fetchDatasetsByVerificationStatus = async (status: 'pending' | 'approved' | 'rejected'): Promise<DatasetWithEmail[]> => {
   try {
-    // Use explicit type assertion for Supabase response to avoid infinite type recursion
-    interface SupabaseResponse {
-      data: any[] | null;
-      error: any;
-    }
-    
+    // Use a more direct approach with minimal type complexity
     const response = await supabase
       .from('datasets')
       .select('*, users:user_id(email)')
       .eq('verificationStatus', status)
-      .order('created_at', { ascending: false }) as unknown as SupabaseResponse;
+      .order('created_at', { ascending: false });
     
-    const { data, error } = response;
+    const data = response.data || [];
+    const error = response.error;
     
     if (error) throw error;
     
     // Transform the response data to the correct type
-    return transformDatasetResponse(data || []);
+    return transformDatasetResponse(data);
   } catch (error) {
     console.error('Error loading datasets:', error);
     toast.error('Failed to load datasets');
@@ -38,16 +33,17 @@ export const updateDatasetVerificationStatus = async (
   status: 'approved' | 'rejected'
 ): Promise<boolean> => {
   try {
-    // Define the update object with explicit type assertion
-    const updateData = {
-      verificationStatus: status,
-      verified: status === 'approved',
-      verifiedAt: status === 'approved' ? new Date().toISOString() : null
-    };
+    // Define the update object that matches the datasets table schema
+    const currentTime = new Date().toISOString();
     
     const { error } = await supabase
       .from('datasets')
-      .update(updateData)
+      .update({
+        // These are the only fields we need to update
+        verificationStatus: status,
+        verified: status === 'approved',
+        verifiedAt: status === 'approved' ? currentTime : null
+      })
       .in('id', datasetIds);
     
     if (error) throw error;

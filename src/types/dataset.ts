@@ -60,7 +60,7 @@ export interface DatasetFilters {
   verified?: boolean;
 }
 
-// Dataset with user email - defined as a completely standalone interface
+// Dataset with user email - completely standalone interface
 // to avoid TypeScript circular reference issues
 export interface DatasetWithEmail {
   id: string;
