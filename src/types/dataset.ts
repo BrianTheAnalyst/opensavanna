@@ -1,7 +1,27 @@
 
 import { Json } from '@/integrations/supabase/types';
 
-// Dataset related types
+// Common type for AI analysis structure used across dataset types
+export interface AIAnalysis {
+  summary?: string;
+  insights?: string[];
+  correlations?: Array<{
+    field1: string;
+    field2: string;
+    strength: number;
+    description: string;
+  }>;
+  anomalies?: Array<{
+    field: string;
+    description: string;
+    impact: string;
+  }>;
+}
+
+// Dataset verification status type
+export type VerificationStatus = 'pending' | 'approved' | 'rejected';
+
+// Dataset base interface
 export interface Dataset {
   id: string;
   title: string;
@@ -25,30 +45,13 @@ export interface Dataset {
     type: string;
   }>;
   verified?: boolean;
-  verificationStatus?: 'pending' | 'approved' | 'rejected';
+  verificationStatus?: VerificationStatus;
   verificationNotes?: string;
   verifiedAt?: string | null;
   created_at?: string | null;
   updated_at?: string | null;
   user_id?: string | null;
   aiAnalysis?: AIAnalysis;
-}
-
-// AI analysis structure
-export interface AIAnalysis {
-  summary?: string;
-  insights?: string[];
-  correlations?: Array<{
-    field1: string;
-    field2: string;
-    strength: number;
-    description: string;
-  }>;
-  anomalies?: Array<{
-    field: string;
-    description: string;
-    impact: string;
-  }>;
 }
 
 // Dataset filter options
@@ -73,7 +76,7 @@ export interface DatasetWithEmail {
   downloads: number;
   featured?: boolean;
   file?: string | null;
-  verificationStatus?: 'pending' | 'approved' | 'rejected';
+  verificationStatus?: VerificationStatus;
   verified?: boolean;
   verificationNotes?: string;
   verifiedAt?: string | null;

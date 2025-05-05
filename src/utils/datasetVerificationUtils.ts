@@ -38,7 +38,6 @@ export const transformDatasetResponse = (data: any[]): DatasetWithEmail[] => {
       // Ensure required properties have default values if they're missing
       verificationStatus: item.verificationStatus || 'pending',
       downloads: typeof item.downloads === 'number' ? item.downloads : 0,
-      // Add other fields as needed
       verified: item.verified ?? false,
       verificationNotes: item.verificationNotes || '',
       verifiedAt: item.verifiedAt || null,

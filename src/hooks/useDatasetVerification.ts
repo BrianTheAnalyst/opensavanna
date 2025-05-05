@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { toast } from "sonner";
-import { DatasetWithEmail } from "@/types/dataset";
+import { DatasetWithEmail, VerificationStatus } from "@/types/dataset";
 import { isUserAdmin } from '@/services/userRoleService';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -17,7 +17,7 @@ export const useDatasetVerification = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isBatchProcessing, setIsBatchProcessing] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'rejected'>('pending');
+  const [activeTab, setActiveTab] = useState<VerificationStatus>('pending');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -86,13 +86,13 @@ export const useDatasetVerification = () => {
       const status = action === 'approve' ? 'approved' : 'rejected';
       
       // Update datasets with correct type definitions
-      const success = await updateDatasetVerificationStatus(selectedIdsArray, status);
+      const success = await updateDatasetVerificationStatus(selectedIdsArray, status as VerificationStatus);
       
       if (!success) throw new Error('Failed to update datasets');
       
       // Send notification emails
       const selectedDatasets = datasets.filter(dataset => selectedIds.has(dataset.id));
-      await sendBatchNotifications(selectedDatasets, status);
+      await sendBatchNotifications(selectedDatasets, status as VerificationStatus);
       
       toast.success(`${selectedIds.size} datasets ${action === 'approve' ? 'approved' : 'rejected'} successfully`);
       
