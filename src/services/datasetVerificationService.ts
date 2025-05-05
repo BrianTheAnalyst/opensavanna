@@ -7,17 +7,17 @@ import { transformDatasetResponse } from "@/utils/datasetVerificationUtils";
 // Fetch datasets with verification status
 export const fetchDatasetsByVerificationStatus = async (status: 'pending' | 'approved' | 'rejected'): Promise<DatasetWithEmail[]> => {
   try {
-    // Use any type to avoid deep instantiation errors
-    const { data, error } = await supabase
+    // Use a simpler type approach to avoid deep instantiation
+    const response = await supabase
       .from('datasets')
       .select('*, users:user_id(email)')
       .eq('verificationStatus', status)
       .order('created_at', { ascending: false });
     
-    if (error) throw error;
+    if (response.error) throw response.error;
     
     // Transform the response data to the correct type
-    return transformDatasetResponse(data || []);
+    return transformDatasetResponse(response.data || []);
   } catch (error) {
     console.error('Error loading datasets:', error);
     toast.error('Failed to load datasets');
@@ -33,14 +33,15 @@ export const updateDatasetVerificationStatus = async (
   try {
     const currentTime = new Date().toISOString();
     
-    // Define update payload compatible with the database schema
+    // Use a type assertion to allow these custom fields
     const { error } = await supabase
       .from('datasets')
       .update({
+        // Using type assertion to overcome schema limitations
         verificationStatus: status,
         verified: status === 'approved',
         verifiedAt: status === 'approved' ? currentTime : null
-      })
+      } as any)
       .in('id', datasetIds);
     
     if (error) throw error;
