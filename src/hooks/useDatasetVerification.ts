@@ -17,7 +17,7 @@ export const useDatasetVerification = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isBatchProcessing, setIsBatchProcessing] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [activeTab, setActiveTab] = useState('pending');
+  const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'rejected'>('pending');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -42,7 +42,7 @@ export const useDatasetVerification = () => {
   const loadDatasets = async () => {
     setIsLoading(true);
     try {
-      const data = await fetchDatasetsByVerificationStatus(activeTab as 'pending' | 'approved' | 'rejected');
+      const data = await fetchDatasetsByVerificationStatus(activeTab);
       setDatasets(data);
       // Clear selection when datasets change
       setSelectedIds(new Set());
