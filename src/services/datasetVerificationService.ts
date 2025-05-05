@@ -1,3 +1,4 @@
+
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { DatasetWithEmail } from "@/types/dataset";
@@ -6,17 +7,17 @@ import { transformDatasetResponse } from "@/utils/datasetVerificationUtils";
 // Fetch datasets with verification status
 export const fetchDatasetsByVerificationStatus = async (status: 'pending' | 'approved' | 'rejected'): Promise<DatasetWithEmail[]> => {
   try {
-    // Use a simplified approach to avoid excessive type instantiation
-    const { data, error } = await supabase
+    // Avoid deep type instantiation by using simple typing
+    const result = await supabase
       .from('datasets')
       .select('*, users:user_id(email)')
       .eq('verificationStatus', status)
       .order('created_at', { ascending: false });
     
-    if (error) throw error;
+    if (result.error) throw result.error;
     
     // Transform the response data to the correct type
-    return transformDatasetResponse(data || []);
+    return transformDatasetResponse(result.data || []);
   } catch (error) {
     console.error('Error loading datasets:', error);
     toast.error('Failed to load datasets');
@@ -32,14 +33,16 @@ export const updateDatasetVerificationStatus = async (
   try {
     const currentTime = new Date().toISOString();
     
-    // Update with only the fields that exist in the database schema
+    // Define update payload that matches the database schema
+    const updatePayload = {
+      verificationStatus: status,
+      verified: status === 'approved',
+      verifiedAt: status === 'approved' ? currentTime : null
+    };
+    
     const { error } = await supabase
       .from('datasets')
-      .update({
-        verificationStatus: status,
-        verified: status === 'approved',
-        verifiedAt: status === 'approved' ? currentTime : null
-      } as any) // Use type assertion to bypass type check for demonstration
+      .update(updatePayload)
       .in('id', datasetIds);
     
     if (error) throw error;
