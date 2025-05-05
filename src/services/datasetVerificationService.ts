@@ -7,17 +7,17 @@ import { transformDatasetResponse } from "@/utils/datasetVerificationUtils";
 // Fetch datasets with verification status
 export const fetchDatasetsByVerificationStatus = async (status: 'pending' | 'approved' | 'rejected'): Promise<DatasetWithEmail[]> => {
   try {
-    // Use a simpler type approach to avoid deep instantiation
-    const response = await supabase
+    // Use explicit type assertion to avoid deep instantiation errors
+    const { data, error } = await supabase
       .from('datasets')
       .select('*, users:user_id(email)')
       .eq('verificationStatus', status)
       .order('created_at', { ascending: false });
     
-    if (response.error) throw response.error;
+    if (error) throw error;
     
     // Transform the response data to the correct type
-    return transformDatasetResponse(response.data || []);
+    return transformDatasetResponse(data || []);
   } catch (error) {
     console.error('Error loading datasets:', error);
     toast.error('Failed to load datasets');
