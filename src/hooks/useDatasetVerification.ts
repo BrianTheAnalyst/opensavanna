@@ -85,14 +85,14 @@ export const useDatasetVerification = () => {
     try {
       const status = action === 'approve' ? 'approved' : 'rejected';
       
-      // Update datasets with correct type definitions
-      const success = await updateDatasetVerificationStatus(selectedIdsArray, status as VerificationStatus);
+      // Update datasets with correct status handling
+      const success = await updateDatasetVerificationStatus(selectedIdsArray, status);
       
       if (!success) throw new Error('Failed to update datasets');
       
-      // Send notification emails
+      // Send notification emails - only use valid 'approved' or 'rejected' status
       const selectedDatasets = datasets.filter(dataset => selectedIds.has(dataset.id));
-      await sendBatchNotifications(selectedDatasets, status as VerificationStatus);
+      await sendBatchNotifications(selectedDatasets, status);
       
       toast.success(`${selectedIds.size} datasets ${action === 'approve' ? 'approved' : 'rejected'} successfully`);
       

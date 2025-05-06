@@ -1,19 +1,18 @@
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
-type VerificationTabValue = 'pending' | 'approved' | 'rejected';
+import { VerificationStatus } from '@/types/dataset';
 
 interface VerificationTabsProps {
-  activeTab: VerificationTabValue;
-  setActiveTab: (value: VerificationTabValue) => void;
+  activeTab: VerificationStatus;
+  setActiveTab: (value: VerificationStatus) => void;
 }
 
 const VerificationTabs = ({ activeTab, setActiveTab }: VerificationTabsProps) => {
   const handleValueChange = (value: string) => {
     // Ensure the value is one of our allowed values
     if (value === 'pending' || value === 'approved' || value === 'rejected') {
-      setActiveTab(value);
+      setActiveTab(value as VerificationStatus);
     }
   };
 

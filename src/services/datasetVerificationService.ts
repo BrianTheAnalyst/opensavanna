@@ -1,11 +1,11 @@
 
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { DatasetWithEmail } from "@/types/dataset";
+import { DatasetWithEmail, VerificationStatus } from "@/types/dataset";
 import { transformDatasetResponse } from "@/utils/datasetVerificationUtils";
 
 // Fetch datasets with verification status
-export const fetchDatasetsByVerificationStatus = async (status: 'pending' | 'approved' | 'rejected'): Promise<DatasetWithEmail[]> => {
+export const fetchDatasetsByVerificationStatus = async (status: VerificationStatus): Promise<DatasetWithEmail[]> => {
   try {
     // Using a more direct approach with explicit typing to avoid deep type instantiation
     const { data, error } = await supabase
@@ -36,14 +36,14 @@ export const updateDatasetVerificationStatus = async (
   try {
     const currentTime = new Date().toISOString();
     
-    // Using explicit type to update fields that might not be in the schema type
+    // Using type assertion to handle the update object properly
     const { error } = await supabase
       .from('datasets')
       .update({
         verificationStatus: status,
         verified: status === 'approved',
         verifiedAt: status === 'approved' ? currentTime : null
-      })
+      } as any)
       .in('id', datasetIds);
     
     if (error) throw error;
