@@ -12,13 +12,16 @@ export const fetchDatasetsByVerificationStatus = async (status: VerificationStat
       status_param: string;
     };
     
-    // Use a proper type for the RPC response
-    const { data, error } = await supabase.rpc(
-      'get_datasets_by_status', 
-      {
-        status_param: status as string
-      }
-    );
+    // Use the rpc method without explicit type parameters, let TS infer them
+    const { data, error } = await supabase
+      .from('datasets')
+      .select(`
+        id, title, description, category, format, country,
+        date, downloads, featured, file, verificationStatus, verifiedAt,
+        created_at, updated_at, user_id,
+        users:user_id (email)
+      `)
+      .eq('verificationStatus', status);
     
     if (error) {
       console.error('Error fetching datasets:', error);
