@@ -7,11 +7,13 @@ import { toast } from 'sonner';
 // Fetch datasets based on verification status
 export const fetchDatasetsByVerificationStatus = async (status: VerificationStatus): Promise<DatasetWithEmail[]> => {
   try {
-    // Use a type assertion approach to avoid complex type inference issues
-    const { data, error } = await supabase
+    // Avoid complex type inference by using a more direct approach
+    const response = await supabase
       .from('datasets')
       .select('*, users:user_id(email)')
-      .eq('verificationStatus', status) as { data: any[], error: any };
+      .eq('verificationStatus', status);
+    
+    const { data, error } = response;
     
     if (error) {
       console.error('Error fetching datasets:', error);
