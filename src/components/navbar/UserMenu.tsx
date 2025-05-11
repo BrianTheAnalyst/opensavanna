@@ -18,8 +18,12 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, isAdmin, signOut, getInitial 
   if (!user) {
     return (
       <Link to="/auth">
-        <Button variant="outline" size="sm">
-          <LogIn className="h-4 w-4 mr-2" />
+        <Button 
+          variant="outline" 
+          size="sm"
+          aria-label="Sign In"
+        >
+          <LogIn className="h-4 w-4 mr-2" aria-hidden="true" />
           Sign In
         </Button>
       </Link>
@@ -29,7 +33,11 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, isAdmin, signOut, getInitial 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+        <Button 
+          variant="ghost" 
+          className="relative h-8 w-8 rounded-full"
+          aria-label="User menu"
+        >
           <Avatar className="h-8 w-8">
             <AvatarFallback>{getInitial()}</AvatarFallback>
           </Avatar>
@@ -37,7 +45,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, isAdmin, signOut, getInitial 
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuItem disabled>
-          <User className="mr-2 h-4 w-4" />
+          <User className="mr-2 h-4 w-4" aria-hidden="true" />
           <span>{user.email}</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -56,7 +64,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, isAdmin, signOut, getInitial 
           </>}
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={signOut}>
-          <LogOut className="mr-2 h-4 w-4" />
+          <LogOut className="mr-2 h-4 w-4" aria-hidden="true" />
           <span>Log out</span>
         </DropdownMenuItem>
       </DropdownMenuContent>

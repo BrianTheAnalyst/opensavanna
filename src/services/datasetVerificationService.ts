@@ -1,91 +1,102 @@
 
-import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { DatasetWithEmail, VerificationStatus } from "@/types/dataset";
-import { transformDatasetResponse } from "@/utils/datasetVerificationUtils";
+import { supabase } from '@/integrations/supabase/client';
+import { DatasetWithEmail, VerificationStatus } from '@/types/dataset';
+import { transformDatasetResponse } from '@/utils/datasetVerificationUtils';
+import { toast } from 'sonner';
 
-// Fetch datasets with verification status
+// Fetch datasets based on verification status
 export const fetchDatasetsByVerificationStatus = async (status: VerificationStatus): Promise<DatasetWithEmail[]> => {
   try {
-    // Use explicit type assertion to avoid deep type instantiation
     const { data, error } = await supabase
       .from('datasets')
-      .select('*, users:user_id(email)')
-      .eq('verificationStatus', status)
-      .order('created_at', { ascending: false }) as any;
+      .select('*, users(email)')
+      .eq('verificationStatus', status);
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching datasets:', error);
+      throw error;
+    }
     
-    // Transform the response data to the correct type
-    return transformDatasetResponse(data || []);
+    // Use type assertion to avoid excessive type instantiation
+    return transformDatasetResponse(data as any[]);
   } catch (error) {
-    console.error('Error loading datasets:', error);
+    console.error('Failed to fetch datasets:', error);
     toast.error('Failed to load datasets');
     return [];
   }
 };
 
-// Update dataset verification status
+// Update dataset verification status - single dataset
 export const updateDatasetVerificationStatus = async (
-  datasetIds: string[], 
+  datasetIds: string | string[],
   status: 'approved' | 'rejected'
 ): Promise<boolean> => {
+  const ids = Array.isArray(datasetIds) ? datasetIds : [datasetIds];
+  
   try {
-    const currentTime = new Date().toISOString();
-    
-    // Using type assertion to handle the update object properly
     const { error } = await supabase
       .from('datasets')
       .update({
         verificationStatus: status,
-        verified: status === 'approved',
-        verifiedAt: status === 'approved' ? currentTime : null
-      } as any)
-      .in('id', datasetIds);
+        verifiedAt: new Date().toISOString(),
+      })
+      .in('id', ids);
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error updating dataset status:', error);
+      toast.error('Failed to update dataset status');
+      return false;
+    }
     
+    toast.success(`Dataset${ids.length > 1 ? 's' : ''} ${status} successfully`);
     return true;
   } catch (error) {
-    console.error(`Error updating dataset status:`, error);
+    console.error('Failed to update dataset status:', error);
+    toast.error('Failed to update dataset status');
     return false;
   }
 };
 
-// Send notification emails for batch operations
+// Send notification emails for batch processing
 export const sendBatchNotifications = async (
-  datasets: DatasetWithEmail[], 
+  datasets: DatasetWithEmail[],
   status: 'approved' | 'rejected'
 ): Promise<void> => {
+  if (datasets.length === 0) return;
+  
   try {
-    // Send notification for each dataset
-    const emailPromises = datasets.map(dataset => {
-      if (!dataset.email) {
-        console.warn(`No email available for dataset ${dataset.id}`);
-        return Promise.resolve();
+    // Group datasets by email to send one notification per user
+    const emailGroups: Record<string, DatasetWithEmail[]> = {};
+    
+    datasets.forEach(dataset => {
+      if (dataset.email) {
+        if (!emailGroups[dataset.email]) {
+          emailGroups[dataset.email] = [];
+        }
+        emailGroups[dataset.email].push(dataset);
       }
-      
-      return fetch('https://dwngyvatnoeyoaplwoba.supabase.co/functions/v1/send-dataset-notification', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userEmail: dataset.email,
-          datasetTitle: dataset.title,
-          status: status,
-          feedback: status === 'approved' 
-            ? 'Your dataset has been approved in our batch review process.' 
-            : 'Your dataset was rejected during our review process. Please review our dataset guidelines and consider resubmitting.'
-        }),
-      }).catch(error => {
-        console.error(`Failed to send notification for dataset ${dataset.id}:`, error);
-      });
     });
     
-    await Promise.all(emailPromises);
-    console.log(`Batch notifications sent for ${status} datasets`);
+    // Send notification for each email group
+    const promises = Object.entries(emailGroups).map(async ([email, userDatasets]) => {
+      const titles = userDatasets.map(d => d.title).join(', ');
+      
+      const { error } = await supabase.functions.invoke('send-dataset-notification', {
+        body: {
+          email,
+          datasetTitles: titles,
+          status,
+          count: userDatasets.length
+        }
+      });
+      
+      if (error) {
+        console.error(`Failed to send notification to ${email}:`, error);
+      }
+    });
+    
+    await Promise.all(promises);
   } catch (error) {
-    console.error('Error sending batch notifications:', error);
+    console.error('Failed to send batch notifications:', error);
   }
 };
