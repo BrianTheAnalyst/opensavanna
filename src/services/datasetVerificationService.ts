@@ -7,11 +7,13 @@ import { toast } from 'sonner';
 // Fetch datasets based on verification status
 export const fetchDatasetsByVerificationStatus = async (status: VerificationStatus): Promise<DatasetWithEmail[]> => {
   try {
-    // Use the stored procedure with proper parameter typing
-    const { data, error } = await supabase
-      .rpc('get_datasets_by_status', { 
-        status_param: status as unknown as string 
-      });
+    // Explicitly define the parameter structure as a record to avoid type issues
+    const params: Record<string, unknown> = { 
+      status_param: status 
+    };
+    
+    // Use the stored procedure with proper typing
+    const { data, error } = await supabase.rpc('get_datasets_by_status', params);
     
     if (error) {
       console.error('Error fetching datasets:', error);
