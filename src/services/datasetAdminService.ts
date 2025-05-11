@@ -2,22 +2,49 @@
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Dataset } from "@/types/dataset";
-import { isUserAdmin as checkUserAdmin } from "./userRoleService";
 
-// Check if user is an admin
+// Check if the current user is an admin
 export const isUserAdmin = async (): Promise<boolean> => {
-  return checkUserAdmin();
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) return false;
+    
+    const { data: profiles, error } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', user.id)
+      .maybeSingle();
+    
+    if (error || !profiles) return false;
+    
+    return !!profiles.is_admin;
+  } catch (error) {
+    console.error('Error checking admin status:', error);
+    return false;
+  }
 };
 
-// Update a dataset
-export const updateDataset = async (id: string, updates: Partial<Dataset>): Promise<Dataset | null> => {
+// Update dataset details
+export const updateDataset = async (
+  id: string,
+  updates: Partial<Omit<Dataset, 'id' | 'user_id' | 'created_at'>>
+): Promise<Dataset | null> => {
   try {
+    // Check if user is admin
+    const isAdmin = await isUserAdmin();
+    
+    if (!isAdmin) {
+      toast.error('You do not have permission to update datasets');
+      return null;
+    }
+    
     const { data, error } = await supabase
       .from('datasets')
       .update(updates)
       .eq('id', id)
       .select()
-      .maybeSingle();
+      .single();
     
     if (error) {
       console.error('Error updating dataset:', error);
@@ -37,6 +64,32 @@ export const updateDataset = async (id: string, updates: Partial<Dataset>): Prom
 // Delete a dataset
 export const deleteDataset = async (id: string): Promise<boolean> => {
   try {
+    // Check if user is admin
+    const isAdmin = await isUserAdmin();
+    
+    if (!isAdmin) {
+      toast.error('You do not have permission to delete datasets');
+      return false;
+    }
+    
+    // Delete associated files from storage
+    try {
+      const { data: files } = await supabase.storage
+        .from('dataset_files')
+        .list(id);
+        
+      if (files && files.length > 0) {
+        const filePaths = files.map(file => `${id}/${file.name}`);
+        await supabase.storage
+          .from('dataset_files')
+          .remove(filePaths);
+      }
+    } catch (storageError) {
+      console.error('Error deleting dataset files from storage:', storageError);
+      // Continue with dataset deletion even if file deletion fails
+    }
+    
+    // Delete the dataset record
     const { error } = await supabase
       .from('datasets')
       .delete()
@@ -54,28 +107,5 @@ export const deleteDataset = async (id: string): Promise<boolean> => {
     console.error('Error deleting dataset:', error);
     toast.error('Failed to delete dataset');
     return false;
-  }
-};
-
-// Get datasets awaiting verification
-export const getDatasetsAwaitingVerification = async (): Promise<number> => {
-  try {
-    // Use a variable to store the query result to avoid type issues
-    const queryResult = await supabase
-      .from('datasets')
-      .select('id', { count: 'exact', head: true })
-      .eq('verificationStatus', 'pending');
-    
-    const { count, error } = queryResult;
-    
-    if (error) {
-      console.error('Error counting pending datasets:', error);
-      return 0;
-    }
-    
-    return count || 0;
-  } catch (error) {
-    console.error('Error counting pending datasets:', error);
-    return 0;
   }
 };

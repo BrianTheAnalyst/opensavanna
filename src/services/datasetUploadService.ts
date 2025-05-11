@@ -1,7 +1,7 @@
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Dataset } from "@/types/dataset";
-import { processDatasetFile } from "./datasetProcessingService";
+import { processDatasetFile } from "./processing/datasetProcessor";
 
 // Add a new dataset
 export const addDataset = async (
@@ -44,7 +44,6 @@ export const addDataset = async (
     
     // If a file was provided, upload and process it
     if (file && data.id) {
-      // ... keep existing code (file upload logic)
       
       const fileExt = file.name.split('.').pop();
       const filePath = `${data.id}/${Date.now()}.${fileExt}`;

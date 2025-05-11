@@ -1,142 +1,86 @@
 
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Dataset, DatasetWithEmail } from "@/types/dataset";
-import { isUserAdmin } from "./userRoleService";
+import { DatasetWithEmail, Dataset } from "@/types/dataset";
 
-// Fetch datasets with verification status
-export const fetchDatasetsWithVerificationStatus = async (status?: string): Promise<DatasetWithEmail[]> => {
+// Fetch all datasets with their verification status and user email
+export const fetchDatasetsWithVerificationStatus = async (): Promise<DatasetWithEmail[]> => {
   try {
-    let query = supabase
+    const { data, error } = await supabase
       .from('datasets')
-      .select(`
-        *,
-        user_id
-      `)
+      .select('*')
       .order('created_at', { ascending: false });
-    
-    if (status) {
-      query = query.eq('verificationStatus', status);
-    }
-    
-    const { data, error } = await query;
     
     if (error) {
       console.error('Error fetching datasets:', error);
-      toast.error('Failed to load datasets');
+      toast.error('Failed to load datasets for verification');
       return [];
     }
-
-    // For each dataset, try to get the user's email
-    const datasetsWithEmail: DatasetWithEmail[] = [];
     
-    for (const dataset of data) {
-      let datasetWithEmail: DatasetWithEmail = { ...dataset };
-      
-      if (dataset.user_id) {
-        // Get user email from auth.users - note that this requires admin privileges
-        const { data: userData } = await supabase.auth.admin.getUserById(dataset.user_id);
-        
-        if (userData && userData.user) {
-          datasetWithEmail.userEmail = userData.user.email;
+    // For each dataset, try to get the user's email
+    const datasetsWithEmail = await Promise.all(
+      (data as Dataset[]).map(async (dataset) => {
+        if (!dataset.user_id) {
+          return { ...dataset, userEmail: 'Unknown' };
         }
-      }
-      
-      datasetsWithEmail.push(datasetWithEmail);
-    }
+        
+        // Get user email
+        const { data: userData, error: userError } = await supabase
+          .from('profiles')
+          .select('email')
+          .eq('id', dataset.user_id)
+          .maybeSingle();
+        
+        if (userError || !userData) {
+          return { ...dataset, userEmail: 'Unknown' };
+        }
+        
+        return { ...dataset, userEmail: userData.email || 'Unknown' };
+      })
+    );
     
     return datasetsWithEmail;
   } catch (error) {
-    console.error('Error fetching datasets:', error);
-    toast.error('Failed to load datasets');
+    console.error('Error fetching datasets with verification status:', error);
+    toast.error('Failed to load datasets for verification');
     return [];
   }
 };
 
-// Update dataset verification status
+// Update the verification status of a dataset
 export const updateDatasetVerificationStatus = async (
-  id: string, 
-  status: 'pending' | 'approved' | 'rejected', 
+  id: string,
+  status: 'pending' | 'approved' | 'rejected',
   notes?: string
-): Promise<Dataset | null> => {
+): Promise<boolean> => {
   try {
-    // Check if user is admin
-    const isAdmin = await isUserAdmin();
-    
-    if (!isAdmin) {
-      toast.error('You do not have permission to perform this action');
-      return null;
-    }
-    
-    const updates = {
-      verificationStatus: status,
-      verificationNotes: notes || null
+    const updateData: {
+      verificationStatus: 'pending' | 'approved' | 'rejected';
+      verificationNotes?: string;
+    } = {
+      verificationStatus: status
     };
     
-    const { data, error } = await supabase
+    if (notes) {
+      updateData.verificationNotes = notes;
+    }
+    
+    const { error } = await supabase
       .from('datasets')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .maybeSingle();
+      .update(updateData)
+      .eq('id', id);
     
     if (error) {
-      console.error('Error updating dataset status:', error);
-      toast.error('Failed to update dataset status');
-      return null;
+      console.error('Error updating dataset verification status:', error);
+      toast.error('Failed to update verification status');
+      return false;
     }
     
-    toast.success(`Dataset ${status === 'approved' ? 'approved' : status === 'rejected' ? 'rejected' : 'updated'}`);
-    return data as Dataset;
+    toast.success(`Dataset ${status}`);
+    return true;
   } catch (error) {
-    console.error('Error updating dataset status:', error);
-    toast.error('Failed to update dataset status');
-    return null;
-  }
-};
-
-// Get verification statistics
-export const getVerificationStats = async (): Promise<{ pending: number; approved: number; rejected: number }> => {
-  try {
-    const stats = {
-      pending: 0,
-      approved: 0,
-      rejected: 0
-    };
-    
-    // Count pending datasets
-    const { count: pendingCount, error: pendingError } = await supabase
-      .from('datasets')
-      .select('id', { count: 'exact', head: true })
-      .eq('verificationStatus', 'pending');
-    
-    if (!pendingError) {
-      stats.pending = pendingCount || 0;
-    }
-    
-    // Count approved datasets
-    const { count: approvedCount, error: approvedError } = await supabase
-      .from('datasets')
-      .select('id', { count: 'exact', head: true })
-      .eq('verificationStatus', 'approved');
-    
-    if (!approvedError) {
-      stats.approved = approvedCount || 0;
-    }
-    
-    // Count rejected datasets
-    const { count: rejectedCount, error: rejectedError } = await supabase
-      .from('datasets')
-      .select('id', { count: 'exact', head: true })
-      .eq('verificationStatus', 'rejected');
-    
-    if (!rejectedError) {
-      stats.rejected = rejectedCount || 0;
-    }
-    
-    return stats;
-  } catch (error) {
-    console.error('Error getting verification stats:', error);
-    return { pending: 0, approved: 0, rejected: 0 };
+    console.error('Error updating dataset verification status:', error);
+    toast.error('Failed to update verification status');
+    return false;
   }
 };
