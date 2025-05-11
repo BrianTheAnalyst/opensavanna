@@ -17,8 +17,8 @@ export const fetchDatasetsByVerificationStatus = async (status: VerificationStat
       throw error;
     }
     
-    // Use simple array type to avoid deep type analysis
-    return transformDatasetResponse(data || []);
+    // Simple transformation without complex typing
+    return transformDatasetResponse(Array.isArray(data) ? data : []);
   } catch (error) {
     console.error('Failed to fetch datasets:', error);
     toast.error('Failed to load datasets');
@@ -34,16 +34,13 @@ export const updateDatasetVerificationStatus = async (
   const ids = Array.isArray(datasetIds) ? datasetIds : [datasetIds];
   
   try {
-    // Create update object directly without custom interface
-    const updateData = {
-      verificationStatus: status,
-      verifiedAt: new Date().toISOString()
-    };
-
-    // Using type assertion for Supabase's specific update format
+    // Simple direct object without complex types
     const { error } = await supabase
       .from('datasets')
-      .update(updateData as any)
+      .update({
+        verificationStatus: status,
+        verifiedAt: new Date().toISOString()
+      })
       .in('id', ids);
     
     if (error) {
@@ -69,7 +66,7 @@ export const sendBatchNotifications = async (
   if (datasets.length === 0) return;
   
   try {
-    // Group datasets by email to send one notification per user
+    // Simple Record type
     const emailGroups: Record<string, DatasetWithEmail[]> = {};
     
     datasets.forEach(dataset => {
@@ -81,7 +78,7 @@ export const sendBatchNotifications = async (
       }
     });
     
-    // Send notification for each email group
+    // Process notifications
     const promises = Object.entries(emailGroups).map(async ([email, userDatasets]) => {
       const titles = userDatasets.map(d => d.title).join(', ');
       
