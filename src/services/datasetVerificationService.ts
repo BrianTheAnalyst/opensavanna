@@ -11,11 +11,14 @@ export const fetchDatasetsByVerificationStatus = async (status: VerificationStat
     type GetDatasetsByStatusParams = {
       status_param: string;
     };
-
-    // Cast the status parameter to string to match expected SQL parameter type
-    const { data, error } = await supabase.rpc<any>('get_datasets_by_status', {
-      status_param: status as string
-    } as GetDatasetsByStatusParams);
+    
+    // Specify both the return type and parameters type for the rpc method
+    const { data, error } = await supabase.rpc<any, GetDatasetsByStatusParams>(
+      'get_datasets_by_status', 
+      {
+        status_param: status as string
+      }
+    );
     
     if (error) {
       console.error('Error fetching datasets:', error);
