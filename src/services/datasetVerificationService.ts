@@ -12,8 +12,8 @@ export const fetchDatasetsByVerificationStatus = async (status: VerificationStat
       status_param: string;
     };
     
-    // Specify both the return type and parameters type for the rpc method
-    const { data, error } = await supabase.rpc<any, GetDatasetsByStatusParams>(
+    // Use a proper type for the RPC response
+    const { data, error } = await supabase.rpc(
       'get_datasets_by_status', 
       {
         status_param: status as string
@@ -25,8 +25,11 @@ export const fetchDatasetsByVerificationStatus = async (status: VerificationStat
       throw error;
     }
     
+    // Ensure data is treated as an array before transformation
+    const datasetsArray = Array.isArray(data) ? data : [];
+    
     // Transform the response data safely
-    return transformDatasetResponse(data || []);
+    return transformDatasetResponse(datasetsArray);
   } catch (error) {
     console.error('Failed to fetch datasets:', error);
     toast.error('Failed to load datasets');
