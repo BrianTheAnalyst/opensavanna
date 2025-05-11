@@ -48,14 +48,18 @@ export const updateDatasetVerificationStatus = async (
   notes?: string
 ): Promise<boolean> => {
   try {
-    const updateData = {
-      verificationStatus: status,
-      ...(notes && { verificationNotes: notes })
+    // Create an updates object that is compatible with the dataset structure
+    const updates: Record<string, any> = {
+      verificationStatus: status
     };
+    
+    if (notes) {
+      updates.verificationNotes = notes;
+    }
     
     const { error } = await supabase
       .from('datasets')
-      .update(updateData)
+      .update(updates)
       .eq('id', id);
     
     if (error) {

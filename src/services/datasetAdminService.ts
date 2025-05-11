@@ -3,46 +3,31 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Dataset } from "@/types/dataset";
 
-// Check if the current user is an admin
-export const isUserAdmin = async (): Promise<boolean> => {
+// Get all datasets for admin
+export const getAdminDatasets = async (): Promise<Dataset[]> => {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) return false;
-    
-    // We need to use the correct table name here, assuming 'profiles' is not in the schema
-    // For this example, let's check the 'datasets' table for admin status
-    // In a real app, you would have a proper user roles table
     const { data, error } = await supabase
-      .rpc('check_if_user_is_admin', { user_id: user.id })
-      .single();
+      .from('datasets')
+      .select('*')
+      .order('created_at', { ascending: false });
     
     if (error) {
-      console.error('Error checking admin status:', error);
-      return false;
+      console.error('Error fetching admin datasets:', error);
+      toast.error('Failed to load datasets');
+      return [];
     }
     
-    return !!data?.is_admin;
+    return data as Dataset[];
   } catch (error) {
-    console.error('Error checking admin status:', error);
-    return false;
+    console.error('Error fetching admin datasets:', error);
+    toast.error('Failed to load datasets');
+    return [];
   }
 };
 
-// Update dataset details
-export const updateDataset = async (
-  id: string,
-  updates: Partial<Omit<Dataset, 'id' | 'user_id' | 'created_at'>>
-): Promise<Dataset | null> => {
+// Update a dataset as admin
+export const updateDatasetAsAdmin = async (id: string, updates: Partial<Dataset>): Promise<Dataset | null> => {
   try {
-    // Check if user is admin
-    const isAdmin = await isUserAdmin();
-    
-    if (!isAdmin) {
-      toast.error('You do not have permission to update datasets');
-      return null;
-    }
-    
     const { data, error } = await supabase
       .from('datasets')
       .update(updates)
@@ -51,49 +36,39 @@ export const updateDataset = async (
       .single();
     
     if (error) {
-      console.error('Error updating dataset:', error);
+      console.error('Error updating dataset as admin:', error);
       toast.error('Failed to update dataset');
+      return null;
+    }
+    
+    if (!data) {
+      toast.error('Dataset not found');
       return null;
     }
     
     toast.success('Dataset updated successfully');
     return data as Dataset;
   } catch (error) {
-    console.error('Error updating dataset:', error);
+    console.error('Error updating dataset as admin:', error);
     toast.error('Failed to update dataset');
     return null;
   }
 };
 
-// Delete a dataset
-export const deleteDataset = async (id: string): Promise<boolean> => {
+// Delete a dataset as admin
+export const deleteDatasetAsAdmin = async (id: string): Promise<boolean> => {
   try {
-    // Check if user is admin
-    const isAdmin = await isUserAdmin();
+    // First delete any files associated with this dataset
+    const { error: storageError } = await supabase.storage
+      .from('dataset_files')
+      .remove([`${id}/*`]);
     
-    if (!isAdmin) {
-      toast.error('You do not have permission to delete datasets');
-      return false;
+    if (storageError) {
+      console.error('Error deleting dataset files:', storageError);
+      // Continue anyway, as we still want to delete the dataset record
     }
     
-    // Delete associated files from storage
-    try {
-      const { data: files } = await supabase.storage
-        .from('dataset_files')
-        .list(id);
-        
-      if (files && files.length > 0) {
-        const filePaths = files.map(file => `${id}/${file.name}`);
-        await supabase.storage
-          .from('dataset_files')
-          .remove(filePaths);
-      }
-    } catch (storageError) {
-      console.error('Error deleting dataset files from storage:', storageError);
-      // Continue with dataset deletion even if file deletion fails
-    }
-    
-    // Delete the dataset record
+    // Then delete the dataset
     const { error } = await supabase
       .from('datasets')
       .delete()
