@@ -18,7 +18,7 @@ export const fetchDatasetsByVerificationStatus = async (status: VerificationStat
     }
     
     // Use type assertion to avoid excessive type instantiation
-    return transformDatasetResponse(data as any[]);
+    return transformDatasetResponse(data || []);
   } catch (error) {
     console.error('Failed to fetch datasets:', error);
     toast.error('Failed to load datasets');
@@ -37,9 +37,11 @@ export const updateDatasetVerificationStatus = async (
     const { error } = await supabase
       .from('datasets')
       .update({
+        // Use a type assertion here since verificationStatus exists in our actual table
+        // even though it might not be in the type definition
         verificationStatus: status,
         verifiedAt: new Date().toISOString(),
-      })
+      } as any)
       .in('id', ids);
     
     if (error) {
