@@ -7,9 +7,11 @@ import { toast } from 'sonner';
 // Fetch datasets based on verification status
 export const fetchDatasetsByVerificationStatus = async (status: VerificationStatus): Promise<DatasetWithEmail[]> => {
   try {
-    // Use raw query approach to avoid TypeScript deep typing issues
+    // Use the stored procedure with explicit parameter object
     const { data, error } = await supabase
-      .rpc('get_datasets_by_status', { status_param: status });
+      .rpc('get_datasets_by_status', { 
+        status_param: status 
+      });
     
     if (error) {
       console.error('Error fetching datasets:', error);
@@ -33,16 +35,15 @@ export const updateDatasetVerificationStatus = async (
   const ids = Array.isArray(datasetIds) ? datasetIds : [datasetIds];
   
   try {
-    // Explicitly define the update payload
-    const payload = { 
+    // Define the update payload as a Record to avoid TypeScript errors
+    const payload: Record<string, any> = { 
       verificationStatus: status,
       verifiedAt: new Date().toISOString()
     };
     
-    // Use explicit any typing to bypass TypeScript limitations
     const { error } = await supabase
       .from('datasets')
-      .update(payload as any)
+      .update(payload)
       .in('id', ids);
     
     if (error) {
