@@ -4,12 +4,6 @@ import { DatasetWithEmail, VerificationStatus } from '@/types/dataset';
 import { transformDatasetResponse } from '@/utils/datasetVerificationUtils';
 import { toast } from 'sonner';
 
-// Define simple types for dataset updates to avoid excessive type instantiation
-interface DatasetVerificationUpdate {
-  verificationStatus: VerificationStatus;
-  verifiedAt: string;
-}
-
 // Fetch datasets based on verification status
 export const fetchDatasetsByVerificationStatus = async (status: VerificationStatus): Promise<DatasetWithEmail[]> => {
   try {
@@ -23,8 +17,8 @@ export const fetchDatasetsByVerificationStatus = async (status: VerificationStat
       throw error;
     }
     
-    // Explicitly cast the result to a simple array type to avoid deep type analysis
-    return transformDatasetResponse(data as any[]);
+    // Use simple array type to avoid deep type analysis
+    return transformDatasetResponse(data || []);
   } catch (error) {
     console.error('Failed to fetch datasets:', error);
     toast.error('Failed to load datasets');
@@ -40,7 +34,7 @@ export const updateDatasetVerificationStatus = async (
   const ids = Array.isArray(datasetIds) ? datasetIds : [datasetIds];
   
   try {
-    // Create update object as a plain object rather than a custom interface
+    // Create update object directly without custom interface
     const updateData = {
       verificationStatus: status,
       verifiedAt: new Date().toISOString()
@@ -48,7 +42,7 @@ export const updateDatasetVerificationStatus = async (
 
     const { error } = await supabase
       .from('datasets')
-      .update(updateData as any)  // Use type assertion to bypass type checking
+      .update(updateData)
       .in('id', ids);
     
     if (error) {
