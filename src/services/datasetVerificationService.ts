@@ -28,22 +28,22 @@ export const fetchDatasetsWithVerificationStatus = async (status?: string): Prom
     }
 
     // For each dataset, try to get the user's email
-    const datasetsWithEmail = await Promise.all(
-      data.map(async (dataset) => {
-        if (dataset.user_id) {
-          const { data: userData, error: userError } = await supabase
-            .from('auth.users')
-            .select('email')
-            .eq('id', dataset.user_id)
-            .single();
-          
-          if (!userError && userData) {
-            return { ...dataset, userEmail: userData.email } as DatasetWithEmail;
-          }
+    const datasetsWithEmail: DatasetWithEmail[] = [];
+    
+    for (const dataset of data) {
+      let datasetWithEmail: DatasetWithEmail = { ...dataset };
+      
+      if (dataset.user_id) {
+        // Get user email from auth.users - note that this requires admin privileges
+        const { data: userData } = await supabase.auth.admin.getUserById(dataset.user_id);
+        
+        if (userData && userData.user) {
+          datasetWithEmail.userEmail = userData.user.email;
         }
-        return dataset as DatasetWithEmail;
-      })
-    );
+      }
+      
+      datasetsWithEmail.push(datasetWithEmail);
+    }
     
     return datasetsWithEmail;
   } catch (error) {
@@ -70,7 +70,7 @@ export const updateDatasetVerificationStatus = async (
     
     const updates = {
       verificationStatus: status,
-      verificationNotes: notes
+      verificationNotes: notes || null
     };
     
     const { data, error } = await supabase
