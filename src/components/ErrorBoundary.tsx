@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 
 interface Props {
   children: ReactNode;
-  fallback?: ReactNode | ((props: { resetErrorBoundary: () => void }) => ReactNode);
+  fallback?: ReactNode;
 }
 
 interface State {
@@ -28,40 +28,20 @@ class ErrorBoundary extends Component<Props, State> {
     console.error('Uncaught error:', error, errorInfo);
   }
 
-  public resetErrorBoundary = () => {
-    this.setState({ hasError: false, error: null });
-  };
-
   public render() {
     if (this.state.hasError) {
       // Fallback UI when an error occurs
-      if (this.props.fallback) {
-        if (typeof this.props.fallback === 'function') {
-          return this.props.fallback({ resetErrorBoundary: this.resetErrorBoundary });
-        }
-        return this.props.fallback;
-      }
-
-      // Default fallback UI
-      return (
-        <div 
-          className="min-h-[200px] p-8 border border-destructive/50 bg-destructive/10 rounded-lg flex flex-col items-center justify-center text-center"
-          role="alert"
-          aria-live="assertive"
-        >
-          <AlertTriangle className="h-12 w-12 text-destructive mb-4" aria-hidden="true" />
+      return this.props.fallback || (
+        <div className="min-h-[200px] p-8 border border-destructive/50 bg-destructive/10 rounded-lg flex flex-col items-center justify-center text-center">
+          <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
           <h3 className="text-xl font-bold mb-2">Something went wrong</h3>
           <p className="text-muted-foreground mb-4 max-w-md">
             We encountered an unexpected error while rendering this component. 
             Please try refreshing the page.
           </p>
-          <Button 
-            onClick={this.resetErrorBoundary} 
-            className="flex items-center gap-2"
-            aria-label="Refresh page"
-          >
-            <RefreshCw className="h-4 w-4" aria-hidden="true" />
-            Try Again
+          <Button onClick={() => window.location.reload()} className="flex items-center gap-2">
+            <RefreshCw className="h-4 w-4" />
+            Refresh Page
           </Button>
         </div>
       );

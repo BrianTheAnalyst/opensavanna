@@ -6,10 +6,8 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { getDatasetById, getDatasetVisualization, downloadDataset } from '@/services';
 import { Dataset } from '@/types/dataset';
-import ErrorBoundaryWrapper from '@/components/ErrorBoundaryWrapper';
-import { Loading } from '@/components/ui/loading';
 
-// Import our components
+// Import our newly created components
 import DatasetHeader from './DatasetHeader';
 import DatasetOverview from './DatasetOverview';
 import DatasetMetadata from './DatasetMetadata';
@@ -24,36 +22,22 @@ const DatasetDetail = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [visData, setVisData] = useState<any[]>([]);
-  const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
     window.scrollTo(0, 0);
     
     const fetchDataset = async () => {
-      if (!id) {
-        setError("Missing dataset ID");
-        setIsLoading(false);
-        return;
-      }
+      if (!id) return;
       
       setIsLoading(true);
-      
-      try {
-        const data = await getDatasetById(id);
-        if (data) {
-          setDataset(data);
-          
-          const visualizationData = await getDatasetVisualization(id);
-          setVisData(visualizationData);
-        } else {
-          setError("Dataset not found");
-        }
-      } catch (err) {
-        console.error("Error fetching dataset:", err);
-        setError("Failed to load dataset");
-      } finally {
-        setIsLoading(false);
+      const data = await getDatasetById(id);
+      if (data) {
+        setDataset(data);
+        
+        const visualizationData = await getDatasetVisualization(id);
+        setVisData(visualizationData);
       }
+      setIsLoading(false);
     };
     
     fetchDataset();
@@ -92,27 +76,6 @@ const DatasetDetail = () => {
         <div className="container px-4 mx-auto py-12">
           {isLoading ? (
             <LoadingState />
-          ) : error ? (
-            <div className="glass border border-border/50 rounded-xl p-8">
-              <h1 className="text-2xl md:text-3xl font-medium mb-4">Error Loading Dataset</h1>
-              <p className="text-foreground/70 mb-6">
-                {error}
-              </p>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => window.location.href = '/datasets'}
-                  className="px-4 py-2 bg-primary text-primary-foreground rounded-md"
-                >
-                  Back to Datasets
-                </button>
-                <button
-                  onClick={() => window.location.reload()}
-                  className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md"
-                >
-                  Retry
-                </button>
-              </div>
-            </div>
           ) : !dataset ? (
             <NotFoundState />
           ) : (
@@ -124,40 +87,30 @@ const DatasetDetail = () => {
               
               <Tabs value={activeTab} onValueChange={handleTabChange} className="mb-8 animate-fade-in">
                 <TabsList className="mb-6 glass w-full justify-start">
-                  <TabsTrigger value="overview" aria-controls="overview-tab">Overview</TabsTrigger>
-                  <TabsTrigger value="metadata" aria-controls="metadata-tab">Metadata</TabsTrigger>
-                  <TabsTrigger id="visualize-tab" value="visualize" aria-controls="visualize-tab">Visualize</TabsTrigger>
-                  <TabsTrigger value="api" aria-controls="api-tab">API Access</TabsTrigger>
+                  <TabsTrigger value="overview">Overview</TabsTrigger>
+                  <TabsTrigger value="metadata">Metadata</TabsTrigger>
+                  <TabsTrigger id="visualize-tab" value="visualize">Visualize</TabsTrigger>
+                  <TabsTrigger value="api">API Access</TabsTrigger>
                 </TabsList>
                 
-                <TabsContent value="overview" id="overview-tab" role="tabpanel" className="animate-slide-up">
-                  <ErrorBoundaryWrapper componentName="Dataset Overview">
-                    <DatasetOverview dataset={dataset} />
-                  </ErrorBoundaryWrapper>
+                <TabsContent value="overview" className="animate-slide-up">
+                  <DatasetOverview dataset={dataset} />
                 </TabsContent>
                 
-                <TabsContent value="metadata" id="metadata-tab" role="tabpanel" className="animate-slide-up">
-                  <ErrorBoundaryWrapper componentName="Dataset Metadata">
-                    <DatasetMetadata dataset={dataset} />
-                  </ErrorBoundaryWrapper>
+                <TabsContent value="metadata" className="animate-slide-up">
+                  <DatasetMetadata dataset={dataset} />
                 </TabsContent>
                 
-                <TabsContent value="visualize" id="visualize-tab" role="tabpanel" className="animate-slide-up">
-                  <ErrorBoundaryWrapper componentName="Dataset Visualization">
-                    <DatasetVisualize datasetProp={dataset} visualizationDataProp={visData} />
-                  </ErrorBoundaryWrapper>
+                <TabsContent value="visualize" className="animate-slide-up">
+                  <DatasetVisualize datasetProp={dataset} visualizationDataProp={visData} />
                 </TabsContent>
                 
-                <TabsContent value="api" id="api-tab" role="tabpanel" className="animate-slide-up">
-                  <ErrorBoundaryWrapper componentName="API Access">
-                    <DatasetApiAccess dataset={dataset} />
-                  </ErrorBoundaryWrapper>
+                <TabsContent value="api" className="animate-slide-up">
+                  <DatasetApiAccess dataset={dataset} />
                 </TabsContent>
               </Tabs>
               
-              <ErrorBoundaryWrapper componentName="Related Datasets">
-                <RelatedDatasets category={dataset.category} />
-              </ErrorBoundaryWrapper>
+              <RelatedDatasets category={dataset.category} />
             </>
           )}
         </div>

@@ -9,57 +9,8 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      dataset_entity_relationships: {
-        Row: {
-          created_at: string
-          created_by: string | null
-          dataset_id: string
-          entity_id: string
-          id: string
-          relationship_type: string
-          relevance: number | null
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          created_by?: string | null
-          dataset_id: string
-          entity_id: string
-          id?: string
-          relationship_type?: string
-          relevance?: number | null
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          created_by?: string | null
-          dataset_id?: string
-          entity_id?: string
-          id?: string
-          relationship_type?: string
-          relevance?: number | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "dataset_entity_relationships_dataset_id_fkey"
-            columns: ["dataset_id"]
-            isOneToOne: false
-            referencedRelation: "datasets"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "dataset_entity_relationships_entity_id_fkey"
-            columns: ["entity_id"]
-            isOneToOne: false
-            referencedRelation: "entities"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       datasets: {
         Row: {
-          aiAnalysis: Json | null
           category: string
           country: string
           created_at: string | null
@@ -75,7 +26,6 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
-          aiAnalysis?: Json | null
           category: string
           country: string
           created_at?: string | null
@@ -91,7 +41,6 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
-          aiAnalysis?: Json | null
           category?: string
           country?: string
           created_at?: string | null
@@ -107,113 +56,6 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
-      }
-      entities: {
-        Row: {
-          aliases: string[] | null
-          created_at: string
-          created_by: string | null
-          description: string | null
-          external_ids: Json | null
-          id: string
-          metadata: Json | null
-          name: string
-          parent_id: string | null
-          properties: Json | null
-          type: Database["public"]["Enums"]["entity_type"]
-          updated_at: string
-        }
-        Insert: {
-          aliases?: string[] | null
-          created_at?: string
-          created_by?: string | null
-          description?: string | null
-          external_ids?: Json | null
-          id?: string
-          metadata?: Json | null
-          name: string
-          parent_id?: string | null
-          properties?: Json | null
-          type: Database["public"]["Enums"]["entity_type"]
-          updated_at?: string
-        }
-        Update: {
-          aliases?: string[] | null
-          created_at?: string
-          created_by?: string | null
-          description?: string | null
-          external_ids?: Json | null
-          id?: string
-          metadata?: Json | null
-          name?: string
-          parent_id?: string | null
-          properties?: Json | null
-          type?: Database["public"]["Enums"]["entity_type"]
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "entities_parent_id_fkey"
-            columns: ["parent_id"]
-            isOneToOne: false
-            referencedRelation: "entities"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      entity_relationships: {
-        Row: {
-          created_at: string
-          created_by: string | null
-          id: string
-          metadata: Json | null
-          properties: Json | null
-          source_entity_id: string
-          target_entity_id: string
-          type: string
-          updated_at: string
-          weight: number | null
-        }
-        Insert: {
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          metadata?: Json | null
-          properties?: Json | null
-          source_entity_id: string
-          target_entity_id: string
-          type: string
-          updated_at?: string
-          weight?: number | null
-        }
-        Update: {
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          metadata?: Json | null
-          properties?: Json | null
-          source_entity_id?: string
-          target_entity_id?: string
-          type?: string
-          updated_at?: string
-          weight?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "entity_relationships_source_entity_id_fkey"
-            columns: ["source_entity_id"]
-            isOneToOne: false
-            referencedRelation: "entities"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "entity_relationships_target_entity_id_fkey"
-            columns: ["target_entity_id"]
-            isOneToOne: false
-            referencedRelation: "entities"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       processed_files: {
         Row: {
@@ -268,13 +110,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      entity_type:
-        | "Place"
-        | "Organization"
-        | "Topic"
-        | "Event"
-        | "Person"
-        | "Concept"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -389,15 +225,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      entity_type: [
-        "Place",
-        "Organization",
-        "Topic",
-        "Event",
-        "Person",
-        "Concept",
-      ],
-    },
+    Enums: {},
   },
 } as const

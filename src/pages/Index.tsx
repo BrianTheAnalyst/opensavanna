@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Map, PieChart, FileText, Database, Globe, Building2, BookOpen, Calendar, User, Tag } from 'lucide-react';
+import { ArrowRight, Map, PieChart, FileText, Database } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
@@ -272,80 +272,6 @@ fetch('https://api.opendata.org/v1/datasets')
                     <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </Button>
                 </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-        
-        {/* Knowledge Graph Section */}
-        <section className="py-20">
-          <div className="container px-4 mx-auto">
-            <div className="grid md:grid-cols-2 gap-12 items-center">
-              <div className={`transition-all duration-700 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-                <div className="inline-block px-3 py-1 mb-2 text-xs font-medium text-primary bg-primary/10 rounded-full">
-                  Knowledge Graph
-                </div>
-                <h2 className="text-3xl font-medium tracking-tight mb-4">
-                  Explore Connected Data Insights
-                </h2>
-                <p className="text-foreground/70 mb-6">
-                  Discover how different datasets, entities, and concepts are connected through our knowledge graph. Understand relationships and find relevant data across various domains.
-                </p>
-                <ul className="space-y-3 mb-8">
-                  {['Entity-based data exploration', 'Visualize relationships between datasets', 'Discover related concepts and metrics', 'Find connections across domains'].map((item, i) => (
-                    <li key={i} className="flex items-start">
-                      <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center text-primary mr-3 mt-0.5">
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M10 3L4.5 8.5L2 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      </div>
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Link to="/entities">
-                  <Button className="rounded-full group">
-                    <span>Explore Knowledge Graph</span>
-                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                  </Button>
-                </Link>
-              </div>
-              
-              <div className={`glass border border-border/50 rounded-xl p-4 transition-all duration-700 delay-300 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-                <div className="p-4 bg-muted/30 rounded-lg mb-4">
-                  <h3 className="text-lg font-medium mb-3">Knowledge Graph Preview</h3>
-                  <div className="aspect-[4/3] bg-muted/50 rounded-lg flex items-center justify-center">
-                    <div className="text-center p-8">
-                      <Globe className="h-12 w-12 mx-auto mb-3 text-primary opacity-60" />
-                      <p className="text-foreground/70">Explore connections between datasets, regions, topics, and more</p>
-                      <Link to="/entities">
-                        <Button variant="outline" className="mt-4">
-                          <span>View All Entities</span>
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-                <div className="p-3">
-                  <h4 className="text-sm font-medium mb-2">Featured Entity Types</h4>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[
-                      { name: 'Places', icon: <Globe className="h-4 w-4" />, color: 'text-green-500 bg-green-500/10' },
-                      { name: 'Organizations', icon: <Building2 className="h-4 w-4" />, color: 'text-blue-500 bg-blue-500/10' },
-                      { name: 'Topics', icon: <BookOpen className="h-4 w-4" />, color: 'text-purple-500 bg-purple-500/10' },
-                      { name: 'Events', icon: <Calendar className="h-4 w-4" />, color: 'text-yellow-500 bg-yellow-500/10' },
-                      { name: 'People', icon: <User className="h-4 w-4" />, color: 'text-red-500 bg-red-500/10' },
-                      { name: 'Concepts', icon: <Tag className="h-4 w-4" />, color: 'text-gray-500 bg-gray-500/10' },
-                    ].map((type, i) => (
-                      <Link to={`/entities?type=${type.name.toLowerCase()}`} key={type.name} className="flex flex-col items-center p-3 rounded-lg hover:bg-muted/50 transition-colors">
-                        <div className={`h-8 w-8 rounded-full flex items-center justify-center mb-1 ${type.color}`}>
-                          {type.icon}
-                        </div>
-                        <span className="text-xs text-center">{type.name}</span>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
               </div>
             </div>
           </div>
