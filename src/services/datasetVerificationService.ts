@@ -17,8 +17,8 @@ export const fetchDatasetsByVerificationStatus = async (status: VerificationStat
       throw error;
     }
     
-    // Use type assertion to avoid excessive type instantiation
-    return transformDatasetResponse(data || []);
+    // Use a more explicit type assertion to avoid excessive type instantiation
+    return transformDatasetResponse(data as Record<string, any>[]);
   } catch (error) {
     console.error('Failed to fetch datasets:', error);
     toast.error('Failed to load datasets');
