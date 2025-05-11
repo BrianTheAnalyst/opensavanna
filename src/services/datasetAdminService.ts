@@ -25,8 +25,38 @@ export const getAdminDatasets = async (): Promise<Dataset[]> => {
   }
 };
 
+// Check if user has admin role
+export const isUserAdmin = async (): Promise<boolean> => {
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  if (!session) {
+    return false;
+  }
+  
+  try {
+    // This is a placeholder implementation - in a real app, you would check
+    // against a roles table or use a Supabase Function to verify admin status
+    const { data, error } = await supabase
+      .from('user_roles')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .eq('role', 'admin')
+      .single();
+    
+    if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+      console.error('Error checking admin status:', error);
+      return false;
+    }
+    
+    return !!data;
+  } catch (error) {
+    console.error('Error checking admin status:', error);
+    return false;
+  }
+};
+
 // Update a dataset as admin
-export const updateDatasetAsAdmin = async (id: string, updates: Partial<Dataset>): Promise<Dataset | null> => {
+export const updateDataset = async (id: string, updates: Partial<Dataset>): Promise<Dataset | null> => {
   try {
     const { data, error } = await supabase
       .from('datasets')
@@ -56,7 +86,7 @@ export const updateDatasetAsAdmin = async (id: string, updates: Partial<Dataset>
 };
 
 // Delete a dataset as admin
-export const deleteDatasetAsAdmin = async (id: string): Promise<boolean> => {
+export const deleteDataset = async (id: string): Promise<boolean> => {
   try {
     // First delete any files associated with this dataset
     const { error: storageError } = await supabase.storage
@@ -88,3 +118,7 @@ export const deleteDatasetAsAdmin = async (id: string): Promise<boolean> => {
     return false;
   }
 };
+
+// For backward compatibility
+export const updateDatasetAsAdmin = updateDataset;
+export const deleteDatasetAsAdmin = deleteDataset;

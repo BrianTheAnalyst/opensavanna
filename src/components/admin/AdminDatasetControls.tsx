@@ -1,10 +1,10 @@
-
 import { useState } from 'react';
 import { Pencil, Trash2, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { deleteDataset, isUserAdmin } from '@/services/datasetService';
+import { deleteDataset } from '@/services/datasetAdminService';
+import { isUserAdmin } from '@/services/datasetAdminService';
 import { Dataset } from '@/types/dataset';
 
 interface AdminDatasetControlsProps {
