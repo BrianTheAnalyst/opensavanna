@@ -40,9 +40,10 @@ export const updateDatasetVerificationStatus = async (
       verifiedAt: new Date().toISOString()
     };
 
+    // Using type assertion for Supabase's specific update format
     const { error } = await supabase
       .from('datasets')
-      .update(updateData)
+      .update(updateData as any)
       .in('id', ids);
     
     if (error) {
