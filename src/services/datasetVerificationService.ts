@@ -7,13 +7,13 @@ import { toast } from 'sonner';
 // Fetch datasets based on verification status
 export const fetchDatasetsByVerificationStatus = async (status: VerificationStatus): Promise<DatasetWithEmail[]> => {
   try {
-    // Use type assertions to avoid TypeScript's deep type inference
-    const result = await (supabase
-      .from('datasets')
+    // Execute the query with explicit typing to avoid TypeScript recursion issues
+    const { data, error } = await supabase.from('datasets')
       .select('*, users:user_id(email)')
-      .eq('verificationStatus', status) as any);
-    
-    const { data, error } = result;
+      .eq('verificationStatus', status) as unknown as { 
+        data: Array<Record<string, any>> | null; 
+        error: Error | null 
+      };
     
     if (error) {
       console.error('Error fetching datasets:', error);
