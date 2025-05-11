@@ -56,3 +56,23 @@ export const deleteDataset = async (id: string): Promise<boolean> => {
     return false;
   }
 };
+
+// Get datasets awaiting verification
+export const getDatasetsAwaitingVerification = async (): Promise<number> => {
+  try {
+    const { count, error } = await supabase
+      .from('datasets')
+      .select('id', { count: 'exact', head: true })
+      .eq('verificationStatus', 'pending');
+    
+    if (error) {
+      console.error('Error counting pending datasets:', error);
+      return 0;
+    }
+    
+    return count || 0;
+  } catch (error) {
+    console.error('Error counting pending datasets:', error);
+    return 0;
+  }
+};

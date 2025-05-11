@@ -170,7 +170,7 @@ const UploadPage = () => {
                 Upload a New Dataset
               </h1>
               <p className="text-foreground/70 mb-4">
-                Share your datasets with the community. We accept CSV, JSON, and GeoJSON formats.
+                Share your datasets with the community. Contributions will be reviewed before publishing.
               </p>
               {!isLoggedIn && (
                 <p className="text-destructive mb-4">
@@ -348,7 +348,7 @@ const UploadPage = () => {
                           className="w-full"
                           disabled={isUploading || !isLoggedIn}
                         >
-                          {isUploading ? 'Uploading...' : 'Upload Dataset'}
+                          {isUploading ? 'Uploading...' : 'Submit Dataset for Review'}
                         </Button>
                       </div>
                     </form>
@@ -358,9 +358,9 @@ const UploadPage = () => {
                     <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                       <Check className="h-8 w-8 text-primary" />
                     </div>
-                    <h3 className="text-xl font-medium mb-2">Upload Successful!</h3>
+                    <h3 className="text-xl font-medium mb-2">Dataset Submitted!</h3>
                     <p className="text-foreground/70 mb-6">
-                      Your dataset has been uploaded and is now available for the community.
+                      Your dataset has been submitted for review. We'll notify you once it's approved and available to the community.
                     </p>
                     <Button onClick={() => navigate('/datasets')}>
                       View All Datasets

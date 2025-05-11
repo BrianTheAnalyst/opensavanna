@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Dataset } from "@/types/dataset";
@@ -22,12 +21,13 @@ export const addDataset = async (
     const currentDate = new Date();
     const formattedDate = `Updated ${currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`;
     
-    // Create the dataset entry
+    // Create the dataset entry with pending verification status
     const newDataset = {
       ...dataset,
       date: formattedDate,
       downloads: 0,
-      user_id: user.id
+      user_id: user.id,
+      verificationStatus: 'pending' // Set initial status as pending
     };
     
     const { data, error } = await supabase
@@ -44,6 +44,8 @@ export const addDataset = async (
     
     // If a file was provided, upload and process it
     if (file && data.id) {
+      // ... keep existing code (file upload logic)
+      
       const fileExt = file.name.split('.').pop();
       const filePath = `${data.id}/${Date.now()}.${fileExt}`;
       
@@ -106,7 +108,7 @@ export const addDataset = async (
       toast.success('Dataset processed successfully');
     }
     
-    toast.success('Dataset added successfully');
+    toast.success('Dataset submitted for review');
     return data as Dataset;
   } catch (error) {
     console.error('Error adding dataset:', error);
@@ -114,4 +116,3 @@ export const addDataset = async (
     return null;
   }
 };
-

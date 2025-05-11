@@ -13,10 +13,12 @@ export interface Dataset {
   file?: string;
   license?: string;
   fileSize?: string;
-  dataPoints?: number | string; // Adding dataPoints as either number or string
+  dataPoints?: number | string;
   timespan?: string;
   source?: string;
   tags?: string[];
+  verificationStatus?: 'pending' | 'approved' | 'rejected';
+  verificationNotes?: string;
   dataFields?: Array<{
     name: string;
     description: string;
@@ -30,4 +32,9 @@ export interface DatasetFilters {
   category?: string;
   format?: string;
   country?: string;
+  verificationStatus?: string;
 }
+
+export type DatasetWithEmail = Dataset & {
+  userEmail?: string;
+};
