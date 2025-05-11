@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { DatasetWithEmail, VerificationStatus } from '@/types/dataset';
 import { transformDatasetResponse } from '@/utils/datasetVerificationUtils';
@@ -6,7 +7,7 @@ import { toast } from 'sonner';
 // Fetch datasets based on verification status
 export const fetchDatasetsByVerificationStatus = async (status: VerificationStatus): Promise<DatasetWithEmail[]> => {
   try {
-    // Simplify the query to avoid complex type inference issues
+    // Use a simpler query approach without complex joins to avoid type issues
     const { data, error } = await supabase
       .from('datasets')
       .select('*, users:user_id(email)')
