@@ -62,7 +62,7 @@ const UploadForm = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     setIsUploading(true);
     
     try {
-      // Send to Supabase with verification status set to "pending"
+      // Send to Supabase - removed verification status
       const result = await addDataset({
         title: data.title,
         description: data.description,
@@ -70,8 +70,7 @@ const UploadForm = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
         format: data.format,
         country: data.country,
         source: data.source,
-        verified: false,
-        verificationStatus: 'pending'
+        verified: false
       }, selectedFile || undefined);
       
       if (result) {
@@ -108,10 +107,10 @@ const UploadForm = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
               className="w-full"
               disabled={isUploading || !isLoggedIn}
             >
-              {isUploading ? 'Uploading...' : 'Submit for Verification'}
+              {isUploading ? 'Uploading...' : 'Submit Dataset'}
             </Button>
             <p className="text-sm text-center mt-2 text-muted-foreground">
-              Your dataset will be reviewed by our team before being published
+              Your dataset will be published to the African Data Commons
             </p>
           </div>
         </form>

@@ -18,9 +18,6 @@ export interface AIAnalysis {
   }>;
 }
 
-// Dataset verification status type
-export type VerificationStatus = 'pending' | 'approved' | 'rejected';
-
 // Dataset base interface
 export interface Dataset {
   id: string;
@@ -45,9 +42,6 @@ export interface Dataset {
     type: string;
   }>;
   verified?: boolean;
-  verificationStatus?: VerificationStatus;
-  verificationNotes?: string;
-  verifiedAt?: string | null;
   created_at?: string | null;
   updated_at?: string | null;
   user_id?: string | null;
@@ -63,37 +57,7 @@ export interface DatasetFilters {
   verified?: boolean;
 }
 
-// Dataset with user email - completely standalone interface
-// to avoid TypeScript circular reference issues
-export interface DatasetWithEmail {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  format: string;
-  country: string;
-  date: string;
-  downloads: number;
-  featured?: boolean;
-  file?: string | null;
-  verificationStatus?: VerificationStatus;
-  verified?: boolean;
-  verificationNotes?: string;
-  verifiedAt?: string | null;
-  created_at?: string | null;
-  updated_at?: string | null;
-  user_id?: string | null;
+// Dataset with user email - simplified version
+export interface DatasetWithEmail extends Dataset {
   email: string | null;
-  license?: string | null;
-  fileSize?: string | null;
-  dataPoints?: number | string | null;
-  timespan?: string | null;
-  source?: string | null;
-  tags?: string[];
-  dataFields?: Array<{
-    name: string;
-    description: string;
-    type: string;
-  }>;
-  aiAnalysis?: AIAnalysis;
 }

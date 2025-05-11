@@ -50,10 +50,6 @@ const MobileNav: React.FC<MobileNavProps> = ({ user, isAdmin, signOut, getInitia
             <Link to="/upload" className="px-2 py-2 text-md rounded-md transition hover:bg-primary/5">
               Upload Dataset
             </Link>
-            {isAdmin && <Link to="/admin/verification" className="px-2 py-2 text-md rounded-md transition hover:bg-primary/5 flex items-center">
-                <span>Verify Datasets</span>
-                <Badge variant="secondary" className="ml-2 text-xs">Admin</Badge>
-              </Link>}
           </nav>
           
           <div className="mt-auto pb-8 pt-4">

@@ -6,8 +6,6 @@ export * from './datasetAnalyticsService';
 export * from './datasetAdminService'; 
 export * from './datasetUploadService';
 export * from './datasetDownloadService';
-export * from './datasetVerificationService';
-export * from './entityService';
 export { 
   hasUserRole, 
   assignUserRole, 

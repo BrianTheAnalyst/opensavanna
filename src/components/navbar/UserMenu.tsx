@@ -54,14 +54,6 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, isAdmin, signOut, getInitial 
             Upload Dataset
           </DropdownMenuItem>
         </Link>
-        {isAdmin && <>
-            <DropdownMenuSeparator />
-            <Link to="/admin/verification">
-              <DropdownMenuItem>
-                Dataset Verification
-              </DropdownMenuItem>
-            </Link>
-          </>}
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={signOut}>
           <LogOut className="mr-2 h-4 w-4" aria-hidden="true" />
