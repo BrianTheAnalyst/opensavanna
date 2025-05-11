@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { DatasetWithEmail, VerificationStatus } from '@/types/dataset';
 import { transformDatasetResponse } from '@/utils/datasetVerificationUtils';
@@ -7,20 +6,10 @@ import { toast } from 'sonner';
 // Fetch datasets based on verification status
 export const fetchDatasetsByVerificationStatus = async (status: VerificationStatus): Promise<DatasetWithEmail[]> => {
   try {
-    // Define type for the RPC parameters to ensure TypeScript compatibility
-    type GetDatasetsByStatusParams = {
-      status_param: string;
-    };
-    
-    // Use the rpc method without explicit type parameters, let TS infer them
+    // Simplify the query to avoid complex type inference issues
     const { data, error } = await supabase
       .from('datasets')
-      .select(`
-        id, title, description, category, format, country,
-        date, downloads, featured, file, verificationStatus, verifiedAt,
-        created_at, updated_at, user_id,
-        users:user_id (email)
-      `)
+      .select('*, users:user_id(email)')
       .eq('verificationStatus', status);
     
     if (error) {
