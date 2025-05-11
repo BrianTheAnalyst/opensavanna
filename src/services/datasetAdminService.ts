@@ -2,6 +2,7 @@
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Dataset } from "@/types/dataset";
+import { isUserAdmin as checkUserAdmin } from "./userRoleService";
 
 // Get all datasets for admin
 export const getAdminDatasets = async (): Promise<Dataset[]> => {
@@ -25,35 +26,8 @@ export const getAdminDatasets = async (): Promise<Dataset[]> => {
   }
 };
 
-// Check if user has admin role
-export const isUserAdmin = async (): Promise<boolean> => {
-  const { data: { session } } = await supabase.auth.getSession();
-  
-  if (!session) {
-    return false;
-  }
-  
-  try {
-    // This is a placeholder implementation - in a real app, you would check
-    // against a roles table or use a Supabase Function to verify admin status
-    const { data, error } = await supabase
-      .from('user_roles')
-      .select('*')
-      .eq('user_id', session.user.id)
-      .eq('role', 'admin')
-      .single();
-    
-    if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned"
-      console.error('Error checking admin status:', error);
-      return false;
-    }
-    
-    return !!data;
-  } catch (error) {
-    console.error('Error checking admin status:', error);
-    return false;
-  }
-};
+// Check if user has admin role (re-export from userRoleService)
+export const isUserAdmin = checkUserAdmin;
 
 // Update a dataset as admin
 export const updateDataset = async (id: string, updates: Partial<Dataset>): Promise<Dataset | null> => {
