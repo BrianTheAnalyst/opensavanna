@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 // Fetch datasets based on verification status
 export const fetchDatasetsByVerificationStatus = async (status: VerificationStatus): Promise<DatasetWithEmail[]> => {
   try {
+    // Use a more direct approach without complex typing
     const { data, error } = await supabase
       .from('datasets')
       .select('*, users(email)')
@@ -17,9 +18,8 @@ export const fetchDatasetsByVerificationStatus = async (status: VerificationStat
       throw error;
     }
     
-    // Transform the data safely without complex type inference
-    const safeData = Array.isArray(data) ? data : [];
-    return transformDatasetResponse(safeData);
+    // Handle data safely - ensure it's always an array before transformation
+    return transformDatasetResponse(data || []);
   } catch (error) {
     console.error('Failed to fetch datasets:', error);
     toast.error('Failed to load datasets');
@@ -35,15 +35,13 @@ export const updateDatasetVerificationStatus = async (
   const ids = Array.isArray(datasetIds) ? datasetIds : [datasetIds];
   
   try {
-    // Using a type assertion to bypass the schema checking
-    // This is safe because we know these fields exist in the database
+    // Use a simple update object with type assertion
     const { error } = await supabase
       .from('datasets')
-      .update({
-        // These fields exist in the database but might be missing in the TypeScript definitions
+      .update({ 
         verificationStatus: status,
         verifiedAt: new Date().toISOString()
-      } as any) // Using type assertion to bypass TypeScript limitation
+      } as Record<string, any>) // Use a simple Record type to bypass TypeScript checking
       .in('id', ids);
     
     if (error) {
