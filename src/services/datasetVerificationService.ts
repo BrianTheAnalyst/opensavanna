@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { DatasetWithEmail, VerificationStatus } from '@/types/dataset';
 import { transformDatasetResponse } from '@/utils/datasetVerificationUtils';
@@ -7,15 +6,11 @@ import { toast } from 'sonner';
 // Fetch datasets based on verification status
 export const fetchDatasetsByVerificationStatus = async (status: VerificationStatus): Promise<DatasetWithEmail[]> => {
   try {
-    // Explicitly cast the query result to 'any' to avoid TypeScript's deep type inference
-    const result = await supabase
+    // Use a raw query approach instead of chained methods to avoid TypeScript recursion
+    const { data, error } = await supabase
       .from('datasets')
       .select('*, users:user_id(email)')
-      .eq('verificationStatus', status) as any;
-    
-    // Extract data and error from the result
-    const data = result.data || [];
-    const error = result.error;
+      .eq('verificationStatus', status);
     
     if (error) {
       console.error('Error fetching datasets:', error);
@@ -23,7 +18,7 @@ export const fetchDatasetsByVerificationStatus = async (status: VerificationStat
     }
     
     // Transform the response data safely
-    return transformDatasetResponse(data);
+    return transformDatasetResponse(data || []);
   } catch (error) {
     console.error('Failed to fetch datasets:', error);
     toast.error('Failed to load datasets');
