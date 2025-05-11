@@ -24,7 +24,7 @@ export const transformDatasetResponse = (data: any[]): DatasetWithEmail[] => {
       }
     }
     
-    // Create a properly typed dataset with email
+    // Create a properly typed dataset object directly without relying on TypeScript inference
     const dataset: DatasetWithEmail = {
       id: item.id || '',
       title: item.title || '',
@@ -34,25 +34,24 @@ export const transformDatasetResponse = (data: any[]): DatasetWithEmail[] => {
       country: item.country || '',
       date: item.date || '',
       email,
-      aiAnalysis: parsedAiAnalysis,
-      // Ensure required properties have default values if they're missing
-      verificationStatus: item.verificationStatus || 'pending',
       downloads: typeof item.downloads === 'number' ? item.downloads : 0,
+      verificationStatus: item.verificationStatus || 'pending',
       verified: item.verified ?? false,
       verificationNotes: item.verificationNotes || '',
       verifiedAt: item.verifiedAt || null,
       created_at: item.created_at || null,
       updated_at: item.updated_at || null,
       user_id: item.user_id || null,
-      // Spread remaining properties, but we've explicitly defined the critical ones
       file: item.file || null,
       fileSize: item.fileSize || null,
       license: item.license || null,
       dataPoints: item.dataPoints || null,
       timespan: item.timespan || null,
       source: item.source || null,
-      tags: item.tags || [],
-      dataFields: item.dataFields || [],
+      tags: Array.isArray(item.tags) ? item.tags : [],
+      dataFields: Array.isArray(item.dataFields) ? item.dataFields : [],
+      // Only add aiAnalysis if it was successfully parsed
+      ...(parsedAiAnalysis ? { aiAnalysis: parsedAiAnalysis } : {})
     };
     
     return dataset;

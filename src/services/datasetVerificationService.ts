@@ -7,18 +7,16 @@ import { toast } from 'sonner';
 // Fetch datasets based on verification status
 export const fetchDatasetsByVerificationStatus = async (status: VerificationStatus): Promise<DatasetWithEmail[]> => {
   try {
-    // Use a more direct approach without complex typing
+    // Use raw query approach to avoid TypeScript deep typing issues
     const { data, error } = await supabase
-      .from('datasets')
-      .select('*, users(email)')
-      .eq('verificationStatus', status);
+      .rpc('get_datasets_by_status', { status_param: status });
     
     if (error) {
       console.error('Error fetching datasets:', error);
       throw error;
     }
     
-    // Handle data safely - ensure it's always an array before transformation
+    // Transform the response data safely
     return transformDatasetResponse(data || []);
   } catch (error) {
     console.error('Failed to fetch datasets:', error);
@@ -27,7 +25,7 @@ export const fetchDatasetsByVerificationStatus = async (status: VerificationStat
   }
 };
 
-// Update dataset verification status - single dataset
+// Update dataset verification status - single dataset or batch
 export const updateDatasetVerificationStatus = async (
   datasetIds: string | string[],
   status: 'approved' | 'rejected'
@@ -35,13 +33,16 @@ export const updateDatasetVerificationStatus = async (
   const ids = Array.isArray(datasetIds) ? datasetIds : [datasetIds];
   
   try {
-    // Use a simple update object with type assertion
+    // Explicitly define the update payload
+    const payload = { 
+      verificationStatus: status,
+      verifiedAt: new Date().toISOString()
+    };
+    
+    // Use explicit any typing to bypass TypeScript limitations
     const { error } = await supabase
       .from('datasets')
-      .update({ 
-        verificationStatus: status,
-        verifiedAt: new Date().toISOString()
-      } as Record<string, any>) // Use a simple Record type to bypass TypeScript checking
+      .update(payload as any)
       .in('id', ids);
     
     if (error) {
@@ -67,6 +68,7 @@ export const sendBatchNotifications = async (
   if (datasets.length === 0) return;
   
   try {
+    // Group datasets by email for batch notifications
     const emailGroups: Record<string, DatasetWithEmail[]> = {};
     
     datasets.forEach(dataset => {
@@ -78,6 +80,7 @@ export const sendBatchNotifications = async (
       }
     });
     
+    // Process each email group in parallel
     const promises = Object.entries(emailGroups).map(async ([email, userDatasets]) => {
       const titles = userDatasets.map(d => d.title).join(', ');
       
