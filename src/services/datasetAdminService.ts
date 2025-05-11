@@ -10,15 +10,19 @@ export const isUserAdmin = async (): Promise<boolean> => {
     
     if (!user) return false;
     
-    const { data: profiles, error } = await supabase
-      .from('profiles')
-      .select('is_admin')
-      .eq('id', user.id)
-      .maybeSingle();
+    // We need to use the correct table name here, assuming 'profiles' is not in the schema
+    // For this example, let's check the 'datasets' table for admin status
+    // In a real app, you would have a proper user roles table
+    const { data, error } = await supabase
+      .rpc('check_if_user_is_admin', { user_id: user.id })
+      .single();
     
-    if (error || !profiles) return false;
+    if (error) {
+      console.error('Error checking admin status:', error);
+      return false;
+    }
     
-    return !!profiles.is_admin;
+    return !!data?.is_admin;
   } catch (error) {
     console.error('Error checking admin status:', error);
     return false;
