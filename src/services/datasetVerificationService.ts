@@ -4,6 +4,12 @@ import { DatasetWithEmail, VerificationStatus } from '@/types/dataset';
 import { transformDatasetResponse } from '@/utils/datasetVerificationUtils';
 import { toast } from 'sonner';
 
+// Define simple types for dataset updates to avoid excessive type instantiation
+interface DatasetVerificationUpdate {
+  verificationStatus: VerificationStatus;
+  verifiedAt: string;
+}
+
 // Fetch datasets based on verification status
 export const fetchDatasetsByVerificationStatus = async (status: VerificationStatus): Promise<DatasetWithEmail[]> => {
   try {
@@ -17,7 +23,8 @@ export const fetchDatasetsByVerificationStatus = async (status: VerificationStat
       throw error;
     }
     
-    // Use a more explicit type assertion to avoid excessive type instantiation
+    // Use a more explicit type assertion with a simple Record type
+    // This avoids TypeScript having to deeply analyze the Supabase types
     return transformDatasetResponse(data as Record<string, any>[]);
   } catch (error) {
     console.error('Failed to fetch datasets:', error);
@@ -34,14 +41,15 @@ export const updateDatasetVerificationStatus = async (
   const ids = Array.isArray(datasetIds) ? datasetIds : [datasetIds];
   
   try {
+    // Create a simple update object with explicit typing
+    const updateData: DatasetVerificationUpdate = {
+      verificationStatus: status,
+      verifiedAt: new Date().toISOString()
+    };
+
     const { error } = await supabase
       .from('datasets')
-      .update({
-        // Use a type assertion here since verificationStatus exists in our actual table
-        // even though it might not be in the type definition
-        verificationStatus: status,
-        verifiedAt: new Date().toISOString(),
-      } as any)
+      .update(updateData)
       .in('id', ids);
     
     if (error) {
