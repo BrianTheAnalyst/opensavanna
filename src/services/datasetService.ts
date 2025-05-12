@@ -1,3 +1,4 @@
+
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Dataset, DatasetFilters } from "@/types/dataset";
@@ -24,35 +25,6 @@ interface RawDataset {
 // Get all datasets with optional filtering
 export const getDatasets = async (filters?: DatasetFilters): Promise<Dataset[]> => {
   try {
-    // Create base query - keep it simple to avoid type recursion
-    const baseQueryBuilder = supabase.from('datasets');
-    
-    // Create filters array to track our filter conditions
-    const filterConditions: any[] = [];
-    
-    // Apply filters if provided
-    if (filters) {
-      if (filters.search) {
-        filterConditions.push(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
-      }
-      
-      if (filters.category) {
-        // We'll apply these filters directly later
-      }
-      
-      if (filters.format) {
-        // We'll apply these filters directly later
-      }
-      
-      if (filters.country) {
-        // We'll apply these filters directly later
-      }
-      
-      if (filters.verificationStatus) {
-        // We'll apply these filters directly later
-      }
-    }
-    
     // Check user role outside of the query chain to simplify types
     let isAdmin = false;
     try {
@@ -62,37 +34,78 @@ export const getDatasets = async (filters?: DatasetFilters): Promise<Dataset[]> 
       // Default to non-admin if there's an error
     }
     
-    // Construct the query in parts to avoid deep type instantiation
-    let query = baseQueryBuilder.select('*');
+    // Build the query parameters separately instead of chaining
+    const queryParams: any = {
+      select: '*',
+      order: [{ column: 'created_at', ascending: false }],
+      filter: [],
+    };
     
-    // Apply OR filter if search is specified
+    // Add search filter if specified
     if (filters?.search) {
-      query = query.or(filterConditions[0]);
+      queryParams.filter.push({
+        operator: 'or',
+        conditions: [
+          { column: 'title', operator: 'ilike', value: `%${filters.search}%` },
+          { column: 'description', operator: 'ilike', value: `%${filters.search}%` }
+        ]
+      });
     }
     
-    // Apply the direct filters
+    // Add category filter if specified
     if (filters?.category) {
-      query = query.eq('category', filters.category);
+      queryParams.filter.push({
+        column: 'category',
+        operator: 'eq',
+        value: filters.category
+      });
     }
     
+    // Add format filter if specified
     if (filters?.format) {
-      query = query.eq('format', filters.format);
+      queryParams.filter.push({
+        column: 'format',
+        operator: 'eq',
+        value: filters.format
+      });
     }
     
+    // Add country filter if specified
     if (filters?.country) {
-      query = query.eq('country', filters.country);
+      queryParams.filter.push({
+        column: 'country',
+        operator: 'eq',
+        value: filters.country
+      });
     }
     
+    // Add verification status filter or default to approved for non-admins
     if (filters?.verificationStatus) {
-      query = query.eq('verification_status', filters.verificationStatus);
+      queryParams.filter.push({
+        column: 'verification_status',
+        operator: 'eq',
+        value: filters.verificationStatus
+      });
     } else if (!isAdmin) {
-      // If not admin and no verification status specified, only show approved
-      query = query.eq('verification_status', 'approved');
+      queryParams.filter.push({
+        column: 'verification_status',
+        operator: 'eq',
+        value: 'approved'
+      });
     }
     
-    // Execute the final query
-    const response = await query.order('created_at', { ascending: false });
-    const { data, error } = response;
+    // Execute query using rpc to avoid deep type recursion
+    // This is a workaround to avoid the TypeScript error
+    let { data, error } = await supabase.rpc('get_filtered_datasets', { 
+      params: JSON.stringify(queryParams) 
+    }).then(resp => {
+      // If RPC doesn't exist, fall back to manual query
+      if (resp.error && resp.error.message.includes('does not exist')) {
+        // Fallback implementation using direct querying
+        return executeFilteredQuery(queryParams);
+      }
+      return resp;
+    });
     
     if (error) {
       console.error('Error fetching datasets:', error);
@@ -105,7 +118,7 @@ export const getDatasets = async (filters?: DatasetFilters): Promise<Dataset[]> 
     }
     
     // Map database records to Dataset type with explicit mapping
-    return data.map((item: RawDataset) => {
+    return (data as RawDataset[]).map((item: RawDataset) => {
       // Create a dataset with known fields
       const dataset: Dataset = {
         id: item.id,
@@ -137,6 +150,32 @@ export const getDatasets = async (filters?: DatasetFilters): Promise<Dataset[]> 
     return [];
   }
 };
+
+// Helper function to manually execute filtered query when RPC is not available
+async function executeFilteredQuery(queryParams: any) {
+  // Start with basic query
+  let query = supabase.from('datasets').select('*');
+  
+  // Apply filters manually
+  for (const filter of queryParams.filter) {
+    if (filter.operator === 'or') {
+      const orConditions = filter.conditions.map((c: any) => 
+        `${c.column}.${c.operator}.${c.value}`
+      ).join(',');
+      query = query.or(orConditions);
+    } else {
+      query = query.filter(filter.column, filter.operator, filter.value);
+    }
+  }
+  
+  // Apply ordering
+  if (queryParams.order && queryParams.order.length > 0) {
+    const order = queryParams.order[0];
+    query = query.order(order.column, { ascending: order.ascending });
+  }
+  
+  return await query;
+}
 
 // Get a single dataset by ID
 export const getDatasetById = async (id: string): Promise<Dataset | null> => {
