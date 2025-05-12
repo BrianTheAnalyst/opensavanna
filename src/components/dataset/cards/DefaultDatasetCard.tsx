@@ -1,15 +1,13 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, DownloadCloud, MapPin, Trash2 } from 'lucide-react';
-import { Button } from "@/components/ui/button";
+import { ArrowUpRight, DownloadCloud, MapPin } from 'lucide-react';
 import { BaseDatasetCardProps, FormatIconsType } from './DatasetCardTypes';
+import DatasetDeleteButton from '../DatasetDeleteButton';
 
 interface DefaultDatasetCardProps extends BaseDatasetCardProps {
   formatIcons: FormatIconsType;
   isAdmin: boolean;
-  isDeleting: boolean;
-  handleDelete: (e: React.MouseEvent<HTMLButtonElement>) => void;
   isHovered: boolean;
 }
 
@@ -24,9 +22,8 @@ const DefaultDatasetCard: React.FC<DefaultDatasetCardProps> = ({
   downloads,
   formatIcons,
   isAdmin,
-  isDeleting,
-  handleDelete,
   isHovered,
+  onDelete,
 }) => {
   return (
     <div className="relative">
@@ -75,16 +72,12 @@ const DefaultDatasetCard: React.FC<DefaultDatasetCardProps> = ({
       
       {isAdmin && (
         <div className="mt-2 flex justify-end">
-          <Button
-            variant="destructive"
-            size="sm"
-            className="h-7 px-2 text-xs"
-            onClick={handleDelete}
-            disabled={isDeleting}
-          >
-            <Trash2 className="h-3 w-3 mr-1" />
-            {isDeleting ? 'Deleting...' : 'Delete'}
-          </Button>
+          <DatasetDeleteButton
+            id={id}
+            title={title}
+            onDelete={onDelete}
+            variant="compact"
+          />
         </div>
       )}
     </div>

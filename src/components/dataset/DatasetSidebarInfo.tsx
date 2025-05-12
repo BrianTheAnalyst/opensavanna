@@ -1,35 +1,21 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Dataset } from '@/types/dataset';
 import { Download, Info, Calendar, FileText, Globe } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { downloadDataset } from '@/services/datasetDownloadService';
 import AdminDatasetControls from '@/components/admin/AdminDatasetControls';
-import { isUserAdmin } from '@/services/userRoleService';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
 
 interface DatasetSidebarInfoProps {
   dataset: Dataset;
-  onDataChange?: () => void; // Add onDataChange prop
+  onDataChange?: () => void;
 }
 
 const DatasetSidebarInfo = ({ dataset, onDataChange }: DatasetSidebarInfoProps) => {
   const [isDownloading, setIsDownloading] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const checkAdminStatus = async () => {
-      try {
-        const adminStatus = await isUserAdmin();
-        setIsAdmin(adminStatus);
-      } catch (err) {
-        console.error("Failed to check admin status:", err);
-        // Don't show error to user - just silently fail for admin features
-      }
-    };
-
-    checkAdminStatus();
-  }, []);
+  const { isAdmin } = useIsAdmin();
 
   const handleDownload = async () => {
     setIsDownloading(true);

@@ -1,15 +1,13 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { FileText, Trash2 } from 'lucide-react';
-import { Button } from "@/components/ui/button";
+import { FileText } from 'lucide-react';
 import { BaseDatasetCardProps, FormatIconsType } from './DatasetCardTypes';
+import DatasetDeleteButton from '../DatasetDeleteButton';
 
 interface CompactDatasetCardProps extends BaseDatasetCardProps {
   formatIcons: FormatIconsType;
   isAdmin: boolean;
-  isDeleting: boolean;
-  handleDelete: (e: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
 const CompactDatasetCard: React.FC<CompactDatasetCardProps> = ({
@@ -18,9 +16,8 @@ const CompactDatasetCard: React.FC<CompactDatasetCardProps> = ({
   country,
   format,
   isAdmin,
-  isDeleting,
-  handleDelete,
   formatIcons,
+  onDelete,
 }) => {
   return (
     <Link 
@@ -36,18 +33,15 @@ const CompactDatasetCard: React.FC<CompactDatasetCardProps> = ({
           {formatIcons[format] || formatIcons['CSV']}
         </span>
       </div>
+      
       {isAdmin && (
         <div className="mt-2 flex justify-end">
-          <Button
-            variant="destructive"
-            size="sm"
-            className="h-7 px-2 text-xs"
-            onClick={handleDelete}
-            disabled={isDeleting}
-          >
-            <Trash2 className="h-3 w-3 mr-1" />
-            {isDeleting ? 'Deleting...' : 'Delete'}
-          </Button>
+          <DatasetDeleteButton
+            id={id}
+            title={title}
+            onDelete={onDelete}
+            variant="compact"
+          />
         </div>
       )}
     </Link>

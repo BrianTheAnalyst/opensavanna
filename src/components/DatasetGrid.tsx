@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import DatasetCard from './DatasetCard';
 
@@ -30,21 +29,23 @@ const DatasetGrid = ({
   onDataChange
 }: DatasetGridProps) => {
   const [isLoaded, setIsLoaded] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0); // Add a key to force re-render
+  const [refreshKey, setRefreshKey] = useState(0);
   
   useEffect(() => {
     setIsLoaded(true);
   }, []);
 
-  // Handle dataset deletion and refresh
+  // Enhanced dataset deletion handler with proper refresh logic
   const handleDeleteDataset = () => {
     console.log("Dataset deleted, refreshing grid");
-    // Trigger refresh in two ways:
+    
+    // Use both refresh mechanisms for maximum compatibility
     // 1. Call the parent's onDataChange if provided
     if (onDataChange) {
       onDataChange();
     }
-    // 2. Update local refresh key to force re-render
+    
+    // 2. Force a local refresh of the grid component
     setRefreshKey(prevKey => prevKey + 1);
   };
   
@@ -101,7 +102,7 @@ const DatasetGrid = ({
           )}
         </div>
         <div className="space-y-6">
-          {otherDatasets.map((dataset, index) => (
+          {otherDatasets.map((dataset) => (
             <DatasetCard
               key={dataset.id}
               id={dataset.id}
