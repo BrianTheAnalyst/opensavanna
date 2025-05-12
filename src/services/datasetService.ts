@@ -25,44 +25,51 @@ interface RawDataset {
 // Get all datasets with optional filtering
 export const getDatasets = async (filters?: DatasetFilters): Promise<Dataset[]> => {
   try {
-    // Create a query builder directly without type interference
-    let query = supabase.from('datasets');
+    // Start with a simple query to avoid excessive type inference
+    const query = supabase.from('datasets');
     
-    // Use select without type casting to avoid deep type instantiation
-    let selectQuery = query.select('*');
+    // Build our query conditions
+    let conditions = query.select('*');
     
     // Apply filters if provided
     if (filters) {
       if (filters.search) {
-        selectQuery = selectQuery.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
+        conditions = conditions.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
       }
       
       if (filters.category) {
-        selectQuery = selectQuery.eq('category', filters.category);
+        conditions = conditions.eq('category', filters.category);
       }
       
       if (filters.format) {
-        selectQuery = selectQuery.eq('format', filters.format);
+        conditions = conditions.eq('format', filters.format);
       }
       
       if (filters.country) {
-        selectQuery = selectQuery.eq('country', filters.country);
+        conditions = conditions.eq('country', filters.country);
       }
       
       if (filters.verificationStatus) {
-        selectQuery = selectQuery.eq('verification_status', filters.verificationStatus);
+        conditions = conditions.eq('verification_status', filters.verificationStatus);
       }
     }
     
-    // Check if user is admin
-    const isAdmin = await isUserAdmin();
+    // Check user role outside of the query chain to simplify types
+    let isAdmin = false;
+    try {
+      isAdmin = await isUserAdmin();
+    } catch (err) {
+      console.error('Error checking admin status:', err);
+      // Default to non-admin if there's an error
+    }
     
     // If not admin, only show approved datasets
     if (!isAdmin && !filters?.verificationStatus) {
-      selectQuery = selectQuery.eq('verification_status', 'approved');
+      conditions = conditions.eq('verification_status', 'approved');
     }
     
-    const { data, error } = await selectQuery.order('created_at', { ascending: false });
+    // Execute the query without chaining more operations
+    const { data, error } = await conditions.order('created_at', { ascending: false });
     
     if (error) {
       console.error('Error fetching datasets:', error);
@@ -129,7 +136,13 @@ export const getDatasetById = async (id: string): Promise<Dataset | null> => {
     }
     
     // Check if dataset is approved or user is admin
-    const isAdmin = await isUserAdmin();
+    let isAdmin = false;
+    try {
+      isAdmin = await isUserAdmin();
+    } catch (err) {
+      console.error('Error checking admin status:', err);
+      // Default to non-admin if there's an error
+    }
     
     // Cast to our RawDataset interface
     const rawDataset = data as RawDataset;
