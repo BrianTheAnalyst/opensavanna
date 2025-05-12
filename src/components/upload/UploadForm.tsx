@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { addDataset } from '@/services/api';
+import { addDataset } from '@/services/datasetUploadService';
 import { formSchema, FormValues } from './uploadFormSchema';
 
 // Import our new components
@@ -22,6 +22,7 @@ const UploadForm: React.FC<UploadFormProps> = ({ isLoggedIn }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStep, setUploadStep] = useState(1);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   
   // Initialize form
   const form = useForm<FormValues>({
@@ -38,6 +39,7 @@ const UploadForm: React.FC<UploadFormProps> = ({ isLoggedIn }) => {
   // Handle file selection
   const handleFileChange = (file: File | null) => {
     setSelectedFile(file);
+    setUploadError(null); // Clear any previous errors when file changes
   };
   
   // Form submission handler
@@ -48,8 +50,26 @@ const UploadForm: React.FC<UploadFormProps> = ({ isLoggedIn }) => {
     }
     
     setIsUploading(true);
+    setUploadError(null);
     
     try {
+      console.log('Starting dataset upload', data);
+      
+      // Update format field based on selected file if available
+      if (selectedFile) {
+        const fileExt = selectedFile.name.split('.').pop()?.toLowerCase();
+        if (fileExt) {
+          if (fileExt === 'csv' && (!data.format || data.format !== 'CSV')) {
+            data.format = 'CSV';
+            console.log('Format automatically set to CSV based on file extension');
+          } else if ((fileExt === 'json' || fileExt === 'geojson') && 
+                    (!data.format || (data.format !== 'JSON' && data.format !== 'GeoJSON'))) {
+            data.format = fileExt === 'geojson' ? 'GeoJSON' : 'JSON';
+            console.log(`Format automatically set to ${data.format} based on file extension`);
+          }
+        }
+      }
+      
       // Send to Supabase
       const result = await addDataset({
         title: data.title,
@@ -62,10 +82,14 @@ const UploadForm: React.FC<UploadFormProps> = ({ isLoggedIn }) => {
       
       if (result) {
         setUploadStep(2);
+      } else {
+        setUploadError("Failed to upload dataset. Please check the console for more details.");
       }
     } catch (error) {
+      console.error('Upload form error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      setUploadError(`Failed to upload dataset: ${errorMessage}`);
       toast.error("Failed to upload dataset. Please try again.");
-      console.error(error);
     } finally {
       setIsUploading(false);
     }
@@ -78,6 +102,13 @@ const UploadForm: React.FC<UploadFormProps> = ({ isLoggedIn }) => {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {/* Show error message if upload failed */}
+        {uploadError && (
+          <div className="p-3 bg-destructive/10 border border-destructive text-destructive rounded-md">
+            <p className="text-sm">{uploadError}</p>
+          </div>
+        )}
+        
         {/* Form fields component */}
         <FormFields form={form} />
         
