@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Dataset, DatasetFilters } from "@/types/dataset";
 import { isUserAdmin } from "@/services/userRoleService";
-import { getDatasetById as fetchDatasetById } from "./dataset/datasetFetchService";
+import { fetchDatasets } from "./dataset/datasetFetchService";
 
 // Interface for raw dataset records from database
 export interface RawDataset {
@@ -26,8 +26,7 @@ export interface RawDataset {
 // Get all datasets with optional filtering - delegating to specialized service
 export const getDatasets = async (filters?: DatasetFilters): Promise<Dataset[]> => {
   try {
-    // Import here to avoid circular dependencies
-    const { fetchDatasets } = await import('./dataset/datasetFetchService');
+    // Use the imported fetchDatasets function
     return await fetchDatasets(filters);
   } catch (error) {
     console.error('Error fetching datasets:', error);
@@ -36,10 +35,8 @@ export const getDatasets = async (filters?: DatasetFilters): Promise<Dataset[]> 
   }
 };
 
-// Get a single dataset by ID - delegating to specialized service
-export const getDatasetById = async (id: string): Promise<Dataset | null> => {
-  return fetchDatasetById(id);
-};
+// Export getDatasetById directly from the specialized service
+export { getDatasetById } from './dataset/datasetFetchService';
 
 // Re-export functions from other service modules for backward compatibility
 export { 
