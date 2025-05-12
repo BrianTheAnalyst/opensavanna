@@ -34,78 +34,42 @@ export const getDatasets = async (filters?: DatasetFilters): Promise<Dataset[]> 
       // Default to non-admin if there's an error
     }
     
-    // Build the query parameters separately instead of chaining
-    const queryParams: any = {
-      select: '*',
-      order: [{ column: 'created_at', ascending: false }],
-      filter: [],
-    };
+    // Start with basic query
+    let query = supabase.from('datasets').select('*');
     
-    // Add search filter if specified
+    // Apply search filter if specified
     if (filters?.search) {
-      queryParams.filter.push({
-        operator: 'or',
-        conditions: [
-          { column: 'title', operator: 'ilike', value: `%${filters.search}%` },
-          { column: 'description', operator: 'ilike', value: `%${filters.search}%` }
-        ]
-      });
+      const searchTerm = `%${filters.search}%`;
+      query = query.or(`title.ilike.${searchTerm},description.ilike.${searchTerm}`);
     }
     
-    // Add category filter if specified
+    // Apply category filter if specified
     if (filters?.category) {
-      queryParams.filter.push({
-        column: 'category',
-        operator: 'eq',
-        value: filters.category
-      });
+      query = query.eq('category', filters.category);
     }
     
-    // Add format filter if specified
+    // Apply format filter if specified
     if (filters?.format) {
-      queryParams.filter.push({
-        column: 'format',
-        operator: 'eq',
-        value: filters.format
-      });
+      query = query.eq('format', filters.format);
     }
     
-    // Add country filter if specified
+    // Apply country filter if specified
     if (filters?.country) {
-      queryParams.filter.push({
-        column: 'country',
-        operator: 'eq',
-        value: filters.country
-      });
+      query = query.eq('country', filters.country);
     }
     
-    // Add verification status filter or default to approved for non-admins
+    // Apply verification status filter or default to approved for non-admins
     if (filters?.verificationStatus) {
-      queryParams.filter.push({
-        column: 'verification_status',
-        operator: 'eq',
-        value: filters.verificationStatus
-      });
+      query = query.eq('verification_status', filters.verificationStatus);
     } else if (!isAdmin) {
-      queryParams.filter.push({
-        column: 'verification_status',
-        operator: 'eq',
-        value: 'approved'
-      });
+      query = query.eq('verification_status', 'approved');
     }
     
-    // Execute query using rpc to avoid deep type recursion
-    // This is a workaround to avoid the TypeScript error
-    let { data, error } = await supabase.rpc('get_filtered_datasets', { 
-      params: JSON.stringify(queryParams) 
-    }).then(resp => {
-      // If RPC doesn't exist, fall back to manual query
-      if (resp.error && resp.error.message.includes('does not exist')) {
-        // Fallback implementation using direct querying
-        return executeFilteredQuery(queryParams);
-      }
-      return resp;
-    });
+    // Apply ordering
+    query = query.order('created_at', { ascending: false });
+    
+    // Execute query
+    const { data, error } = await query;
     
     if (error) {
       console.error('Error fetching datasets:', error);
@@ -150,32 +114,6 @@ export const getDatasets = async (filters?: DatasetFilters): Promise<Dataset[]> 
     return [];
   }
 };
-
-// Helper function to manually execute filtered query when RPC is not available
-async function executeFilteredQuery(queryParams: any) {
-  // Start with basic query
-  let query = supabase.from('datasets').select('*');
-  
-  // Apply filters manually
-  for (const filter of queryParams.filter) {
-    if (filter.operator === 'or') {
-      const orConditions = filter.conditions.map((c: any) => 
-        `${c.column}.${c.operator}.${c.value}`
-      ).join(',');
-      query = query.or(orConditions);
-    } else {
-      query = query.filter(filter.column, filter.operator, filter.value);
-    }
-  }
-  
-  // Apply ordering
-  if (queryParams.order && queryParams.order.length > 0) {
-    const order = queryParams.order[0];
-    query = query.order(order.column, { ascending: order.ascending });
-  }
-  
-  return await query;
-}
 
 // Get a single dataset by ID
 export const getDatasetById = async (id: string): Promise<Dataset | null> => {
