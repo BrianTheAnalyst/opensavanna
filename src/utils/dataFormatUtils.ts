@@ -1,6 +1,26 @@
 
 // Helper functions for parsing and formatting data for visualization
 
+// Format data points in a human-readable way
+export const formatDataPoints = (dataPoints: number | string): string => {
+  // Convert to number if it's a string
+  const count = typeof dataPoints === 'string' ? parseInt(dataPoints, 10) : dataPoints;
+  
+  // If conversion failed or not a number, return the original
+  if (isNaN(count)) return `${dataPoints}`;
+  
+  // Format large numbers with commas or abbreviate with K/M/B
+  if (count >= 1000000000) {
+    return `${(count / 1000000000).toFixed(1)}B`;
+  } else if (count >= 1000000) {
+    return `${(count / 1000000).toFixed(1)}M`;
+  } else if (count >= 1000) {
+    return `${(count / 1000).toFixed(1)}K`;
+  } else {
+    return count.toLocaleString();
+  }
+};
+
 // Helper function to parse CSV data
 export const parseCSVData = (csvText: string, category: string): any[] => {
   // Basic CSV parsing - for production use a robust CSV parser library
