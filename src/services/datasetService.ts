@@ -52,7 +52,7 @@ export const getDatasets = async (filters?: DatasetFilters): Promise<Dataset[]> 
       return [];
     }
     
-    // Simplified mapping approach that avoids deep type instantiation
+    // Map database records to Dataset objects using type assertions to handle schema differences
     return data.map(record => {
       const dataset: Dataset = {
         id: record.id,
@@ -67,12 +67,15 @@ export const getDatasets = async (filters?: DatasetFilters): Promise<Dataset[]> 
         file: record.file || undefined
       };
       
-      if (record.verification_status) {
-        dataset.verificationStatus = record.verification_status as 'pending' | 'approved' | 'rejected';
+      // Use type assertion to safely access properties that might not be in the TypeScript type
+      const dbRecord = record as any;
+      
+      if (dbRecord.verification_status) {
+        dataset.verificationStatus = dbRecord.verification_status as 'pending' | 'approved' | 'rejected';
       }
       
-      if (record.verification_notes) {
-        dataset.verificationNotes = record.verification_notes;
+      if (dbRecord.verification_notes) {
+        dataset.verificationNotes = dbRecord.verification_notes;
       }
       
       return dataset;
@@ -107,7 +110,7 @@ export const getDatasetById = async (id: string): Promise<Dataset | null> => {
     // Check if dataset is approved or user is admin
     const isAdmin = await isUserAdmin();
     
-    // Simplified dataset object creation
+    // Create dataset object with known fields
     const dataset: Dataset = {
       id: data.id,
       title: data.title,
@@ -121,13 +124,15 @@ export const getDatasetById = async (id: string): Promise<Dataset | null> => {
       file: data.file || undefined
     };
     
-    // Explicitly handle verification fields
-    if (data.verification_status) {
-      dataset.verificationStatus = data.verification_status as 'pending' | 'approved' | 'rejected';
+    // Use type assertion to safely access properties that might not be in the TypeScript type
+    const dbRecord = data as any;
+    
+    if (dbRecord.verification_status) {
+      dataset.verificationStatus = dbRecord.verification_status as 'pending' | 'approved' | 'rejected';
     }
     
-    if (data.verification_notes) {
-      dataset.verificationNotes = data.verification_notes;
+    if (dbRecord.verification_notes) {
+      dataset.verificationNotes = dbRecord.verification_notes;
     }
     
     // Check permissions
