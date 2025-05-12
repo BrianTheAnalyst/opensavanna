@@ -10,9 +10,10 @@ export const hasUserRole = async (role: UserRole): Promise<boolean> => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return false;
     
-    // Temporary implementation until user_roles table is created
-    // Check if user email ends with @admin.com as a fallback
-    if (role === 'admin' && user.email?.endsWith('@admin.com')) {
+    // Include specific admin email alongside the domain check
+    if (role === 'admin' && 
+        (user.email?.endsWith('@admin.com') || 
+         user.email === 'briancheruiyot001@gmail.com')) {
       return true;
     }
     
