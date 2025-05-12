@@ -43,7 +43,8 @@ export const getColorScaleForCategory = (category?: string): string[] => {
   // Color scales optimized for different data types
   const scales: Record<string, string[]> = {
     energy: ['#f7fcb9', '#d9f0a3', '#addd8e', '#78c679', '#41ab5d', '#238443', '#005a32'],
-    electricity: ['#f7fcb9', '#d9f0a3', '#addd8e', '#78c679', '#41ab5d', '#238443', '#005a32'],
+    electricity: ['#feebe2', '#fbb4b9', '#f768a1', '#c51b8a', '#7a0177'], // Added specific scale for electricity
+    power: ['#feebe2', '#fbb4b9', '#f768a1', '#c51b8a', '#7a0177'], // Similar to electricity
     health: ['#f7fbff', '#deebf7', '#c6dbef', '#9ecae1', '#6baed6', '#4292c6', '#2171b5', '#084594'],
     economics: ['#fff7f3', '#fde0dd', '#fcc5c0', '#fa9fb5', '#f768a1', '#dd3497', '#ae017e', '#7a0177'],
     environment: ['#f7fcf5', '#e5f5e0', '#c7e9c0', '#a1d99b', '#74c476', '#41ab5d', '#238b45', '#006d2c', '#00441b'],
@@ -99,11 +100,12 @@ const getNormalizedValue = (value: number, feature: any, numColors: number): num
 export const findValueInProperties = (properties: any) => {
   if (!properties) return null;
   
-  // Look for common value fields
+  // Look for common value fields, prioritizing electricity-related fields
   const valueFields = [
-    'value', 'data', 'count', 'density', 'population', 
-    'consumption', 'usage', 'electricity', 'power',
-    'amount', 'total'
+    // Electricity specific fields prioritized first
+    'electricity', 'power', 'consumption', 'energy', 'usage', 'kwh', 'mwh', 'watts',
+    // Then more generic fields
+    'value', 'data', 'count', 'density', 'population', 'amount', 'total'
   ];
   
   for (const field of valueFields) {
@@ -165,7 +167,7 @@ const formatPropertiesForDisplay = (properties: Record<string, any>): string => 
   
   // Skip internal properties and prioritize important ones
   const skipProperties = ['id', 'gid', 'fid', 'objectid', 'shape_area', 'shape_length'];
-  const priorityProperties = ['name', 'country', 'region', 'state', 'value', 'consumption', 'electricity', 'power'];
+  const priorityProperties = ['name', 'country', 'region', 'state', 'electricity', 'power', 'consumption', 'energy', 'value'];
   
   let html = '<div class="map-popup">';
   
@@ -272,8 +274,8 @@ export const findGeoPoints = (data: any[]) => {
       const lng = parseFloat(item[lngField]);
       
       if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
-        const nameField = findFieldByName(item, ['name', 'title', 'label']);
-        const valueField = findFieldByName(item, ['value', 'data', 'count', 'consumption', 'electricity']);
+        const nameField = findFieldByName(item, ['name', 'title', 'label', 'country', 'region']);
+        const valueField = findFieldByName(item, ['value', 'data', 'count', 'consumption', 'electricity', 'power', 'energy']);
         
         validPoints.push({
           lat,

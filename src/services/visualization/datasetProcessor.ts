@@ -1,5 +1,12 @@
+
 import { Dataset } from '@/types/dataset';
 import { parseCSVData, formatJSONForVisualization, formatGeoJSONForVisualization } from '@/utils/dataFormatUtils';
+
+// Interface for geometry to provide better type safety
+interface GeometryWithType {
+  type: string;
+  coordinates?: any;
+}
 
 // Parse data from file URL
 export const parseDataFromFile = async (dataset: Dataset): Promise<any[]> => {
@@ -27,7 +34,7 @@ export const parseDataFromFile = async (dataset: Dataset): Promise<any[]> => {
         }
         
         // Process GeoJSON for advanced visualizations
-        enhanceGeoJSON(json);
+        enhanceGeoJSON(json, dataset.category);
         
         // Store in localStorage with compression techniques for larger files
         const jsonString = JSON.stringify(json);
@@ -56,17 +63,42 @@ export const parseDataFromFile = async (dataset: Dataset): Promise<any[]> => {
 };
 
 // Enhance GeoJSON with additional data and properties for visualization
-const enhanceGeoJSON = (geoJSON: any): void => {
+const enhanceGeoJSON = (geoJSON: any, category?: string): void => {
   if (!geoJSON || !geoJSON.features || !Array.isArray(geoJSON.features)) return;
   
   // Extract all numeric property fields that might be useful for choropleth maps
   const numericFields: {[key: string]: {min: number, max: number}} = {};
   
+  // Prioritize fields based on category
+  let priorityFields: string[] = ['value', 'data'];
+  
+  // For electricity/energy data, prioritize those specific fields
+  if (category?.toLowerCase().includes('electricity') || category?.toLowerCase().includes('energy') || 
+      category?.toLowerCase().includes('power')) {
+    priorityFields = ['electricity', 'consumption', 'power', 'energy', 'kwh', 'mwh', 'watts', ...priorityFields];
+  }
+  
   geoJSON.features.forEach((feature: any) => {
     if (!feature.properties) return;
     
+    // First check priority fields
+    for (const field of priorityFields) {
+      const value = feature.properties[field];
+      if (value !== undefined && (typeof value === 'number' || (typeof value === 'string' && !isNaN(+value)))) {
+        const numValue = typeof value === 'string' ? +value : value as number;
+        if (!numericFields[field]) {
+          numericFields[field] = { min: numValue, max: numValue };
+        } else {
+          numericFields[field].min = Math.min(numericFields[field].min, numValue);
+          numericFields[field].max = Math.max(numericFields[field].max, numValue);
+        }
+      }
+    }
+    
+    // Then check all other fields
     Object.entries(feature.properties).forEach(([key, value]) => {
-      if (typeof value === 'number' || (typeof value === 'string' && !isNaN(+value))) {
+      if (!priorityFields.includes(key) && 
+          (typeof value === 'number' || (typeof value === 'string' && !isNaN(+value)))) {
         const numValue = typeof value === 'string' ? +value : value as number;
         if (!numericFields[key]) {
           numericFields[key] = { min: numValue, max: numValue };
@@ -81,6 +113,11 @@ const enhanceGeoJSON = (geoJSON: any): void => {
   // Store metadata about numeric fields in the GeoJSON object
   if (!geoJSON.metadata) geoJSON.metadata = {};
   geoJSON.metadata.numericFields = numericFields;
+  
+  // Add category to metadata
+  if (category) {
+    geoJSON.metadata.category = category;
+  }
 };
 
 // Simplify GeoJSON to fit in localStorage
@@ -105,12 +142,6 @@ const simplifyGeoJSON = (geoJSON: any): any => {
   
   return simplified;
 };
-
-// Define geometry types for better type safety
-interface GeometryWithType {
-  type: string;
-  coordinates?: any;
-}
 
 // Simplify geometry by reducing points
 const simplifyGeometry = (geometry: GeometryWithType | null): GeometryWithType | null => {

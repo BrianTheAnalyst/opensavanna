@@ -1,8 +1,7 @@
 
 import React from 'react';
-import { Map, BarChart, Layers } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Map, PieChart, Map as MapIcon } from 'lucide-react'; // Using Map icon as fallback for Heat
 
 interface MapControlsProps {
   visualizationType: 'standard' | 'choropleth' | 'heatmap';
@@ -14,61 +13,32 @@ const MapControls: React.FC<MapControlsProps> = ({
   onVisualizationTypeChange 
 }) => {
   return (
-    <div className="flex justify-end mb-2">
-      <TooltipProvider>
-        <div className="flex items-center space-x-1 border border-border rounded-md p-1 bg-background">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                size="icon"
-                variant={visualizationType === 'standard' ? 'default' : 'ghost'}
-                className="h-8 w-8"
-                onClick={() => onVisualizationTypeChange('standard')}
-              >
-                <Map className="h-4 w-4" />
-                <span className="sr-only">Standard Map</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Standard Map</p>
-            </TooltipContent>
-          </Tooltip>
-          
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                size="icon"
-                variant={visualizationType === 'choropleth' ? 'default' : 'ghost'}
-                className="h-8 w-8"
-                onClick={() => onVisualizationTypeChange('choropleth')}
-              >
-                <BarChart className="h-4 w-4" />
-                <span className="sr-only">Choropleth Map</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Choropleth Map</p>
-            </TooltipContent>
-          </Tooltip>
-          
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                size="icon"
-                variant={visualizationType === 'heatmap' ? 'default' : 'ghost'}
-                className="h-8 w-8"
-                onClick={() => onVisualizationTypeChange('heatmap')}
-              >
-                <Layers className="h-4 w-4" />
-                <span className="sr-only">Heat Map</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Heat Map</p>
-            </TooltipContent>
-          </Tooltip>
-        </div>
-      </TooltipProvider>
+    <div className="flex items-center space-x-2 mb-4">
+      <span className="text-sm text-muted-foreground mr-2">Map view:</span>
+      <Button 
+        size="sm" 
+        variant={visualizationType === 'standard' ? 'default' : 'outline'} 
+        onClick={() => onVisualizationTypeChange('standard')}
+      >
+        <MapIcon className="h-4 w-4 mr-1" />
+        Standard
+      </Button>
+      <Button 
+        size="sm" 
+        variant={visualizationType === 'choropleth' ? 'default' : 'outline'} 
+        onClick={() => onVisualizationTypeChange('choropleth')}
+      >
+        <PieChart className="h-4 w-4 mr-1" />
+        Choropleth
+      </Button>
+      <Button 
+        size="sm" 
+        variant={visualizationType === 'heatmap' ? 'default' : 'outline'} 
+        onClick={() => onVisualizationTypeChange('heatmap')}
+      >
+        <Map className="h-4 w-4 mr-1" /> {/* Using Map icon as fallback for heat */}
+        Heatmap
+      </Button>
     </div>
   );
 };

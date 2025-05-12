@@ -26,12 +26,25 @@ const VisualizationTabs: React.FC<VisualizationTabsProps> = ({
   isLoading = false,
   geoJSON
 }) => {
-  // Determine if the dataset likely contains geographic data
+  // Determine if the dataset likely contains or should display geographic data
   const hasGeoData = React.useMemo(() => {
     if (!visualizationData || visualizationData.length === 0) return false;
     
+    // If we have explicit GeoJSON data, definitely show the map
+    if (geoJSON) {
+      return true;
+    }
+    
     // Check if dataset category suggests geographic data
-    if (dataset.category.toLowerCase().includes('geo') || dataset.format.toLowerCase() === 'geojson') {
+    const geographicCategories = ['geo', 'map', 'location', 'region', 'country', 'spatial', 'geographic'];
+    if (geographicCategories.some(term => dataset.category.toLowerCase().includes(term)) || 
+        dataset.format.toLowerCase() === 'geojson') {
+      return true;
+    }
+    
+    // Electricity, energy and power data often benefits from geographic visualization
+    const energyCategories = ['electricity', 'energy', 'power', 'consumption'];
+    if (energyCategories.some(term => dataset.category.toLowerCase().includes(term))) {
       return true;
     }
     
@@ -40,12 +53,12 @@ const VisualizationTabs: React.FC<VisualizationTabsProps> = ({
     if (!firstItem) return false;
     
     const keys = Object.keys(firstItem);
-    const geoFields = ['lat', 'latitude', 'lng', 'longitude', 'x', 'y', 'coordinates', 'geometry'];
+    const geoFields = ['lat', 'latitude', 'lng', 'longitude', 'x', 'y', 'coordinates', 'geometry', 'country', 'region', 'location'];
     
     return geoFields.some(field => 
       keys.some(key => key.toLowerCase().includes(field.toLowerCase()))
     );
-  }, [visualizationData, dataset]);
+  }, [visualizationData, dataset, geoJSON]);
 
   return (
     <Tabs defaultValue={hasGeoData ? "map" : "chart"} className="w-full">
