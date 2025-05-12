@@ -48,22 +48,32 @@ export const getDatasets = async (filters?: DatasetFilters): Promise<Dataset[]> 
       return [];
     }
     
-    // Return datasets with mapped properties
-    return data.map(item => ({
-      id: item.id,
-      title: item.title,
-      description: item.description,
-      category: item.category,
-      format: item.format,
-      country: item.country,
-      date: item.date,
-      downloads: item.downloads || 0,
-      featured: item.featured || false,
-      file: item.file,
-      // Cast verification fields to avoid TypeScript errors
-      verificationStatus: (item as any).verification_status as 'pending' | 'approved' | 'rejected' | undefined,
-      verificationNotes: (item as any).verification_notes
-    }));
+    // Return datasets with mapped properties using simple object creation
+    return data.map(item => {
+      const dataset: Dataset = {
+        id: item.id,
+        title: item.title,
+        description: item.description,
+        category: item.category,
+        format: item.format,
+        country: item.country,
+        date: item.date,
+        downloads: item.downloads || 0,
+        featured: item.featured || false,
+        file: item.file,
+      };
+      
+      // Add verification fields conditionally to avoid TypeScript errors
+      if ('verification_status' in item) {
+        dataset.verificationStatus = item.verification_status as 'pending' | 'approved' | 'rejected' | undefined;
+      }
+      
+      if ('verification_notes' in item) {
+        dataset.verificationNotes = item.verification_notes as string;
+      }
+      
+      return dataset;
+    });
   } catch (error) {
     console.error('Error fetching datasets:', error);
     toast.error('Failed to load datasets');
@@ -94,7 +104,7 @@ export const getDatasetById = async (id: string): Promise<Dataset | null> => {
     // Check if dataset is approved or user is admin
     const isAdmin = await isUserAdmin();
     
-    // Create dataset object with properly typed fields
+    // Create dataset object using direct property assignment
     const dataset: Dataset = {
       id: data.id,
       title: data.title,
@@ -106,11 +116,18 @@ export const getDatasetById = async (id: string): Promise<Dataset | null> => {
       downloads: data.downloads || 0,
       featured: data.featured || false,
       file: data.file,
-      // Cast verification fields to avoid TypeScript errors
-      verificationStatus: (data as any).verification_status as 'pending' | 'approved' | 'rejected' | undefined,
-      verificationNotes: (data as any).verification_notes
     };
     
+    // Add verification fields conditionally
+    if ('verification_status' in data) {
+      dataset.verificationStatus = data.verification_status as 'pending' | 'approved' | 'rejected' | undefined;
+    }
+    
+    if ('verification_notes' in data) {
+      dataset.verificationNotes = data.verification_notes as string;
+    }
+    
+    // Check permissions
     if (!isAdmin && dataset.verificationStatus !== 'approved') {
       // Check if the dataset belongs to the current user
       const { data: { user } } = await supabase.auth.getUser();
