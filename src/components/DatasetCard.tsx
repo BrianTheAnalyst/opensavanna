@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from "sonner";
 import { isUserAdmin } from '@/services/userRoleService';
 import { deleteDataset } from '@/services/datasetAdminService';
@@ -31,14 +31,14 @@ const DatasetCard = ({
   
   const formatIcons = getFormatIcons();
   
-  // Check if user is admin - fixed the useState call to useEffect
-  useState(() => {
+  // Check if user is admin - converted useState to useEffect with proper dependency array
+  useEffect(() => {
     const checkAdmin = async () => {
       const admin = await isUserAdmin();
       setIsAdmin(admin);
     };
     checkAdmin();
-  });
+  }, []); // Empty dependency array ensures this runs only once on component mount
   
   const handleDownload = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault(); // Prevent link navigation when clicking the button
