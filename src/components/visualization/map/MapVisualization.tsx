@@ -4,11 +4,11 @@ import { LatLngExpression } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import MapContainerComponent from './map/MapContainer';
-import { findGeoPoints, calculateBounds } from './map/mapUtils';
-import { useLeafletIconFix } from './map/useLeafletIconFix';
-import MapLegend from './map/MapLegend';
-import MapControls from './map/MapControls';
+import MapContainer from '@/components/visualization/map/MapContainer';
+import { findGeoPoints, calculateBounds } from '@/components/visualization/map/mapUtils';
+import { useLeafletIconFix } from '@/components/visualization/map/useLeafletIconFix';
+import MapLegend from '@/components/visualization/map/MapLegend';
+import MapControls from '@/components/visualization/map/MapControls';
 
 // Interface for props
 interface MapVisualizationProps {
@@ -31,8 +31,7 @@ const MapVisualization: React.FC<MapVisualizationProps> = ({
   const [mapCenter, setMapCenter] = useState<LatLngExpression>([0, 0]);
   const [mapZoom, setMapZoom] = useState(2);
   const [processedGeoJSON, setProcessedGeoJSON] = useState<any>(null);
-  const [visualizationType, setVisualizationType] = useState<'standard' | 'choropleth' | 'heatmap'>('choropleth');
-  const [legendData, setLegendData] = useState<{min: number, max: number, colorScale: string[]}>({ min: 0, max: 0, colorScale: [] });
+  const [visualizationType, setVisualizationType] = useState<'standard' | 'choropleth' | 'heatmap'>('standard');
   
   // Fix for Leaflet marker icons in production builds
   useLeafletIconFix();
@@ -62,27 +61,6 @@ const MapVisualization: React.FC<MapVisualizationProps> = ({
             else if (span < 20) setMapZoom(5);
             else setMapZoom(3);
           }
-          
-          // Extract min/max values for choropleth legend
-          if (visualizationType === 'choropleth') {
-            const values: number[] = [];
-            geoJSON.features.forEach((feature: any) => {
-              const value = findValueInFeature(feature);
-              if (typeof value === 'number' && !isNaN(value)) {
-                values.push(value);
-              }
-            });
-            
-            if (values.length > 0) {
-              const min = Math.min(...values);
-              const max = Math.max(...values);
-              setLegendData({
-                min,
-                max,
-                colorScale: generateColorScale(5)
-              });
-            }
-          }
         }
       }
       // If we have data with lat/lng properties
@@ -109,61 +87,11 @@ const MapVisualization: React.FC<MapVisualizationProps> = ({
     } catch (error) {
       console.error("Error processing geographic data:", error);
     }
-  }, [data, geoJSON, isLoading, visualizationType]);
+  }, [data, geoJSON, isLoading]);
 
-  // Function to find value in a GeoJSON feature
-  const findValueInFeature = (feature: any): number | null => {
-    if (!feature?.properties) return null;
-    
-    // Check for value properties that would be relevant for choropleth maps
-    const valueProps = ['value', 'density', 'consumption', 'amount', 'population', 'count'];
-    
-    for (const prop of valueProps) {
-      if (feature.properties[prop] !== undefined) {
-        const value = parseFloat(feature.properties[prop]);
-        if (!isNaN(value)) return value;
-      }
-    }
-    
-    // Try to find any numeric property as a fallback
-    for (const key in feature.properties) {
-      if (feature.properties[key] !== undefined) {
-        const value = parseFloat(feature.properties[key]);
-        if (!isNaN(value)) return value;
-      }
-    }
-    
-    return null;
-  };
-  
-  // Generate color scale for choropleth map
-  const generateColorScale = (steps: number): string[] => {
-    // Predefined gradient from light to dark for choropleths
-    const colorScales = {
-      // Different color schemes for different data categories
-      energy: ['#f7fcb9', '#d9f0a3', '#addd8e', '#78c679', '#41ab5d', '#238443', '#005a32'],
-      health: ['#f7fbff', '#deebf7', '#c6dbef', '#9ecae1', '#6baed6', '#4292c6', '#2171b5', '#084594'],
-      economics: ['#fff7f3', '#fde0dd', '#fcc5c0', '#fa9fb5', '#f768a1', '#dd3497', '#ae017e', '#7a0177'],
-      default: ['#eff3ff', '#c6dbef', '#9ecae1', '#6baed6', '#3182bd', '#08519c']
-    };
-    
-    // Select color scale based on category or use default
-    const categoryKey = category?.toLowerCase() || 'default';
-    const scale = (categoryKey.includes('energy') || categoryKey.includes('electric')) 
-      ? colorScales.energy 
-      : categoryKey.includes('health')
-        ? colorScales.health
-        : categoryKey.includes('econom') || categoryKey.includes('financ')
-          ? colorScales.economics
-          : colorScales.default;
-          
-    return scale;
-  };
-
-  // Handle visualization type change
-  const handleVisualizationTypeChange = (type: 'standard' | 'choropleth' | 'heatmap') => {
-    setVisualizationType(type);
-  };
+  // Find point data (if no GeoJSON)
+  const pointsData = !processedGeoJSON && data ? findGeoPoints(data) : { validPoints: [] };
+  const hasGeoData = !!processedGeoJSON || pointsData.validPoints.length > 0;
 
   if (isLoading) {
     return (
@@ -180,10 +108,6 @@ const MapVisualization: React.FC<MapVisualizationProps> = ({
       </Card>
     );
   }
-
-  // Find point data (if no GeoJSON)
-  const pointsData = !processedGeoJSON && data ? findGeoPoints(data) : { validPoints: [] };
-  const hasGeoData = !!processedGeoJSON || pointsData.validPoints.length > 0;
 
   if (!hasGeoData) {
     return (
@@ -206,6 +130,21 @@ const MapVisualization: React.FC<MapVisualizationProps> = ({
     );
   }
 
+  // Get color scale for legend
+  const colorScale = processedGeoJSON 
+    ? Array.from({ length: 7 }, (_, i) => {
+        const t = i / 6;
+        return t < 0.33 ? `rgb(${Math.round(255 * (1-t*3))}, ${Math.round(255)}, 0)` :
+               t < 0.66 ? `rgb(0, ${Math.round(255 * (1-(t-0.33)*3))}, ${Math.round(255 * (t-0.33)*3)})` :
+               `rgb(${Math.round(255 * (t-0.66)*3)}, 0, ${Math.round(255 * (1-(t-0.66)*3))})`;
+      })
+    : [];
+
+  // Min and max values for legend with type safety
+  const minMax = processedGeoJSON?.metadata?.numericFields 
+    ? (Object.values(processedGeoJSON.metadata.numericFields)[0] as { min: number, max: number }) || { min: 0, max: 100 }
+    : { min: 0, max: 100 };
+
   return (
     <Card className="w-full">
       <CardHeader className="pb-2">
@@ -215,10 +154,10 @@ const MapVisualization: React.FC<MapVisualizationProps> = ({
       <CardContent>
         <MapControls 
           visualizationType={visualizationType} 
-          onVisualizationTypeChange={handleVisualizationTypeChange}
+          onVisualizationTypeChange={setVisualizationType} 
         />
         <div className="w-full h-[450px] rounded-md overflow-hidden border border-border relative">
-          <MapContainerComponent
+          <MapContainer
             center={mapCenter}
             zoom={mapZoom}
             geoJSON={processedGeoJSON}
@@ -226,12 +165,12 @@ const MapVisualization: React.FC<MapVisualizationProps> = ({
             visualizationType={visualizationType}
             category={category}
           />
-          {visualizationType === 'choropleth' && legendData.min !== legendData.max && (
-            <MapLegend 
-              min={legendData.min} 
-              max={legendData.max} 
-              colorScale={legendData.colorScale} 
-              title={category || 'Value'} 
+          {visualizationType === 'choropleth' && processedGeoJSON && (
+            <MapLegend
+              min={minMax.min}
+              max={minMax.max}
+              colorScale={colorScale}
+              title={category || 'Data Distribution'}
             />
           )}
         </div>
