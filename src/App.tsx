@@ -18,6 +18,7 @@ import Api from "./pages/Api";
 import About from "./pages/About";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import DatasetVerificationPage from "./pages/admin/DatasetVerification";
 
 // Create a client with proper configuration
 const queryClient = new QueryClient({
@@ -46,6 +47,7 @@ const App = () => {
               <Route path="/api" element={<Api />} />
               <Route path="/about" element={<About />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/admin/verification" element={<DatasetVerificationPage />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
