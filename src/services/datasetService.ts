@@ -52,30 +52,32 @@ export const getDatasets = async (filters?: DatasetFilters): Promise<Dataset[]> 
       return [];
     }
     
-    // Using explicit type casting to avoid deep type instantiation
-    return data.map(record => {
+    // Manually map database records to avoid recursive type issues
+    return data.map(item => {
+      // Create a basic dataset with known fields
       const dataset: Dataset = {
-        id: record.id,
-        title: record.title,
-        description: record.description,
-        category: record.category,
-        format: record.format,
-        country: record.country,
-        date: record.date,
-        downloads: record.downloads || 0,
-        featured: record.featured || false,
-        file: record.file || undefined
+        id: item.id,
+        title: item.title,
+        description: item.description,
+        category: item.category,
+        format: item.format,
+        country: item.country,
+        date: item.date,
+        downloads: item.downloads || 0,
+        featured: item.featured || false,
+        file: item.file || undefined
       };
       
-      // Type assertion for database fields not in the TypeScript interface
-      const recordAny = record as any;
+      // Use type assertion with a simple object literal to avoid deep type nesting
+      const record = item as Record<string, any>;
       
-      if ('verification_status' in recordAny) {
-        dataset.verificationStatus = recordAny.verification_status;
+      // Add optional fields if they exist
+      if (record.verification_status) {
+        dataset.verificationStatus = record.verification_status;
       }
       
-      if ('verification_notes' in recordAny) {
-        dataset.verificationNotes = recordAny.verification_notes;
+      if (record.verification_notes) {
+        dataset.verificationNotes = record.verification_notes;
       }
       
       return dataset;
@@ -124,22 +126,22 @@ export const getDatasetById = async (id: string): Promise<Dataset | null> => {
       file: data.file || undefined
     };
     
-    // Type assertion for database fields not in TypeScript interface
-    const dataAny = data as any;
+    // Use simple record type for additional fields
+    const record = data as Record<string, any>;
     
-    if ('verification_status' in dataAny) {
-      dataset.verificationStatus = dataAny.verification_status;
+    if (record.verification_status) {
+      dataset.verificationStatus = record.verification_status;
     }
     
-    if ('verification_notes' in dataAny) {
-      dataset.verificationNotes = dataAny.verification_notes;
+    if (record.verification_notes) {
+      dataset.verificationNotes = record.verification_notes;
     }
     
     // Check permissions
     if (!isAdmin && dataset.verificationStatus !== 'approved') {
       // Check if the dataset belongs to the current user
       const { data: { user } } = await supabase.auth.getUser();
-      const isOwner = user && data.user_id === user.id;
+      const isOwner = user && record.user_id === user.id;
       
       if (!isOwner) {
         toast.error('You do not have permission to view this dataset');
