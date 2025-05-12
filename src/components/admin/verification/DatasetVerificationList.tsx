@@ -6,6 +6,7 @@ interface DatasetVerificationListProps {
   datasets: DatasetWithEmail[];
   status: 'pending' | 'approved' | 'rejected';
   updateStatus: (id: string, status: 'pending' | 'approved' | 'rejected', notes?: string) => Promise<void>;
+  sendFeedback?: (id: string, feedback: string) => Promise<void>;
   isLoading: boolean;
 }
 
@@ -13,6 +14,7 @@ const DatasetVerificationList = ({
   datasets, 
   status, 
   updateStatus,
+  sendFeedback,
   isLoading 
 }: DatasetVerificationListProps) => {
   if (isLoading) {
@@ -45,6 +47,7 @@ const DatasetVerificationList = ({
           key={dataset.id} 
           dataset={dataset} 
           updateStatus={updateStatus}
+          sendFeedback={sendFeedback}
         />
       ))}
     </div>

@@ -11,6 +11,7 @@ const VerificationTabs = () => {
     approvedDatasets, 
     rejectedDatasets, 
     updateStatus,
+    sendFeedback,
     isLoading
   } = useDatasetVerification();
 
@@ -39,6 +40,7 @@ const VerificationTabs = () => {
           datasets={pendingDatasets}
           status="pending" 
           updateStatus={updateStatus}
+          sendFeedback={sendFeedback}
           isLoading={isLoading}
         />
       </TabsContent>
@@ -48,6 +50,7 @@ const VerificationTabs = () => {
           datasets={approvedDatasets}
           status="approved" 
           updateStatus={updateStatus}
+          sendFeedback={sendFeedback}
           isLoading={isLoading}
         />
       </TabsContent>
@@ -57,6 +60,7 @@ const VerificationTabs = () => {
           datasets={rejectedDatasets}
           status="rejected" 
           updateStatus={updateStatus}
+          sendFeedback={sendFeedback}
           isLoading={isLoading}
         />
       </TabsContent>

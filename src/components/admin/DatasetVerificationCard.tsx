@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Check, X, FileText, User, Calendar } from 'lucide-react';
+import { Check, X, FileText, User, Calendar, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import DatasetReviewDialog from './DatasetReviewDialog';
 import { DatasetWithEmail } from '@/types/dataset';
@@ -10,11 +10,12 @@ import { Badge } from '@/components/ui/badge';
 interface DatasetVerificationCardProps {
   dataset: DatasetWithEmail;
   updateStatus: (id: string, status: 'pending' | 'approved' | 'rejected', notes?: string) => Promise<void>;
+  sendFeedback?: (id: string, feedback: string) => Promise<void>;
 }
 
-const DatasetVerificationCard = ({ dataset, updateStatus }: DatasetVerificationCardProps) => {
+const DatasetVerificationCard = ({ dataset, updateStatus, sendFeedback }: DatasetVerificationCardProps) => {
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
-  const [reviewAction, setReviewAction] = useState<'approve' | 'reject'>('approve');
+  const [reviewAction, setReviewAction] = useState<'approve' | 'reject' | 'feedback'>('approve');
 
   const handleApprove = () => {
     setReviewAction('approve');
@@ -23,6 +24,11 @@ const DatasetVerificationCard = ({ dataset, updateStatus }: DatasetVerificationC
 
   const handleReject = () => {
     setReviewAction('reject');
+    setIsReviewDialogOpen(true);
+  };
+  
+  const handleFeedback = () => {
+    setReviewAction('feedback');
     setIsReviewDialogOpen(true);
   };
 
@@ -76,9 +82,16 @@ const DatasetVerificationCard = ({ dataset, updateStatus }: DatasetVerificationC
           <span>{dataset.date}</span>
         </div>
       </div>
+
+      {dataset.verificationNotes && (
+        <div className="bg-muted/40 p-3 rounded-md mb-4 text-sm">
+          <p className="font-medium mb-1">Notes:</p>
+          <p className="text-foreground/70">{dataset.verificationNotes}</p>
+        </div>
+      )}
       
       {dataset.verificationStatus === 'pending' && (
-        <div className="flex gap-3 mt-4">
+        <div className="flex flex-wrap gap-2 mt-4">
           <Button
             variant="outline"
             className="flex-1"
@@ -95,17 +108,33 @@ const DatasetVerificationCard = ({ dataset, updateStatus }: DatasetVerificationC
             <X className="w-4 h-4 mr-2" />
             Reject
           </Button>
+          <Button
+            variant="outline"
+            className="flex-1"
+            onClick={handleFeedback}
+          >
+            <MessageSquare className="w-4 h-4 mr-2" />
+            Feedback
+          </Button>
         </div>
       )}
       
       {dataset.verificationStatus !== 'pending' && (
-        <div className="flex gap-3 mt-4">
+        <div className="flex flex-wrap gap-2 mt-4">
           <Button
             variant="outline"
             className="flex-1"
             onClick={() => updateStatus(dataset.id, 'pending')}
           >
             Reset to Pending
+          </Button>
+          <Button
+            variant="outline"
+            className="flex-1"
+            onClick={handleFeedback}
+          >
+            <MessageSquare className="w-4 h-4 mr-2" />
+            Feedback
           </Button>
         </div>
       )}
@@ -116,6 +145,7 @@ const DatasetVerificationCard = ({ dataset, updateStatus }: DatasetVerificationC
         dataset={dataset}
         action={reviewAction}
         updateStatus={updateStatus}
+        sendFeedback={sendFeedback}
       />
     </div>
   );

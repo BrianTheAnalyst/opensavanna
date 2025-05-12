@@ -4,7 +4,8 @@ import { toast } from "sonner";
 import { DatasetWithEmail } from '@/types/dataset';
 import { 
   fetchDatasetsWithVerificationStatus, 
-  updateDatasetVerificationStatus
+  updateDatasetVerificationStatus,
+  sendDatasetFeedback
 } from '@/services/datasetVerificationService';
 import { useNavigate } from 'react-router-dom';
 
@@ -37,10 +38,22 @@ export const useDatasetVerification = () => {
   const updateStatus = async (id: string, status: 'pending' | 'approved' | 'rejected', notes?: string) => {
     try {
       await updateDatasetVerificationStatus(id, status, notes);
+      toast.success(`Dataset ${status === 'approved' ? 'approved' : status === 'rejected' ? 'rejected' : 'set to pending'}`);
       await loadDatasets(); // Reload data after update
     } catch (error) {
       console.error('Error updating dataset status:', error);
       toast.error('Failed to update dataset status');
+    }
+  };
+  
+  const sendFeedback = async (id: string, feedback: string) => {
+    try {
+      await sendDatasetFeedback(id, feedback);
+      toast.success('Feedback sent to contributor');
+      await loadDatasets(); // Reload data after update
+    } catch (error) {
+      console.error('Error sending feedback:', error);
+      toast.error('Failed to send feedback');
     }
   };
 
@@ -53,6 +66,7 @@ export const useDatasetVerification = () => {
     approvedDatasets,
     rejectedDatasets,
     updateStatus,
+    sendFeedback,
     isLoading,
     refreshData: loadDatasets
   };

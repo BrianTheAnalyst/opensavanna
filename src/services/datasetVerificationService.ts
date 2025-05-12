@@ -26,10 +26,23 @@ export const fetchDatasetsWithVerificationStatus = async (): Promise<DatasetWith
           return { ...dataset, userEmail: 'Unknown' };
         }
         
-        // Get user email
-        // Since we don't have a profiles table, we'll return unknown
-        // In a real app, you would query a users or profiles table
-        return { ...dataset, userEmail: 'Unknown' };
+        // Try to get user email
+        try {
+          const { data: userData, error: userError } = await supabase
+            .from('profiles')
+            .select('email')
+            .eq('id', userId)
+            .maybeSingle();
+          
+          if (userError || !userData) {
+            return { ...dataset, userEmail: 'Unknown' };
+          }
+          
+          return { ...dataset, userEmail: userData.email };
+        } catch (err) {
+          console.error('Error fetching user email:', err);
+          return { ...dataset, userEmail: 'Unknown' };
+        }
       })
     );
     
@@ -68,11 +81,55 @@ export const updateDatasetVerificationStatus = async (
       return false;
     }
     
-    toast.success(`Dataset ${status}`);
     return true;
   } catch (error) {
     console.error('Error updating dataset verification status:', error);
     toast.error('Failed to update verification status');
+    return false;
+  }
+};
+
+// Send feedback to dataset contributor
+export const sendDatasetFeedback = async (
+  id: string,
+  feedback: string
+): Promise<boolean> => {
+  try {
+    // First, get the dataset to find the user_id
+    const { data: dataset, error: datasetError } = await supabase
+      .from('datasets')
+      .select('*, user_id')
+      .eq('id', id)
+      .single();
+    
+    if (datasetError || !dataset) {
+      console.error('Error fetching dataset for feedback:', datasetError);
+      toast.error('Failed to send feedback: dataset not found');
+      return false;
+    }
+    
+    // Store feedback in the verificationNotes field
+    const { error: updateError } = await supabase
+      .from('datasets')
+      .update({ 
+        verificationNotes: feedback,
+        verificationFeedbackSent: new Date().toISOString()
+      })
+      .eq('id', id);
+    
+    if (updateError) {
+      console.error('Error saving feedback:', updateError);
+      toast.error('Failed to save feedback');
+      return false;
+    }
+    
+    // For now, we'll just store the feedback
+    // In a production app, you would implement email notifications here
+    
+    return true;
+  } catch (error) {
+    console.error('Error sending dataset feedback:', error);
+    toast.error('Failed to send feedback');
     return false;
   }
 };
@@ -97,4 +154,3 @@ export const fetchPendingDatasetCount = async (): Promise<number> => {
     return 0;
   }
 };
-

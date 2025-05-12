@@ -2,6 +2,7 @@
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Dataset, DatasetFilters } from "@/types/dataset";
+import { isUserAdmin } from "@/services/userRoleService";
 
 // Get all datasets with optional filtering
 export const getDatasets = async (filters?: DatasetFilters): Promise<Dataset[]> => {
@@ -25,6 +26,18 @@ export const getDatasets = async (filters?: DatasetFilters): Promise<Dataset[]> 
       if (filters.country) {
         query = query.eq('country', filters.country);
       }
+      
+      if (filters.verificationStatus) {
+        query = query.eq('verificationStatus', filters.verificationStatus);
+      }
+    }
+    
+    // Check if user is admin
+    const isAdmin = await isUserAdmin();
+    
+    // If not admin, only show approved datasets
+    if (!isAdmin && !filters?.verificationStatus) {
+      query = query.eq('verificationStatus', 'approved');
     }
     
     const { data, error } = await query.order('created_at', { ascending: false });
@@ -63,7 +76,22 @@ export const getDatasetById = async (id: string): Promise<Dataset | null> => {
       return null;
     }
     
-    return data as Dataset;
+    // Check if dataset is approved or user is admin
+    const isAdmin = await isUserAdmin();
+    const dataset = data as Dataset;
+    
+    if (!isAdmin && dataset.verificationStatus !== 'approved') {
+      // Check if the dataset belongs to the current user
+      const { data: { user } } = await supabase.auth.getUser();
+      const isOwner = user && (data as any).user_id === user.id;
+      
+      if (!isOwner) {
+        toast.error('You do not have permission to view this dataset');
+        return null;
+      }
+    }
+    
+    return dataset;
   } catch (error) {
     console.error('Error fetching dataset:', error);
     toast.error('Failed to load dataset');
