@@ -9,7 +9,7 @@ export interface Dataset {
   country: string;
   date: string;
   downloads: number;
-  featured?: boolean;
+  featured: boolean;
   file?: string;
   license?: string;
   fileSize?: string;

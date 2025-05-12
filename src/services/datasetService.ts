@@ -52,22 +52,32 @@ export const getDatasets = async (filters?: DatasetFilters): Promise<Dataset[]> 
       return [];
     }
     
-    // Map the database response to Dataset objects
-    return data.map(item => ({
-      id: item.id,
-      title: item.title,
-      description: item.description,
-      category: item.category,
-      format: item.format,
-      country: item.country,
-      date: item.date,
-      downloads: item.downloads || 0,
-      featured: item.featured || false,
-      file: item.file,
-      // Use optional chaining for potentially missing fields
-      verificationStatus: (item as any).verification_status,
-      verificationNotes: (item as any).verification_notes
-    }));
+    // Map database records to Dataset objects explicitly
+    return data.map(item => {
+      const dataset: Dataset = {
+        id: item.id,
+        title: item.title,
+        description: item.description,
+        category: item.category,
+        format: item.format,
+        country: item.country,
+        date: item.date,
+        downloads: item.downloads || 0,
+        featured: item.featured || false,
+        file: item.file
+      };
+      
+      // Handle snake_case to camelCase for verification fields
+      if ('verification_status' in item) {
+        dataset.verificationStatus = item.verification_status as any;
+      }
+      
+      if ('verification_notes' in item) {
+        dataset.verificationNotes = item.verification_notes as any;
+      }
+      
+      return dataset;
+    });
   } catch (error) {
     console.error('Error fetching datasets:', error);
     toast.error('Failed to load datasets');
@@ -98,7 +108,7 @@ export const getDatasetById = async (id: string): Promise<Dataset | null> => {
     // Check if dataset is approved or user is admin
     const isAdmin = await isUserAdmin();
     
-    // Map the database response to a Dataset object
+    // Create dataset with explicit typing
     const dataset: Dataset = {
       id: data.id,
       title: data.title,
@@ -109,11 +119,17 @@ export const getDatasetById = async (id: string): Promise<Dataset | null> => {
       date: data.date,
       downloads: data.downloads || 0,
       featured: data.featured || false,
-      file: data.file,
-      // Use type assertion for verification fields
-      verificationStatus: (data as any).verification_status,
-      verificationNotes: (data as any).verification_notes
+      file: data.file
     };
+    
+    // Handle snake_case to camelCase for verification fields
+    if ('verification_status' in data) {
+      dataset.verificationStatus = data.verification_status as any;
+    }
+    
+    if ('verification_notes' in data) {
+      dataset.verificationNotes = data.verification_notes as any;
+    }
     
     // Check permissions
     if (!isAdmin && dataset.verificationStatus !== 'approved') {
