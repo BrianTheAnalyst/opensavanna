@@ -1,9 +1,10 @@
 
 import React from 'react';
-import { MapContainer as LeafletMapContainer, TileLayer } from 'react-leaflet';
+import { MapContainer as LeafletMapContainer, TileLayer, ZoomControl } from 'react-leaflet';
 import { LatLngExpression } from 'leaflet';
 import GeoJSONLayer from './GeoJSONLayer';
 import PointMarkers from './PointMarkers';
+import HeatmapLayer from './HeatmapLayer';
 
 interface MapContainerComponentProps {
   center: LatLngExpression;
@@ -15,37 +16,77 @@ interface MapContainerComponentProps {
     name?: string;
     value?: number;
   }[];
+  visualizationType?: 'standard' | 'choropleth' | 'heatmap';
+  category?: string;
 }
 
 const MapContainerComponent: React.FC<MapContainerComponentProps> = ({
   center,
   zoom,
   geoJSON,
-  points = []
+  points = [],
+  visualizationType = 'standard',
+  category
 }) => {
   // Define props for Leaflet components
   const mapContainerProps = {
     style: { height: '100%', width: '100%' },
     center,
     zoom,
+    zoomControl: false,
   };
 
-  const tileLayerProps = {
-    url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  // Choose the appropriate tile layer based on visualization type
+  const getTileLayer = () => {
+    switch (visualizationType) {
+      case 'choropleth':
+        // For choropleth, use a minimal light background
+        return {
+          url: "https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png",
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        };
+      case 'heatmap':
+        // For heatmap, use a dark background
+        return {
+          url: "https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png",
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        };
+      default:
+        // For standard, use the default OSM tiles
+        return {
+          url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        };
+    }
   };
+
+  const tileLayerProps = getTileLayer();
 
   return (
     // @ts-ignore - Type definitions for react-leaflet don't match exactly
     <LeafletMapContainer {...mapContainerProps}>
       {/* @ts-ignore */}
       <TileLayer {...tileLayerProps} />
+      <ZoomControl position="topright" />
       
       {/* GeoJSON layer */}
-      {geoJSON && <GeoJSONLayer geoJSON={geoJSON} />}
+      {geoJSON && visualizationType !== 'heatmap' && 
+        <GeoJSONLayer 
+          geoJSON={geoJSON} 
+          visualizationType={visualizationType} 
+          category={category}
+        />
+      }
+      
+      {/* Heatmap layer */}
+      {visualizationType === 'heatmap' && points.length > 0 && (
+        <HeatmapLayer points={points} />
+      )}
       
       {/* Point markers */}
-      {points.length > 0 && <PointMarkers points={points} />}
+      {visualizationType === 'standard' && points.length > 0 && (
+        <PointMarkers points={points} />
+      )}
     </LeafletMapContainer>
   );
 };
