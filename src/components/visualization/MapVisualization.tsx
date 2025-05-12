@@ -20,6 +20,12 @@ interface MapVisualizationProps {
   category?: string;
 }
 
+// Interface for min/max values
+interface MinMaxValues {
+  min: number;
+  max: number;
+}
+
 const MapVisualization: React.FC<MapVisualizationProps> = ({
   data,
   title = "Geographic Data Visualization",
@@ -140,10 +146,13 @@ const MapVisualization: React.FC<MapVisualizationProps> = ({
       })
     : [];
 
-  // Min and max values for legend
-  const minMax = processedGeoJSON?.metadata?.numericFields 
-    ? Object.values(processedGeoJSON.metadata.numericFields)[0] 
-    : { min: 0, max: 100 };
+  // Min and max values for legend with type safety
+  const minMaxField = processedGeoJSON?.metadata?.numericFields 
+    ? (Object.values(processedGeoJSON.metadata.numericFields)[0] as MinMaxValues | undefined)
+    : undefined;
+    
+  const minValue = minMaxField?.min ?? 0;
+  const maxValue = minMaxField?.max ?? 100;
 
   return (
     <Card className="w-full">
@@ -167,8 +176,8 @@ const MapVisualization: React.FC<MapVisualizationProps> = ({
           />
           {visualizationType === 'choropleth' && processedGeoJSON && (
             <MapLegend
-              min={minMax?.min || 0}
-              max={minMax?.max || 100}
+              min={minValue}
+              max={maxValue}
               colorScale={colorScale}
               title={category || 'Data Distribution'}
             />
