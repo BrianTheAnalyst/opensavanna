@@ -1,8 +1,9 @@
 
 import { LatLngExpression } from 'leaflet';
+import { PathOptions } from 'react-leaflet';
 
 // Style function for GeoJSON
-export const styleFeature = (feature: any) => {
+export const styleFeature = (feature: any): PathOptions => {
   // Default colors for choropleth maps
   const colors = [
     '#f7fbff', '#deebf7', '#c6dbef', '#9ecae1',
@@ -10,7 +11,7 @@ export const styleFeature = (feature: any) => {
   ];
   
   // Default style
-  const baseStyle = {
+  const baseStyle: PathOptions = {
     weight: 1,
     opacity: 0.8,
     color: '#6366F1',

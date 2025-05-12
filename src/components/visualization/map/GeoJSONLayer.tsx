@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { GeoJSON } from 'react-leaflet/GeoJSON';
+import { GeoJSON } from 'react-leaflet';
 import { styleFeature, onEachFeature } from './mapUtils';
 
 interface GeoJSONLayerProps {
@@ -10,14 +10,15 @@ interface GeoJSONLayerProps {
 const GeoJSONLayer: React.FC<GeoJSONLayerProps> = ({ geoJSON }) => {
   if (!geoJSON) return null;
   
-  return (
-    // @ts-ignore - Type definitions for react-leaflet GeoJSON don't match exactly
-    <GeoJSON 
-      data={geoJSON}
-      style={styleFeature}
-      onEachFeature={onEachFeature}
-    />
-  );
+  // Create props object that matches expected types for GeoJSON component
+  const geoJSONProps = {
+    data: geoJSON,
+    // Use a function wrapper for style to ensure correct typing
+    pathOptions: styleFeature,
+    onEachFeature: onEachFeature
+  };
+  
+  return <GeoJSON {...geoJSONProps} />;
 };
 
 export default GeoJSONLayer;

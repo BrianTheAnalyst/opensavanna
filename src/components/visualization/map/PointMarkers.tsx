@@ -18,16 +18,18 @@ const PointMarkers: React.FC<PointMarkersProps> = ({ points }) => {
     <>
       {points.map((point, index) => (
         point.value ? (
-          // @ts-ignore - Type definitions for react-leaflet CircleMarker don't match exactly
+          // Use pathOptions for styling the CircleMarker according to react-leaflet v4 API
           <CircleMarker 
             key={index}
             center={[point.lat, point.lng]}
-            radius={Math.min(10, Math.max(5, point.value / 10))}
-            fillColor="#8B5CF6"
-            color="#6D28D9"
-            weight={1}
-            opacity={0.8}
-            fillOpacity={0.6}
+            pathOptions={{
+              radius: Math.min(10, Math.max(5, point.value / 10)),
+              fillColor: "#8B5CF6",
+              color: "#6D28D9",
+              weight: 1,
+              opacity: 0.8,
+              fillOpacity: 0.6
+            }}
           >
             <Popup>
               {point.name && <div><strong>{point.name}</strong></div>}
