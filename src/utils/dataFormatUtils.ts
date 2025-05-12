@@ -59,10 +59,23 @@ export const formatGeoJSONForVisualization = (geoJson: any, category: string): a
   }
   
   // Extract properties from features for visualization
-  const data = geoJson.features.map((feature: any) => ({
-    ...feature.properties,
-    geometry_type: feature.geometry?.type
-  }));
+  const data = geoJson.features.map((feature: any) => {
+    // Start with all properties
+    const item = { ...feature.properties };
+    
+    // Add geometry type
+    if (feature.geometry) {
+      item.geometry_type = feature.geometry.type;
+      
+      // For points, extract coordinates for easy plotting
+      if (feature.geometry.type === 'Point' && Array.isArray(feature.geometry.coordinates) && feature.geometry.coordinates.length >= 2) {
+        item.longitude = feature.geometry.coordinates[0];
+        item.latitude = feature.geometry.coordinates[1];
+      }
+    }
+    
+    return item;
+  });
   
   return formatDataForVisualization(data, category);
 };
@@ -79,21 +92,61 @@ export const formatDataForVisualization = (data: any[], category: string): any[]
   
   // Then, find a good candidate for the name field
   const nameFieldCandidates = Object.keys(data[0])
-    .filter(key => typeof data[0][key] === 'string')
+    .filter(key => typeof data[0][key] === 'string' && 
+      !key.toLowerCase().includes('lat') && 
+      !key.toLowerCase().includes('lon') &&
+      !key.toLowerCase().includes('geometry'))
     .sort();
   
   // If we have no numeric fields, we can't create a visualization
   if (numericFields.length === 0) return [];
   
   // Choose appropriate fields based on category and available data
-  const valueField = numericFields[0] || 'value';  
-  const nameField = nameFieldCandidates[0] || 'index';
+  let valueField = numericFields[0] || 'value';
+  let nameField = nameFieldCandidates[0] || 'index';
+  
+  // For geographic data, try to find better field names
+  if (category.toLowerCase().includes('geo') || 
+      data.some(item => item.hasOwnProperty('latitude') || item.hasOwnProperty('lat'))) {
+    
+    // For geo data, prefer population, density or area metrics
+    const geoValueFields = ['population', 'density', 'area', 'count', 'value'];
+    for (const field of geoValueFields) {
+      const match = numericFields.find(f => f.toLowerCase().includes(field));
+      if (match) {
+        valueField = match;
+        break;
+      }
+    }
+    
+    // For geo data, prefer name, region, country for labels
+    const geoNameFields = ['name', 'region', 'country', 'state', 'province', 'city', 'district', 'county'];
+    for (const field of geoNameFields) {
+      const match = nameFieldCandidates.find(f => f.toLowerCase().includes(field));
+      if (match) {
+        nameField = match;
+        break;
+      }
+    }
+  }
   
   // Format the data for visualization, limiting to 20 items
-  return data.slice(0, 20).map((item, index) => ({
-    name: nameField !== 'index' ? String(item[nameField] || 'Item ' + index) : 'Item ' + index,
-    value: Number(item[valueField] || 0),
-    // Include original data for reference
-    rawData: { ...item }
-  }));
+  return data.slice(0, 20).map((item, index) => {
+    // Base object with name and value
+    const visItem = {
+      name: nameField !== 'index' ? String(item[nameField] || 'Item ' + index) : 'Item ' + index,
+      value: Number(item[valueField] || 0),
+      // Include original data for reference
+      rawData: { ...item }
+    };
+    
+    // If there is geo data, include it
+    if ((item.latitude !== undefined && item.longitude !== undefined) || 
+        (item.lat !== undefined && (item.lng !== undefined || item.lon !== undefined))) {
+      visItem.lat = item.latitude || item.lat;
+      visItem.lng = item.longitude || item.lng || item.lon;
+    }
+    
+    return visItem;
+  });
 };

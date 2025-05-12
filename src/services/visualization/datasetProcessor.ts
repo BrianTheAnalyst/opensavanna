@@ -19,6 +19,13 @@ export const parseDataFromFile = async (dataset: Dataset): Promise<any[]> => {
       return formatJSONForVisualization(json, dataset.category);
     } else if (dataset.format.toLowerCase() === 'geojson') {
       const json = await response.json();
+      // Store the original GeoJSON in localStorage for mapping
+      try {
+        localStorage.setItem(`geojson_${dataset.id}`, JSON.stringify(json));
+      } catch (e) {
+        // Handle localStorage errors (e.g. quota exceeded)
+        console.warn("Could not store GeoJSON in localStorage:", e);
+      }
       return formatGeoJSONForVisualization(json, dataset.category);
     } else {
       console.log('Unsupported format');
@@ -27,5 +34,16 @@ export const parseDataFromFile = async (dataset: Dataset): Promise<any[]> => {
   } catch (error) {
     console.error('Error processing dataset file:', error);
     return [];
+  }
+};
+
+// Get GeoJSON data for a dataset if available
+export const getGeoJSONForDataset = (datasetId: string): any | null => {
+  try {
+    const storedGeoJSON = localStorage.getItem(`geojson_${datasetId}`);
+    return storedGeoJSON ? JSON.parse(storedGeoJSON) : null;
+  } catch (e) {
+    console.error("Error retrieving GeoJSON from localStorage:", e);
+    return null;
   }
 };

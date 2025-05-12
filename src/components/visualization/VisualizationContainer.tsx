@@ -16,6 +16,7 @@ interface VisualizationContainerProps {
   setAnalysisMode: (mode: 'overview' | 'detailed' | 'advanced') => void;
   isLoading?: boolean;
   error?: string;
+  geoJSON?: any | null;
 }
 
 const VisualizationContainer: React.FC<VisualizationContainerProps> = ({
@@ -25,7 +26,8 @@ const VisualizationContainer: React.FC<VisualizationContainerProps> = ({
   analysisMode,
   setAnalysisMode,
   isLoading = false,
-  error
+  error,
+  geoJSON
 }) => {
   return (
     <div className="glass border border-border/50 rounded-xl overflow-hidden">
@@ -56,6 +58,7 @@ const VisualizationContainer: React.FC<VisualizationContainerProps> = ({
           analysisMode={analysisMode}
           setAnalysisMode={setAnalysisMode}
           isLoading={isLoading}
+          geoJSON={geoJSON}
         />
       </div>
       

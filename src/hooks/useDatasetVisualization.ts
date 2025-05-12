@@ -2,8 +2,10 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { toast } from 'sonner';
 import { Dataset } from '@/types/dataset';
-import { getDatasetById, getDatasetVisualization } from '@/services/datasetService';
+import { getDatasetById } from '@/services/datasetService';
+import { getDatasetVisualization } from '@/services/datasetVisualizationService';
 import { generateSampleData, generateInsights } from '@/utils/datasetVisualizationUtils';
+import { getGeoJSONForDataset } from '@/services/visualization/datasetProcessor';
 
 interface UseDatasetVisualizationProps {
   id?: string;
@@ -20,6 +22,7 @@ interface UseDatasetVisualizationResult {
   analysisMode: 'overview' | 'detailed' | 'advanced';
   setAnalysisMode: (mode: 'overview' | 'detailed' | 'advanced') => void;
   handleRetry: () => Promise<void>;
+  geoJSON: any | null;
 }
 
 export function useDatasetVisualization({
@@ -34,6 +37,7 @@ export function useDatasetVisualization({
   const [insights, setInsights] = useState<string[]>([]);
   const [analysisMode, setAnalysisMode] = useState<'overview' | 'detailed' | 'advanced'>('overview');
   const [retryCount, setRetryCount] = useState(0);
+  const [geoJSON, setGeoJSON] = useState<any | null>(null);
 
   // Function to generate insights memoized to prevent unnecessary recalculations
   const generateInsightsForData = useCallback((data: any[], category: string, title: string) => {
@@ -49,7 +53,15 @@ export function useDatasetVisualization({
     // Skip fetching if data was passed as prop
     if (datasetProp && visualizationDataProp) {
       try {
-        // Still generate insights based on provided data
+        // Check for GeoJSON data
+        if (datasetProp.id) {
+          const geoData = getGeoJSONForDataset(datasetProp.id);
+          if (geoData) {
+            setGeoJSON(geoData);
+          }
+        }
+        
+        // Generate insights based on provided data
         const generatedInsights = generateInsightsForData(
           visualizationDataProp, 
           datasetProp.category, 
@@ -82,6 +94,12 @@ export function useDatasetVisualization({
       }
       
       setDataset(datasetData);
+      
+      // Check for GeoJSON data
+      const geoData = getGeoJSONForDataset(id);
+      if (geoData) {
+        setGeoJSON(geoData);
+      }
       
       try {
         // Get visualization data for the dataset
@@ -149,8 +167,9 @@ export function useDatasetVisualization({
     insights,
     analysisMode,
     setAnalysisMode,
-    handleRetry
-  }), [dataset, visualizationData, isLoading, error, insights, analysisMode, setAnalysisMode, handleRetry]);
+    handleRetry,
+    geoJSON
+  }), [dataset, visualizationData, isLoading, error, insights, analysisMode, setAnalysisMode, handleRetry, geoJSON]);
 
   return result;
 }

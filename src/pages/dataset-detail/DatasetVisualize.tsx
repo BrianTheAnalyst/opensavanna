@@ -29,7 +29,8 @@ const DatasetVisualize = ({ datasetProp, visualizationDataProp }: DatasetVisuali
     insights,
     analysisMode,
     setAnalysisMode,
-    handleRetry
+    handleRetry,
+    geoJSON
   } = useDatasetVisualization({
     id,
     datasetProp,
@@ -102,6 +103,7 @@ const DatasetVisualize = ({ datasetProp, visualizationDataProp }: DatasetVisuali
         setAnalysisMode={setAnalysisMode}
         error={error || undefined}
         isLoading={false}
+        geoJSON={geoJSON}
       />
       
       {isLoadingProcessedData ? (

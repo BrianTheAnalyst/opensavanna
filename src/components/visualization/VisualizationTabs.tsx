@@ -1,16 +1,11 @@
 
-import React, { useState, useEffect } from 'react';
-import { Dataset } from '@/types/dataset';
-import { BarChart3, FileText, LineChart, PieChart, AlertTriangle } from 'lucide-react';
+import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import InsightDashboard from '@/components/InsightDashboard';
-import AdvancedVisualization from '@/components/AdvancedVisualization';
-import Visualization from '@/components/Visualization';
-import { generateCategoryData, generateTimeSeriesData } from '@/utils/datasetVisualizationUtils';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Dataset } from "@/types/dataset";
+import Visualization from "@/components/Visualization";
+import InsightDashboard from "@/components/InsightDashboard";
+import MapVisualization from "./MapVisualization";
+import { AreaChart, BarChart3, LineChart, Map, PieChart } from 'lucide-react';
 
 interface VisualizationTabsProps {
   dataset: Dataset;
@@ -21,185 +16,92 @@ interface VisualizationTabsProps {
   isLoading?: boolean;
 }
 
-const VisualizationTabs: React.FC<VisualizationTabsProps> = ({ 
-  dataset, 
-  visualizationData, 
-  insights, 
-  analysisMode, 
+const VisualizationTabs: React.FC<VisualizationTabsProps> = ({
+  dataset,
+  visualizationData,
+  insights,
+  analysisMode,
   setAnalysisMode,
   isLoading = false
 }) => {
-  // Validate data before rendering
-  const isDataValid = Array.isArray(visualizationData) && visualizationData.length > 0;
-  const [activeTab, setActiveTab] = useState<string>(analysisMode);
-  const [isMobile, setIsMobile] = useState(false);
-  
-  // Check viewport width for responsive design
-  useEffect(() => {
-    const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
+  // Determine if the dataset likely contains geographic data
+  const hasGeoData = React.useMemo(() => {
+    if (!visualizationData || visualizationData.length === 0) return false;
     
-    checkIfMobile();
-    window.addEventListener('resize', checkIfMobile);
+    // Check if dataset category suggests geographic data
+    if (dataset.category.toLowerCase().includes('geo') || dataset.format.toLowerCase() === 'geojson') {
+      return true;
+    }
     
-    return () => {
-      window.removeEventListener('resize', checkIfMobile);
-    };
-  }, []);
-  
-  // Ensure the tabs stay in sync with the parent component's analysisMode
-  useEffect(() => {
-    setActiveTab(analysisMode);
-  }, [analysisMode]);
+    // Check if the data has lat/lng fields
+    const firstItem = visualizationData[0];
+    if (!firstItem) return false;
+    
+    const keys = Object.keys(firstItem);
+    const geoFields = ['lat', 'latitude', 'lng', 'longitude', 'x', 'y', 'coordinates', 'geometry'];
+    
+    return geoFields.some(field => 
+      keys.some(key => key.toLowerCase().includes(field.toLowerCase()))
+    );
+  }, [visualizationData, dataset]);
 
-  // Handle tab change and update parent's analysisMode
-  const handleTabChange = (value: string) => {
-    const mode = value as 'overview' | 'detailed' | 'advanced';
-    setActiveTab(value);
-    setAnalysisMode(mode);
-    toast.info(`Switched to ${value} visualization mode`);
-  };
-  
   return (
-    <Tabs value={activeTab} onValueChange={handleTabChange} className="mb-6">
-      <TabsList className={`glass ${isMobile ? 'grid grid-cols-3 w-full' : ''}`}>
-        <TabsTrigger value="overview" className="flex items-center">
+    <Tabs defaultValue={hasGeoData ? "map" : "chart"} className="w-full">
+      <TabsList className="mb-4 grid grid-cols-4 gap-4 bg-transparent">
+        <TabsTrigger value="chart" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
           <BarChart3 className="h-4 w-4 mr-2" />
-          {!isMobile && "Overview Analysis"}
+          Charts
         </TabsTrigger>
-        <TabsTrigger value="detailed" className="flex items-center">
-          <PieChart className="h-4 w-4 mr-2" />
-          {!isMobile && "Detailed Charts"}
-        </TabsTrigger>
-        <TabsTrigger value="advanced" className="flex items-center">
+        {hasGeoData && (
+          <TabsTrigger value="map" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <Map className="h-4 w-4 mr-2" />
+            Map
+          </TabsTrigger>
+        )}
+        <TabsTrigger value="insights" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
           <LineChart className="h-4 w-4 mr-2" />
-          {!isMobile && "Advanced Visualization"}
+          Insights
+        </TabsTrigger>
+        <TabsTrigger value="advanced" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+          <AreaChart className="h-4 w-4 mr-2" />
+          Advanced
         </TabsTrigger>
       </TabsList>
       
-      <TabsContent value="overview">
-        <div className="pt-4">
-          {isLoading ? (
-            <div className="space-y-4">
-              <Skeleton className="h-20 w-full rounded-lg" />
-              <Skeleton className="h-64 w-full rounded-lg" />
-            </div>
-          ) : (
-            <InsightDashboard 
-              dataset={dataset} 
-              visualizationData={visualizationData} 
-              insights={insights} 
-            />
-          )}
-        </div>
+      <TabsContent value="chart" className="space-y-8">
+        <Visualization 
+          data={visualizationData}
+          title={`${dataset.title} - Visualization`}
+          description="Visual representation of key data points"
+        />
       </TabsContent>
       
-      <TabsContent value="detailed">
-        <div className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
-          {isLoading ? (
-            <>
-              <Skeleton className="h-80 w-full rounded-lg" />
-              <Skeleton className="h-80 w-full rounded-lg" />
-              <Skeleton className="h-80 w-full rounded-lg" />
-              <Skeleton className="h-80 w-full rounded-lg" />
-            </>
-          ) : !isDataValid ? (
-            <div className="col-span-2">
-              <Alert variant="destructive" className="mb-6">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
-                  Unable to generate detailed charts. The dataset may not contain visualization-friendly data.
-                </AlertDescription>
-              </Alert>
-              <Button 
-                onClick={() => setAnalysisMode('overview')} 
-                variant="outline" 
-                className="mt-4"
-              >
-                Return to Overview
-              </Button>
-            </div>
-          ) : (
-            <>
-              <div className={isMobile ? "col-span-1" : ""}>
-                <Visualization 
-                  data={visualizationData} 
-                  title={`${dataset.title} - Overview`} 
-                  description="Analysis of key metrics from your dataset"
-                />
-              </div>
-              
-              <div className={isMobile ? "col-span-1" : ""}>
-                <Visualization 
-                  data={generateTimeSeriesData(visualizationData, dataset.category)} 
-                  title="Trend Analysis" 
-                  description="Time-based progression of key metrics"
-                />
-              </div>
-              
-              <div className={isMobile ? "col-span-1" : ""}>
-                <Visualization 
-                  data={generateCategoryData(visualizationData, dataset.category)} 
-                  title="Category Distribution" 
-                  description="Distribution across different categories"
-                />
-              </div>
-              
-              <div className={`glass border border-border/50 rounded-xl p-6 ${isMobile ? "col-span-1" : ""}`}>
-                <h3 className="text-lg font-medium mb-3">Key Insights</h3>
-                {insights.length > 0 ? (
-                  <ul className="space-y-2">
-                    {insights.slice(0, 5).map((insight, index) => (
-                      <li key={index} className="flex items-start">
-                        <span className="inline-block h-5 w-5 text-xs flex items-center justify-center rounded-full bg-primary/10 text-primary mr-2 mt-0.5">
-                          {index + 1}
-                        </span>
-                        <span>{insight}</span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-foreground/70">No insights available for this dataset</p>
-                )}
-                
-                <div className="flex items-center mt-4 pt-4 border-t border-border/50">
-                  <FileText className="h-4 w-4 mr-2 text-primary" />
-                  <span className="text-sm">Analysis based on {dataset.title}</span>
-                </div>
-              </div>
-            </>
-          )}
-        </div>
+      {hasGeoData && (
+        <TabsContent value="map" className="space-y-8">
+          <MapVisualization
+            data={visualizationData}
+            title={`${dataset.title} - Geographic Visualization`}
+            description="Spatial representation of geographic data"
+            isLoading={isLoading}
+            category={dataset.category}
+          />
+        </TabsContent>
+      )}
+      
+      <TabsContent value="insights" className="space-y-8">
+        <InsightDashboard 
+          dataset={dataset}
+          visualizationData={visualizationData}
+          insights={insights}
+        />
       </TabsContent>
       
-      <TabsContent value="advanced">
-        <div className="pt-4">
-          {isLoading ? (
-            <Skeleton className="h-96 w-full rounded-lg" />
-          ) : !isDataValid ? (
-            <div>
-              <Alert variant="destructive" className="mb-6">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
-                  Unable to generate advanced visualization. The dataset may not contain visualization-friendly data.
-                </AlertDescription>
-              </Alert>
-              <Button 
-                onClick={() => setAnalysisMode('overview')} 
-                variant="outline" 
-                className="mt-4"
-              >
-                Return to Overview
-              </Button>
-            </div>
-          ) : (
-            <AdvancedVisualization 
-              dataset={dataset}
-              data={visualizationData}
-            />
-          )}
-        </div>
+      <TabsContent value="advanced" className="space-y-8">
+        <Visualization 
+          data={visualizationData}
+          title={`${dataset.title} - Advanced Analysis`}
+          description="In-depth statistical analysis and visualization"
+        />
       </TabsContent>
     </Tabs>
   );
