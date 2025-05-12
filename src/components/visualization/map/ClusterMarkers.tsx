@@ -21,27 +21,54 @@ const ClusterMarkers: React.FC<ClusterMarkersProps> = ({ points }) => {
   React.useEffect(() => {
     if (!map || !points.length) return;
     
-    // Create marker cluster group
+    // Create marker cluster group with enhanced options
     const markers = L.markerClusterGroup({
       chunkedLoading: true,
       maxClusterRadius: 50,
       spiderfyOnMaxZoom: true,
       showCoverageOnHover: true,
       zoomToBoundsOnClick: true,
-      removeOutsideVisibleBounds: true
+      removeOutsideVisibleBounds: true,
+      // Custom cluster icon styles
+      iconCreateFunction: (cluster) => {
+        const count = cluster.getChildCount();
+        let size = 'small';
+        let className = 'marker-cluster-small';
+        
+        if (count > 100) {
+          size = 'large';
+          className = 'marker-cluster-large';
+        } else if (count > 20) {
+          size = 'medium';
+          className = 'marker-cluster-medium';
+        }
+        
+        return new L.DivIcon({
+          html: `<div><span>${count}</span></div>`,
+          className: `marker-cluster ${className}`,
+          iconSize: new L.Point(40, 40)
+        });
+      }
     });
     
-    // Add markers to the cluster group
+    // Add markers to the cluster group with improved tooltips
     points.forEach((point) => {
-      const marker = L.marker([point.lat, point.lng]);
+      const marker = L.marker([point.lat, point.lng], {
+        title: point.name || 'Location',
+        riseOnHover: true
+      });
       
-      // Add tooltip with name and value if available
+      // Add enhanced tooltip with name and value if available
       if (point.name || point.value !== undefined) {
         const tooltipContent = `
           ${point.name ? `<strong>${point.name}</strong>` : ''}
-          ${point.value !== undefined ? `<div>Value: ${point.value}</div>` : ''}
+          ${point.value !== undefined ? `<div>Value: ${point.value.toLocaleString()}</div>` : ''}
         `;
-        marker.bindTooltip(tooltipContent);
+        marker.bindTooltip(tooltipContent, { 
+          direction: 'top',
+          offset: L.point(0, -10),
+          className: 'custom-tooltip'
+        });
       }
       
       markers.addLayer(marker);
@@ -49,6 +76,20 @@ const ClusterMarkers: React.FC<ClusterMarkersProps> = ({ points }) => {
     
     // Add the cluster group to the map
     map.addLayer(markers);
+    
+    // Fit bounds to show all markers if we have points
+    if (points.length > 1) {
+      try {
+        const bounds = markers.getBounds();
+        map.fitBounds(bounds, { 
+          padding: [50, 50],
+          maxZoom: 12,
+          animate: true
+        });
+      } catch (e) {
+        console.error("Error fitting bounds:", e);
+      }
+    }
     
     // Clean up on unmount
     return () => {

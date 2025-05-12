@@ -31,10 +31,12 @@ const MapContainerComponent: React.FC<MapContainerComponentProps> = ({
 }) => {
   // Define props for Leaflet components
   const mapContainerProps = {
-    style: { height: '100%', width: '100%' },
+    style: { height: '100%', width: '100%', borderRadius: '0.375rem' },
     center,
     zoom,
     zoomControl: false,
+    attributionControl: true,
+    preferCanvas: true, // Improves performance for many markers
   };
 
   // Choose the appropriate tile layer based on visualization type
@@ -53,9 +55,9 @@ const MapContainerComponent: React.FC<MapContainerComponentProps> = ({
           attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
         };
       case 'cluster':
-        // For cluster view, use a light background
+        // For cluster view, use a light detailed background
         return {
-          url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png",
+          url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
           attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
         };
       default:
@@ -69,34 +71,52 @@ const MapContainerComponent: React.FC<MapContainerComponentProps> = ({
 
   const tileLayerProps = getTileLayer();
 
+  // Determine which visualization component to render
+  const renderVisualizationLayer = () => {
+    if (!points.length && !geoJSON) return null;
+
+    switch (visualizationType) {
+      case 'choropleth':
+        // Show GeoJSON layer for choropleth
+        return geoJSON ? (
+          <GeoJSONLayer 
+            geoJSON={geoJSON} 
+            visualizationType="choropleth" 
+            category={category}
+          />
+        ) : null;
+      
+      case 'heatmap':
+        // Show heatmap layer if we have points
+        return points.length > 0 ? <HeatmapLayer points={points} /> : null;
+      
+      case 'cluster':
+        // Show cluster markers if we have points
+        return points.length > 0 ? <ClusterMarkers points={points} /> : null;
+      
+      case 'standard':
+      default:
+        // Standard view - show GeoJSON if available, otherwise show point markers
+        if (geoJSON) {
+          return (
+            <GeoJSONLayer 
+              geoJSON={geoJSON} 
+              visualizationType="standard" 
+              category={category}
+            />
+          );
+        } else if (points.length > 0) {
+          return <PointMarkers points={points} />;
+        }
+        return null;
+    }
+  };
+
   return (
     <LeafletMapContainer {...mapContainerProps}>
       <TileLayer {...tileLayerProps} />
       <ZoomControl position="topright" />
-      
-      {/* GeoJSON layer */}
-      {geoJSON && (visualizationType === 'standard' || visualizationType === 'choropleth') && (
-        <GeoJSONLayer 
-          geoJSON={geoJSON} 
-          visualizationType={visualizationType} 
-          category={category}
-        />
-      )}
-      
-      {/* Heatmap layer */}
-      {visualizationType === 'heatmap' && points.length > 0 && (
-        <HeatmapLayer points={points} />
-      )}
-      
-      {/* Cluster layer */}
-      {visualizationType === 'cluster' && points.length > 0 && (
-        <ClusterMarkers points={points} />
-      )}
-      
-      {/* Point markers */}
-      {visualizationType === 'standard' && points.length > 0 && !geoJSON && (
-        <PointMarkers points={points} />
-      )}
+      {renderVisualizationLayer()}
     </LeafletMapContainer>
   );
 };
