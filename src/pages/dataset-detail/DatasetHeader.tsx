@@ -1,62 +1,55 @@
 
-import { Dataset } from "@/types/dataset";
-import { Badge } from "@/components/ui/badge";
-import { Download, FileText, Globe } from "lucide-react";
-import { formatDataPoints } from "@/utils/dataFormatUtils";
-import DatasetVerificationStatus from "@/components/dataset/DatasetVerificationStatus";
-import { Button } from "@/components/ui/button";
+import React from 'react';
+import { Dataset } from '@/types/dataset';
+import { Separator } from "@/components/ui/separator";
+import DatasetSidebarInfo from '@/components/dataset/DatasetSidebarInfo';
+import DatasetVerificationStatus from '@/components/dataset/DatasetVerificationStatus';
 
 interface DatasetHeaderProps {
   dataset: Dataset;
-  handleDownload?: () => Promise<void>;  // Make this prop optional
+  handleDownload: () => void;
+  onDataChange?: () => void; // Add onDataChange prop
 }
 
-const DatasetHeader = ({ dataset, handleDownload }: DatasetHeaderProps) => {
+const DatasetHeader: React.FC<DatasetHeaderProps> = ({ dataset, handleDownload, onDataChange }) => {
   return (
-    <div className="mb-8">
-      <div className="flex items-center gap-3 mb-2">
-        <h1 className="text-3xl font-bold">{dataset.title}</h1>
-        <DatasetVerificationStatus dataset={dataset} />
-      </div>
-
-      <p className="text-muted-foreground mb-4 max-w-3xl">{dataset.description}</p>
-      
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="flex flex-wrap gap-3 text-sm mr-4">
-          <Badge variant="outline" className="flex items-center gap-1.5">
-            <FileText className="h-3.5 w-3.5" />
-            {dataset.format.toUpperCase()}
-          </Badge>
-          
-          <Badge variant="outline" className="flex items-center gap-1.5">
-            <Globe className="h-3.5 w-3.5" />
-            {dataset.country}
-          </Badge>
-          
-          <Badge variant="outline" className="flex items-center gap-1.5">
-            <Download className="h-3.5 w-3.5" />
-            {dataset.downloads || 0} downloads
-          </Badge>
-          
-          {dataset.dataPoints && (
-            <Badge variant="outline" className="flex items-center gap-1.5">
-              <FileText className="h-3.5 w-3.5" />
-              {formatDataPoints(dataset.dataPoints)} data points
-            </Badge>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 animate-fade-in">
+      <div className="md:col-span-2">
+        <div className="mb-4">
+          {dataset.verificationStatus && (
+            <DatasetVerificationStatus status={dataset.verificationStatus} className="mb-4" />
           )}
+          <h1 className="text-3xl font-medium tracking-tight mb-2">{dataset.title}</h1>
+          <p className="text-foreground/70">{dataset.description}</p>
         </div>
         
-        {handleDownload && (
-          <Button 
-            variant="default" 
-            size="sm" 
-            onClick={handleDownload}
-            className="flex items-center gap-2"
-          >
-            <Download className="h-4 w-4" />
-            Download Dataset
-          </Button>
-        )}
+        <Separator className="my-4" />
+        
+        <div className="flex flex-wrap gap-3">
+          {dataset.tags ? (
+            dataset.tags.map((tag, i) => (
+              <span key={i} className="px-3 py-1 bg-secondary rounded-full text-xs font-medium">
+                {tag}
+              </span>
+            ))
+          ) : (
+            <>
+              <span className="px-3 py-1 bg-secondary rounded-full text-xs font-medium">
+                {dataset.category}
+              </span>
+              <span className="px-3 py-1 bg-secondary rounded-full text-xs font-medium">
+                {dataset.country}
+              </span>
+              <span className="px-3 py-1 bg-secondary rounded-full text-xs font-medium">
+                {dataset.format}
+              </span>
+            </>
+          )}
+        </div>
+      </div>
+      
+      <div>
+        <DatasetSidebarInfo dataset={dataset} onDataChange={onDataChange} />
       </div>
     </div>
   );

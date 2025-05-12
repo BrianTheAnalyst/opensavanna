@@ -9,9 +9,10 @@ import { isUserAdmin } from '@/services/userRoleService';
 
 interface DatasetSidebarInfoProps {
   dataset: Dataset;
+  onDataChange?: () => void; // Add onDataChange prop
 }
 
-const DatasetSidebarInfo = ({ dataset }: DatasetSidebarInfoProps) => {
+const DatasetSidebarInfo = ({ dataset, onDataChange }: DatasetSidebarInfoProps) => {
   const [isDownloading, setIsDownloading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -87,7 +88,7 @@ const DatasetSidebarInfo = ({ dataset }: DatasetSidebarInfoProps) => {
       </div>
 
       {/* Admin controls */}
-      {isAdmin && <AdminDatasetControls dataset={dataset} isAdmin={isAdmin} />}
+      {isAdmin && <AdminDatasetControls dataset={dataset} isAdmin={isAdmin} onDataChange={onDataChange} />}
     </aside>
   );
 };

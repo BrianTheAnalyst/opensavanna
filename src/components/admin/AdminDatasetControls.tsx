@@ -6,13 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { deleteDataset, isUserAdmin } from '@/services/datasetAdminService';
 import { Dataset } from '@/types/dataset';
+import { toast } from "sonner";
 
 interface AdminDatasetControlsProps {
   dataset: Dataset;
   isAdmin: boolean;
+  onDataChange?: () => void; // Add onDataChange prop
 }
 
-const AdminDatasetControls = ({ dataset, isAdmin }: AdminDatasetControlsProps) => {
+const AdminDatasetControls = ({ dataset, isAdmin, onDataChange }: AdminDatasetControlsProps) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const navigate = useNavigate();
@@ -21,11 +23,28 @@ const AdminDatasetControls = ({ dataset, isAdmin }: AdminDatasetControlsProps) =
 
   const handleDelete = async () => {
     setIsDeleting(true);
+    console.log("Attempting to delete dataset:", dataset.id);
+    
     try {
       const success = await deleteDataset(dataset.id);
+      
       if (success) {
-        navigate('/datasets');
+        toast.success(`Dataset "${dataset.title}" deleted successfully`);
+        
+        // Notify parent components about the data change
+        if (onDataChange) {
+          console.log("Calling onDataChange callback after successful deletion");
+          onDataChange();
+        }
+        
+        // Navigate back to datasets listing
+        navigate('/datasets', { replace: true });
+      } else {
+        toast.error("Failed to delete dataset");
       }
+    } catch (error) {
+      console.error("Error during dataset deletion:", error);
+      toast.error("An error occurred while deleting the dataset");
     } finally {
       setIsDeleting(false);
       setIsDeleteDialogOpen(false);

@@ -1,8 +1,11 @@
 
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, DownloadCloud, Eye, BarChart3, MapPin, FileText } from 'lucide-react';
+import { ArrowUpRight, DownloadCloud, Eye, BarChart3, MapPin, FileText, Trash2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { useNavigate } from 'react-router-dom';
+import { deleteDataset, isUserAdmin } from '@/services/datasetAdminService';
+import { toast } from "sonner";
 
 interface DatasetCardProps {
   id: string;
@@ -30,6 +33,9 @@ const DatasetCard = ({
   onDelete
 }: DatasetCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const navigate = useNavigate();
   
   const formatIcons: Record<string, JSX.Element> = {
     'CSV': <FileText className="h-4 w-4" />,
@@ -38,10 +44,50 @@ const DatasetCard = ({
     'Chart': <BarChart3 className="h-4 w-4" />,
   };
   
+  // Check if user is admin
+  useState(() => {
+    const checkAdmin = async () => {
+      const admin = await isUserAdmin();
+      setIsAdmin(admin);
+    };
+    checkAdmin();
+  }, []);
+  
   const handleDownload = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault(); // Prevent link navigation when clicking the button
     console.log(`Downloading dataset: ${id}`);
     // Add download logic here
+  };
+
+  // Handle dataset deletion
+  const handleDelete = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault(); // Prevent link navigation
+    e.stopPropagation(); // Stop event bubbling
+    
+    if (window.confirm(`Are you sure you want to delete "${title}"?`)) {
+      setIsDeleting(true);
+      
+      try {
+        console.log(`Deleting dataset with ID: ${id}`);
+        const success = await deleteDataset(id);
+        
+        if (success) {
+          toast.success(`Dataset "${title}" deleted successfully`);
+          // Call the onDelete callback to refresh the parent component
+          if (onDelete) {
+            console.log("Calling onDelete callback after successful deletion");
+            onDelete();
+          }
+        } else {
+          toast.error("Failed to delete dataset");
+        }
+      } catch (error) {
+        console.error("Error during dataset deletion:", error);
+        toast.error("An error occurred while deleting the dataset");
+      } finally {
+        setIsDeleting(false);
+      }
+    }
   };
   
   if (type === 'compact') {
@@ -59,6 +105,20 @@ const DatasetCard = ({
             {formatIcons[format] || formatIcons['CSV']}
           </span>
         </div>
+        {isAdmin && (
+          <div className="mt-2 flex justify-end">
+            <Button
+              variant="destructive"
+              size="sm"
+              className="h-7 px-2 text-xs"
+              onClick={handleDelete}
+              disabled={isDeleting}
+            >
+              <Trash2 className="h-3 w-3 mr-1" />
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </Button>
+          </div>
+        )}
       </Link>
     );
   }
@@ -124,6 +184,21 @@ const DatasetCard = ({
               </Button>
             </Link>
           </div>
+          
+          {isAdmin && (
+            <div className="mt-3">
+              <Button
+                variant="destructive"
+                size="sm"
+                className="w-full"
+                onClick={handleDelete}
+                disabled={isDeleting}
+              >
+                <Trash2 className="h-3 w-3 mr-1" />
+                {isDeleting ? 'Deleting...' : 'Delete Dataset'}
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -131,50 +206,67 @@ const DatasetCard = ({
   
   // Default card
   return (
-    <Link 
-      to={`/datasets/${id}`}
-      className="block relative glass border border-border/50 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-md hover:border-primary/20 cursor-pointer"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <div className="p-5">
-        <div className="flex justify-between items-start mb-3">
-          <div className="flex items-center space-x-2">
-            <span className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded-full flex items-center">
-              {formatIcons[format] || formatIcons['CSV']}
-              <span className="ml-1">{format}</span>
-            </span>
-            <span className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded-full">
-              {category}
-            </span>
+    <div className="relative">
+      <Link 
+        to={`/datasets/${id}`}
+        className="block relative glass border border-border/50 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-md hover:border-primary/20 cursor-pointer"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <div className="p-5">
+          <div className="flex justify-between items-start mb-3">
+            <div className="flex items-center space-x-2">
+              <span className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded-full flex items-center">
+                {formatIcons[format] || formatIcons['CSV']}
+                <span className="ml-1">{format}</span>
+              </span>
+              <span className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded-full">
+                {category}
+              </span>
+            </div>
+            <span className="text-xs text-foreground/60">{date}</span>
           </div>
-          <span className="text-xs text-foreground/60">{date}</span>
+          
+          <h3 className="text-lg font-medium mb-1 pr-6 group-hover:text-primary transition-colors">
+            {title}
+            <ArrowUpRight 
+              className={`inline-block ml-1 h-3 w-3 transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`} 
+            />
+          </h3>
+          <p className="text-sm text-foreground/70 line-clamp-2 mb-3">{description}</p>
+          
+          <div className="flex justify-between items-center">
+            <div className="text-xs text-foreground/60">
+              <span className="inline-flex items-center">
+                <MapPin className="h-3 w-3 mr-1" />
+                {country}
+              </span>
+            </div>
+            <div className="text-xs text-foreground/60">
+              <span className="inline-flex items-center">
+                <DownloadCloud className="h-3 w-3 mr-1" />
+                {downloads.toLocaleString()} downloads
+              </span>
+            </div>
+          </div>
         </div>
-        
-        <h3 className="text-lg font-medium mb-1 pr-6 group-hover:text-primary transition-colors">
-          {title}
-          <ArrowUpRight 
-            className={`inline-block ml-1 h-3 w-3 transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`} 
-          />
-        </h3>
-        <p className="text-sm text-foreground/70 line-clamp-2 mb-3">{description}</p>
-        
-        <div className="flex justify-between items-center">
-          <div className="text-xs text-foreground/60">
-            <span className="inline-flex items-center">
-              <MapPin className="h-3 w-3 mr-1" />
-              {country}
-            </span>
-          </div>
-          <div className="text-xs text-foreground/60">
-            <span className="inline-flex items-center">
-              <DownloadCloud className="h-3 w-3 mr-1" />
-              {downloads.toLocaleString()} downloads
-            </span>
-          </div>
+      </Link>
+      
+      {isAdmin && (
+        <div className="mt-2 flex justify-end">
+          <Button
+            variant="destructive"
+            size="sm"
+            className="h-7 px-2 text-xs"
+            onClick={handleDelete}
+            disabled={isDeleting}
+          >
+            <Trash2 className="h-3 w-3 mr-1" />
+            {isDeleting ? 'Deleting...' : 'Delete'}
+          </Button>
         </div>
-      </div>
-    </Link>
+      )}
+    </div>
   );
 };
 

@@ -30,10 +30,23 @@ const DatasetGrid = ({
   onDataChange
 }: DatasetGridProps) => {
   const [isLoaded, setIsLoaded] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0); // Add a key to force re-render
   
   useEffect(() => {
     setIsLoaded(true);
   }, []);
+
+  // Handle dataset deletion and refresh
+  const handleDeleteDataset = () => {
+    console.log("Dataset deleted, refreshing grid");
+    // Trigger refresh in two ways:
+    // 1. Call the parent's onDataChange if provided
+    if (onDataChange) {
+      onDataChange();
+    }
+    // 2. Update local refresh key to force re-render
+    setRefreshKey(prevKey => prevKey + 1);
+  };
   
   if (loading) {
     return (
@@ -70,7 +83,7 @@ const DatasetGrid = ({
     const otherDatasets = datasets.filter(d => d !== featuredDataset).slice(0, 3);
     
     return (
-      <div className={`grid grid-cols-1 lg:grid-cols-3 gap-6 ${isLoaded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-500`}>
+      <div key={refreshKey} className={`grid grid-cols-1 lg:grid-cols-3 gap-6 ${isLoaded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-500`}>
         <div className="lg:col-span-2">
           {featuredDataset && (
             <DatasetCard
@@ -83,7 +96,7 @@ const DatasetGrid = ({
               date={featuredDataset.date}
               downloads={featuredDataset.downloads}
               type="featured"
-              onDelete={onDataChange}
+              onDelete={handleDeleteDataset}
             />
           )}
         </div>
@@ -100,7 +113,7 @@ const DatasetGrid = ({
               date={dataset.date}
               downloads={dataset.downloads}
               type="default"
-              onDelete={onDataChange}
+              onDelete={handleDeleteDataset}
             />
           ))}
         </div>
@@ -110,7 +123,7 @@ const DatasetGrid = ({
   
   if (layout === 'compact') {
     return (
-      <div className={`grid grid-cols-1 md:grid-cols-2 gap-3 ${isLoaded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-500`}>
+      <div key={refreshKey} className={`grid grid-cols-1 md:grid-cols-2 gap-3 ${isLoaded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-500`}>
         {datasets.map((dataset) => (
           <DatasetCard
             key={dataset.id}
@@ -123,7 +136,7 @@ const DatasetGrid = ({
             date={dataset.date}
             downloads={dataset.downloads}
             type="compact"
-            onDelete={onDataChange}
+            onDelete={handleDeleteDataset}
           />
         ))}
       </div>
@@ -132,7 +145,7 @@ const DatasetGrid = ({
   
   // Default grid layout
   return (
-    <div className={`grid gap-6 ${
+    <div key={refreshKey} className={`grid gap-6 ${
       columns === 2 ? 'grid-cols-1 md:grid-cols-2' : 
       columns === 3 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' :
       columns === 4 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 
@@ -150,7 +163,7 @@ const DatasetGrid = ({
           date={dataset.date}
           downloads={dataset.downloads}
           type="default"
-          onDelete={onDataChange}
+          onDelete={handleDeleteDataset}
         />
       ))}
     </div>

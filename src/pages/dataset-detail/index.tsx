@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -15,6 +15,7 @@ import DatasetVisualize from './DatasetVisualize';
 import DatasetApiAccess from './DatasetApiAccess';
 import RelatedDatasets from './RelatedDatasets';
 import { LoadingState, NotFoundState } from './LoadingState';
+import { toast } from 'sonner';
 
 const DatasetDetail = () => {
   const { id } = useParams();
@@ -22,24 +23,34 @@ const DatasetDetail = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [visData, setVisData] = useState<any[]>([]);
+  const navigate = useNavigate();
   
-  useEffect(() => {
-    window.scrollTo(0, 0);
+  const fetchDataset = async () => {
+    if (!id) return;
     
-    const fetchDataset = async () => {
-      if (!id) return;
-      
-      setIsLoading(true);
+    setIsLoading(true);
+    try {
       const data = await getDatasetById(id);
       if (data) {
         setDataset(data);
         
         const visualizationData = await getDatasetVisualization(id);
         setVisData(visualizationData);
+      } else {
+        // Dataset not found - might have been deleted
+        toast.error("Dataset not found. It may have been deleted.");
+        navigate('/datasets', { replace: true });
       }
+    } catch (error) {
+      console.error("Error fetching dataset:", error);
+      toast.error("Failed to load dataset details");
+    } finally {
       setIsLoading(false);
-    };
-    
+    }
+  };
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
     fetchDataset();
   }, [id]);
   
@@ -57,6 +68,12 @@ const DatasetDetail = () => {
       '',
       `${window.location.pathname}?tab=${value}`
     );
+  };
+  
+  // Handle data change (e.g., after deletion)
+  const handleDataChange = () => {
+    console.log("Data change detected in dataset detail page");
+    fetchDataset();
   };
   
   // Sync with URL parameters when page loads
@@ -83,6 +100,7 @@ const DatasetDetail = () => {
               <DatasetHeader 
                 dataset={dataset} 
                 handleDownload={handleDownload} 
+                onDataChange={handleDataChange}
               />
               
               <Tabs value={activeTab} onValueChange={handleTabChange} className="mb-8 animate-fade-in">
@@ -110,7 +128,7 @@ const DatasetDetail = () => {
                 </TabsContent>
               </Tabs>
               
-              <RelatedDatasets category={dataset.category} />
+              <RelatedDatasets category={dataset.category} onDataChange={handleDataChange} />
             </>
           )}
         </div>
