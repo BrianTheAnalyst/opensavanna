@@ -75,21 +75,15 @@ export const deleteDataset = async (id: string): Promise<boolean> => {
     }
     
     // Then delete the dataset
-    const { error, count } = await supabase
+    const { error } = await supabase
       .from('datasets')
       .delete()
-      .eq('id', id)
-      .select('*', { count: 'exact', head: true });
+      .eq('id', id);
     
     if (error) {
       console.error('Error deleting dataset:', error);
       toast.error('Failed to delete dataset');
       return false;
-    }
-    
-    // Verify deletion
-    if (count === 0) {
-      console.warn('No dataset was deleted, it may not exist:', id);
     }
     
     toast.success('Dataset deleted successfully');
