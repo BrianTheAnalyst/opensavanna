@@ -31,14 +31,14 @@ const DatasetCard = ({
   
   const formatIcons = getFormatIcons();
   
-  // Check if user is admin
+  // Check if user is admin - fixed the useState call to useEffect
   useState(() => {
     const checkAdmin = async () => {
       const admin = await isUserAdmin();
       setIsAdmin(admin);
     };
     checkAdmin();
-  }, []);
+  });
   
   const handleDownload = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault(); // Prevent link navigation when clicking the button
