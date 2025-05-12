@@ -1,32 +1,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, GeoJSON, Marker, Popup, CircleMarker } from 'react-leaflet';
-import { LatLngExpression } from 'leaflet';
+import { LatLngExpression, Icon, DivIcon } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-
-// Fix for Leaflet marker icons in production builds
-useEffect(() => {
-  // This is needed to properly display markers in Leaflet when using webpack/vite
-  delete (window as any)._leaflet_id;
-  
-  const L = require('leaflet');
-  
-  delete L.Icon.Default.prototype._getIconUrl;
-  
-  L.Icon.Default.mergeOptions({
-    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-  });
-}, []);
-
-// Default colors for choropleth maps
-const colors = [
-  '#f7fbff', '#deebf7', '#c6dbef', '#9ecae1',
-  '#6baed6', '#4292c6', '#2171b5', '#08519c', '#08306b'
-];
 
 // Interface for props
 interface MapVisualizationProps {
@@ -49,6 +27,28 @@ const MapVisualization: React.FC<MapVisualizationProps> = ({
   const [mapCenter, setMapCenter] = useState<LatLngExpression>([0, 0]);
   const [mapZoom, setMapZoom] = useState(2);
   const [processedGeoJSON, setProcessedGeoJSON] = useState<any>(null);
+
+  // Fix for Leaflet marker icons in production builds
+  useEffect(() => {
+    // This is needed to properly display markers in Leaflet when using webpack/vite
+    delete (window as any)._leaflet_id;
+    
+    const L = require('leaflet');
+    
+    delete L.Icon.Default.prototype._getIconUrl;
+    
+    L.Icon.Default.mergeOptions({
+      iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+      iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+    });
+  }, []);
+
+  // Default colors for choropleth maps
+  const colors = [
+    '#f7fbff', '#deebf7', '#c6dbef', '#9ecae1',
+    '#6baed6', '#4292c6', '#2171b5', '#08519c', '#08306b'
+  ];
   
   // Process data for map visualization
   useEffect(() => {
@@ -264,6 +264,16 @@ const MapVisualization: React.FC<MapVisualizationProps> = ({
     );
   }
 
+  // Function for handling GeoJSON feature interactions
+  const onEachFeature = (feature: any, layer: any) => {
+    if (feature.properties) {
+      const popupContent = Object.entries(feature.properties)
+        .map(([key, value]) => `<strong>${key}:</strong> ${value}`)
+        .join('<br>');
+      layer.bindPopup(popupContent);
+    }
+  };
+
   return (
     <Card className="w-full">
       <CardHeader className="pb-2">
@@ -273,7 +283,7 @@ const MapVisualization: React.FC<MapVisualizationProps> = ({
       <CardContent>
         <div className="w-full h-[450px] rounded-md overflow-hidden border border-border">
           <MapContainer 
-            center={mapCenter} 
+            center={mapCenter as [number, number]} 
             zoom={mapZoom} 
             style={{ height: '100%', width: '100%' }}
           >
@@ -284,30 +294,25 @@ const MapVisualization: React.FC<MapVisualizationProps> = ({
             
             {processedGeoJSON && (
               <GeoJSON 
-                data={processedGeoJSON} 
-                style={styleFeature}
-                onEachFeature={(feature, layer) => {
-                  if (feature.properties) {
-                    const popupContent = Object.entries(feature.properties)
-                      .map(([key, value]) => `<strong>${key}:</strong> ${value}`)
-                      .join('<br>');
-                    layer.bindPopup(popupContent);
-                  }
-                }}
+                data={processedGeoJSON}
+                pathOptions={styleFeature({})}
+                onEachFeature={onEachFeature}
               />
             )}
             
-            {pointsData.validPoints.length > 0 && pointsData.validPoints.map((point, index) => (
+            {pointsData.validPoints.map((point, index) => (
               point.value ? (
                 <CircleMarker 
                   key={index}
-                  center={[point.lat, point.lng]}
-                  radius={Math.min(10, Math.max(5, point.value / 10))}
-                  fillColor="#8B5CF6"
-                  color="#6D28D9"
-                  weight={1}
-                  opacity={0.8}
-                  fillOpacity={0.6}
+                  center={[point.lat, point.lng] as [number, number]}
+                  pathOptions={{
+                    radius: Math.min(10, Math.max(5, point.value / 10)),
+                    fillColor: "#8B5CF6",
+                    color: "#6D28D9",
+                    weight: 1,
+                    opacity: 0.8,
+                    fillOpacity: 0.6
+                  }}
                 >
                   <Popup>
                     {point.name && <div><strong>{point.name}</strong></div>}
@@ -317,7 +322,7 @@ const MapVisualization: React.FC<MapVisualizationProps> = ({
                   </Popup>
                 </CircleMarker>
               ) : (
-                <Marker key={index} position={[point.lat, point.lng]}>
+                <Marker key={index} position={[point.lat, point.lng] as [number, number]}>
                   <Popup>
                     {point.name && <div><strong>{point.name}</strong></div>}
                     <div>Latitude: {point.lat}</div>

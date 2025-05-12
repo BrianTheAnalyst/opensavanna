@@ -80,6 +80,15 @@ export const formatGeoJSONForVisualization = (geoJson: any, category: string): a
   return formatDataForVisualization(data, category);
 };
 
+// Define an interface for the visualization data item
+interface VisualizationDataItem {
+  name: string;
+  value: number;
+  rawData: any;
+  lat?: number;
+  lng?: number;
+}
+
 // Common function to format data for visualization
 export const formatDataForVisualization = (data: any[], category: string): any[] => {
   // Extract key fields based on category
@@ -133,7 +142,7 @@ export const formatDataForVisualization = (data: any[], category: string): any[]
   // Format the data for visualization, limiting to 20 items
   return data.slice(0, 20).map((item, index) => {
     // Base object with name and value
-    const visItem = {
+    const visItem: VisualizationDataItem = {
       name: nameField !== 'index' ? String(item[nameField] || 'Item ' + index) : 'Item ' + index,
       value: Number(item[valueField] || 0),
       // Include original data for reference

@@ -14,6 +14,7 @@ interface VisualizationTabsProps {
   analysisMode: 'overview' | 'detailed' | 'advanced';
   setAnalysisMode: (mode: 'overview' | 'detailed' | 'advanced') => void;
   isLoading?: boolean;
+  geoJSON?: any | null;
 }
 
 const VisualizationTabs: React.FC<VisualizationTabsProps> = ({
@@ -22,7 +23,8 @@ const VisualizationTabs: React.FC<VisualizationTabsProps> = ({
   insights,
   analysisMode,
   setAnalysisMode,
-  isLoading = false
+  isLoading = false,
+  geoJSON
 }) => {
   // Determine if the dataset likely contains geographic data
   const hasGeoData = React.useMemo(() => {
@@ -84,6 +86,7 @@ const VisualizationTabs: React.FC<VisualizationTabsProps> = ({
             description="Spatial representation of geographic data"
             isLoading={isLoading}
             category={dataset.category}
+            geoJSON={geoJSON}
           />
         </TabsContent>
       )}
