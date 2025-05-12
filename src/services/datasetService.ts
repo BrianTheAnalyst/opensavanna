@@ -52,7 +52,7 @@ export const getDatasets = async (filters?: DatasetFilters): Promise<Dataset[]> 
       return [];
     }
     
-    // Map database records to Dataset objects using type assertions to handle schema differences
+    // Using explicit type casting to avoid deep type instantiation
     return data.map(record => {
       const dataset: Dataset = {
         id: record.id,
@@ -67,15 +67,15 @@ export const getDatasets = async (filters?: DatasetFilters): Promise<Dataset[]> 
         file: record.file || undefined
       };
       
-      // Use type assertion to safely access properties that might not be in the TypeScript type
-      const dbRecord = record as any;
+      // Type assertion for database fields not in the TypeScript interface
+      const recordAny = record as any;
       
-      if (dbRecord.verification_status) {
-        dataset.verificationStatus = dbRecord.verification_status as 'pending' | 'approved' | 'rejected';
+      if ('verification_status' in recordAny) {
+        dataset.verificationStatus = recordAny.verification_status;
       }
       
-      if (dbRecord.verification_notes) {
-        dataset.verificationNotes = dbRecord.verification_notes;
+      if ('verification_notes' in recordAny) {
+        dataset.verificationNotes = recordAny.verification_notes;
       }
       
       return dataset;
@@ -124,15 +124,15 @@ export const getDatasetById = async (id: string): Promise<Dataset | null> => {
       file: data.file || undefined
     };
     
-    // Use type assertion to safely access properties that might not be in the TypeScript type
-    const dbRecord = data as any;
+    // Type assertion for database fields not in TypeScript interface
+    const dataAny = data as any;
     
-    if (dbRecord.verification_status) {
-      dataset.verificationStatus = dbRecord.verification_status as 'pending' | 'approved' | 'rejected';
+    if ('verification_status' in dataAny) {
+      dataset.verificationStatus = dataAny.verification_status;
     }
     
-    if (dbRecord.verification_notes) {
-      dataset.verificationNotes = dbRecord.verification_notes;
+    if ('verification_notes' in dataAny) {
+      dataset.verificationNotes = dataAny.verification_notes;
     }
     
     // Check permissions
