@@ -73,6 +73,9 @@ export type Database = {
           title: string
           updated_at: string | null
           user_id: string | null
+          verification_feedback_sent: string | null
+          verification_notes: string | null
+          verification_status: string | null
         }
         Insert: {
           aiAnalysis?: Json | null
@@ -89,6 +92,9 @@ export type Database = {
           title: string
           updated_at?: string | null
           user_id?: string | null
+          verification_feedback_sent?: string | null
+          verification_notes?: string | null
+          verification_status?: string | null
         }
         Update: {
           aiAnalysis?: Json | null
@@ -105,6 +111,9 @@ export type Database = {
           title?: string
           updated_at?: string | null
           user_id?: string | null
+          verification_feedback_sent?: string | null
+          verification_notes?: string | null
+          verification_status?: string | null
         }
         Relationships: []
       }

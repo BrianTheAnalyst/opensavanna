@@ -58,8 +58,7 @@ export const updateDatasetVerificationStatus = async (
   notes?: string
 ): Promise<boolean> => {
   try {
-    // Create an updates object with custom fields that will be added to the database
-    // We use "as any" to bypass TypeScript checks since our schema doesn't have these fields yet
+    // Now that we have the proper columns in the database, we can use them directly
     const updates: any = {
       verification_status: status
     };
@@ -107,8 +106,7 @@ export const sendDatasetFeedback = async (
     }
     
     // Store feedback in the verification_notes field
-    // We use "as any" to bypass TypeScript checks since our schema doesn't have these fields yet
-    const updates: any = {
+    const updates = {
       verification_notes: feedback,
       verification_feedback_sent: new Date().toISOString()
     };
@@ -138,7 +136,6 @@ export const sendDatasetFeedback = async (
 // Get count of datasets pending verification
 export const fetchPendingDatasetCount = async (): Promise<number> => {
   try {
-    // Use verification_status instead of verificationStatus
     const { count, error } = await supabase
       .from('datasets')
       .select('*', { count: 'exact', head: true })
