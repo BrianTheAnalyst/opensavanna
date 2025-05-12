@@ -14,7 +14,11 @@ interface DatasetVerificationStatusProps {
 }
 
 const DatasetVerificationStatus: React.FC<DatasetVerificationStatusProps> = ({ dataset }) => {
-  if (!dataset.verificationStatus || dataset.verificationStatus === 'pending') {
+  // Check both the TypeScript property and potentially the database column name
+  const verificationStatus = dataset.verificationStatus || (dataset as any).verification_status;
+  const verificationNotes = dataset.verificationNotes || (dataset as any).verification_notes;
+
+  if (!verificationStatus || verificationStatus === 'pending') {
     return (
       <TooltipProvider>
         <Tooltip>
@@ -32,7 +36,7 @@ const DatasetVerificationStatus: React.FC<DatasetVerificationStatusProps> = ({ d
     );
   }
 
-  if (dataset.verificationStatus === 'approved') {
+  if (verificationStatus === 'approved') {
     return (
       <TooltipProvider>
         <Tooltip>
@@ -44,8 +48,8 @@ const DatasetVerificationStatus: React.FC<DatasetVerificationStatusProps> = ({ d
           </TooltipTrigger>
           <TooltipContent>
             <p>This dataset has been reviewed and approved</p>
-            {dataset.verificationNotes && (
-              <p className="text-xs mt-1 italic">{dataset.verificationNotes}</p>
+            {verificationNotes && (
+              <p className="text-xs mt-1 italic">{verificationNotes}</p>
             )}
           </TooltipContent>
         </Tooltip>
@@ -53,7 +57,7 @@ const DatasetVerificationStatus: React.FC<DatasetVerificationStatusProps> = ({ d
     );
   }
 
-  if (dataset.verificationStatus === 'rejected') {
+  if (verificationStatus === 'rejected') {
     return (
       <TooltipProvider>
         <Tooltip>
@@ -65,8 +69,8 @@ const DatasetVerificationStatus: React.FC<DatasetVerificationStatusProps> = ({ d
           </TooltipTrigger>
           <TooltipContent>
             <p>This dataset was reviewed and rejected</p>
-            {dataset.verificationNotes && (
-              <p className="text-xs mt-1 italic">{dataset.verificationNotes}</p>
+            {verificationNotes && (
+              <p className="text-xs mt-1 italic">{verificationNotes}</p>
             )}
           </TooltipContent>
         </Tooltip>

@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Dataset, DatasetFilters } from "@/types/dataset";
@@ -28,7 +27,8 @@ export const getDatasets = async (filters?: DatasetFilters): Promise<Dataset[]> 
       }
       
       if (filters.verificationStatus) {
-        query = query.eq('verificationStatus', filters.verificationStatus);
+        // Use verification_status (database column name) instead of verificationStatus
+        query = query.eq('verification_status', filters.verificationStatus);
       }
     }
     
@@ -37,7 +37,8 @@ export const getDatasets = async (filters?: DatasetFilters): Promise<Dataset[]> 
     
     // If not admin, only show approved datasets
     if (!isAdmin && !filters?.verificationStatus) {
-      query = query.eq('verificationStatus', 'approved');
+      // Use verification_status (database column name) instead of verificationStatus
+      query = query.eq('verification_status', 'approved');
     }
     
     const { data, error } = await query.order('created_at', { ascending: false });
@@ -48,7 +49,29 @@ export const getDatasets = async (filters?: DatasetFilters): Promise<Dataset[]> 
       return [];
     }
     
-    return data as Dataset[];
+    // Map the database field names to our TypeScript model field names
+    const mappedData = data.map(item => {
+      // Create a dataset object with our TypeScript model field names
+      const dataset: Dataset = {
+        id: item.id,
+        title: item.title,
+        description: item.description,
+        category: item.category,
+        format: item.format,
+        country: item.country,
+        date: item.date,
+        downloads: item.downloads || 0,
+        featured: item.featured || false,
+        file: item.file,
+        // Map database verification_status to our model's verificationStatus
+        verificationStatus: (item as any).verification_status as 'pending' | 'approved' | 'rejected' | undefined,
+        // Map database verification_notes to our model's verificationNotes
+        verificationNotes: (item as any).verification_notes
+      };
+      return dataset;
+    });
+    
+    return mappedData;
   } catch (error) {
     console.error('Error fetching datasets:', error);
     toast.error('Failed to load datasets');
