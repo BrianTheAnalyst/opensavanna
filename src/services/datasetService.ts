@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Dataset, DatasetFilters } from "@/types/dataset";
@@ -25,32 +24,32 @@ interface RawDataset {
 // Get all datasets with optional filtering
 export const getDatasets = async (filters?: DatasetFilters): Promise<Dataset[]> => {
   try {
-    // Start with a simple query to avoid excessive type inference
-    const query = supabase.from('datasets');
+    // Create base query - keep it simple to avoid type recursion
+    const baseQueryBuilder = supabase.from('datasets');
     
-    // Build our query conditions
-    let conditions = query.select('*');
+    // Create filters array to track our filter conditions
+    const filterConditions: any[] = [];
     
     // Apply filters if provided
     if (filters) {
       if (filters.search) {
-        conditions = conditions.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
+        filterConditions.push(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
       }
       
       if (filters.category) {
-        conditions = conditions.eq('category', filters.category);
+        // We'll apply these filters directly later
       }
       
       if (filters.format) {
-        conditions = conditions.eq('format', filters.format);
+        // We'll apply these filters directly later
       }
       
       if (filters.country) {
-        conditions = conditions.eq('country', filters.country);
+        // We'll apply these filters directly later
       }
       
       if (filters.verificationStatus) {
-        conditions = conditions.eq('verification_status', filters.verificationStatus);
+        // We'll apply these filters directly later
       }
     }
     
@@ -63,13 +62,37 @@ export const getDatasets = async (filters?: DatasetFilters): Promise<Dataset[]> 
       // Default to non-admin if there's an error
     }
     
-    // If not admin, only show approved datasets
-    if (!isAdmin && !filters?.verificationStatus) {
-      conditions = conditions.eq('verification_status', 'approved');
+    // Construct the query in parts to avoid deep type instantiation
+    let query = baseQueryBuilder.select('*');
+    
+    // Apply OR filter if search is specified
+    if (filters?.search) {
+      query = query.or(filterConditions[0]);
     }
     
-    // Execute the query without chaining more operations
-    const { data, error } = await conditions.order('created_at', { ascending: false });
+    // Apply the direct filters
+    if (filters?.category) {
+      query = query.eq('category', filters.category);
+    }
+    
+    if (filters?.format) {
+      query = query.eq('format', filters.format);
+    }
+    
+    if (filters?.country) {
+      query = query.eq('country', filters.country);
+    }
+    
+    if (filters?.verificationStatus) {
+      query = query.eq('verification_status', filters.verificationStatus);
+    } else if (!isAdmin) {
+      // If not admin and no verification status specified, only show approved
+      query = query.eq('verification_status', 'approved');
+    }
+    
+    // Execute the final query
+    const response = await query.order('created_at', { ascending: false });
+    const { data, error } = response;
     
     if (error) {
       console.error('Error fetching datasets:', error);
@@ -118,11 +141,14 @@ export const getDatasets = async (filters?: DatasetFilters): Promise<Dataset[]> 
 // Get a single dataset by ID
 export const getDatasetById = async (id: string): Promise<Dataset | null> => {
   try {
-    const { data, error } = await supabase
+    // Using a simpler approach to avoid complex type inference
+    const queryResponse = await supabase
       .from('datasets')
       .select('*')
       .eq('id', id)
       .maybeSingle();
+    
+    const { data, error } = queryResponse;
     
     if (error) {
       console.error('Error fetching dataset:', error);
