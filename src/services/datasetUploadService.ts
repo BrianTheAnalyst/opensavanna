@@ -23,12 +23,13 @@ export const addDataset = async (
     const formattedDate = `Updated ${currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`;
     
     // Create the dataset entry with pending verification status
+    // Important: Use snake_case field names to match the database schema
     const newDataset = {
       ...dataset,
       date: formattedDate,
       downloads: 0,
       user_id: user.id,
-      verificationStatus: 'pending'
+      verification_status: 'pending' // Changed from verificationStatus to verification_status
     };
     
     console.log('Inserting dataset into database:', JSON.stringify(newDataset));
