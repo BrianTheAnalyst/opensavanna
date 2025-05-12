@@ -56,7 +56,8 @@ const UploadForm: React.FC<UploadFormProps> = ({ isLoggedIn }) => {
         description: data.description,
         category: data.category,
         format: data.format,
-        country: data.country
+        country: data.country,
+        featured: false
       }, selectedFile || undefined);
       
       if (result) {

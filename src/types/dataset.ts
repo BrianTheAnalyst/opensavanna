@@ -36,6 +36,6 @@ export interface DatasetFilters {
 }
 
 // Simple DatasetWithEmail type
-export type DatasetWithEmail = Dataset & {
+export interface DatasetWithEmail extends Dataset {
   userEmail?: string;
-};
+}
