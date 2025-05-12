@@ -17,12 +17,5 @@ declare module 'leaflet.heat' {
     latlngs: Array<[number, number]> | Array<[number, number, number]>,
     options?: HeatLayer.HeatLayerOptions
   ): L.Layer;
-  
-  namespace L {
-    // Add the heatLayer function to the L namespace
-    export function heatLayer(
-      latlngs: Array<[number, number]> | Array<[number, number, number]>,
-      options?: HeatLayer.HeatLayerOptions
-    ): L.Layer;
-  }
 }
+

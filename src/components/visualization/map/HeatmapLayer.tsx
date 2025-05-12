@@ -4,36 +4,6 @@ import L from 'leaflet';
 import { useMap } from 'react-leaflet';
 import 'leaflet.heat';
 
-// Enable TypeScript to recognize the heat plugin
-declare module "leaflet" {
-  namespace HeatLayer {
-    interface HeatLayerOptions {
-      minOpacity?: number;
-      maxZoom?: number;
-      radius?: number;
-      blur?: number;
-      max?: number;
-      gradient?: {[key: number]: string};
-    }
-  }
-  
-  namespace Layer {
-    interface LayerOptions {
-      minOpacity?: number;
-      maxZoom?: number;
-      radius?: number;
-      blur?: number;
-      max?: number;
-      gradient?: {[key: number]: string};
-    }
-  }
-  
-  function heatLayer(
-    latlngs: Array<[number, number]> | Array<[number, number, number]>,
-    options?: HeatLayer.HeatLayerOptions
-  ): L.Layer;
-}
-
 interface HeatmapLayerProps {
   points: {
     lat: number;

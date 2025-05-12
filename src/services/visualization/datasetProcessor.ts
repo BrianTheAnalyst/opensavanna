@@ -106,13 +106,20 @@ const simplifyGeoJSON = (geoJSON: any): any => {
   return simplified;
 };
 
+// Define geometry types for better type safety
+interface GeometryWithType {
+  type: string;
+  coordinates?: any;
+}
+
 // Simplify geometry by reducing points
-const simplifyGeometry = (geometry: any): any => {
+const simplifyGeometry = (geometry: GeometryWithType | null): GeometryWithType | null => {
   if (!geometry) return geometry;
   
   // Keep the type
-  const simplifiedGeometry = {
+  const simplifiedGeometry: GeometryWithType = {
     type: geometry.type,
+    coordinates: undefined
   };
   
   // Simplify coordinates based on geometry type
@@ -124,34 +131,44 @@ const simplifyGeometry = (geometry: any): any => {
     
     case 'LineString':
       // Take every nth point for simplification
-      simplifiedGeometry.coordinates = reducePoints(geometry.coordinates, 5);
+      if (geometry.coordinates) {
+        simplifiedGeometry.coordinates = reducePoints(geometry.coordinates, 5);
+      }
       break;
     
     case 'Polygon':
       // Simplify each ring of the polygon
-      simplifiedGeometry.coordinates = geometry.coordinates.map((ring: any[]) => 
-        reducePoints(ring, 5)
-      );
+      if (geometry.coordinates) {
+        simplifiedGeometry.coordinates = geometry.coordinates.map((ring: any[]) => 
+          reducePoints(ring, 5)
+        );
+      }
       break;
     
     case 'MultiPoint':
       // Take a subset of points
-      simplifiedGeometry.coordinates = geometry.coordinates.slice(0, 
-        Math.min(geometry.coordinates.length, 50));
+      if (geometry.coordinates) {
+        simplifiedGeometry.coordinates = geometry.coordinates.slice(0, 
+          Math.min(geometry.coordinates.length, 50));
+      }
       break;
     
     case 'MultiLineString':
       // Simplify each linestring
-      simplifiedGeometry.coordinates = geometry.coordinates.map((line: any[]) => 
-        reducePoints(line, 5)
-      );
+      if (geometry.coordinates) {
+        simplifiedGeometry.coordinates = geometry.coordinates.map((line: any[]) => 
+          reducePoints(line, 5)
+        );
+      }
       break;
     
     case 'MultiPolygon':
       // Simplify each polygon
-      simplifiedGeometry.coordinates = geometry.coordinates.map((polygon: any[]) => 
-        polygon.map((ring: any[]) => reducePoints(ring, 5))
-      );
+      if (geometry.coordinates) {
+        simplifiedGeometry.coordinates = geometry.coordinates.map((polygon: any[]) => 
+          polygon.map((ring: any[]) => reducePoints(ring, 5))
+        );
+      }
       break;
     
     default:

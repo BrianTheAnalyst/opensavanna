@@ -4,9 +4,11 @@ import { LatLngExpression } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import MapContainerComponent from './map/MapContainer';
+import MapContainer from './map/MapContainer';
 import { findGeoPoints, calculateBounds } from './map/mapUtils';
 import { useLeafletIconFix } from './map/useLeafletIconFix';
+import MapLegend from './map/MapLegend';
+import MapControls from './map/MapControls';
 
 // Interface for props
 interface MapVisualizationProps {
@@ -29,6 +31,7 @@ const MapVisualization: React.FC<MapVisualizationProps> = ({
   const [mapCenter, setMapCenter] = useState<LatLngExpression>([0, 0]);
   const [mapZoom, setMapZoom] = useState(2);
   const [processedGeoJSON, setProcessedGeoJSON] = useState<any>(null);
+  const [visualizationType, setVisualizationType] = useState<'standard' | 'choropleth' | 'heatmap'>('standard');
   
   // Fix for Leaflet marker icons in production builds
   useLeafletIconFix();
@@ -86,6 +89,10 @@ const MapVisualization: React.FC<MapVisualizationProps> = ({
     }
   }, [data, geoJSON, isLoading]);
 
+  // Find point data (if no GeoJSON)
+  const pointsData = !processedGeoJSON && data ? findGeoPoints(data) : { validPoints: [] };
+  const hasGeoData = !!processedGeoJSON || pointsData.validPoints.length > 0;
+
   if (isLoading) {
     return (
       <Card className="w-full">
@@ -101,10 +108,6 @@ const MapVisualization: React.FC<MapVisualizationProps> = ({
       </Card>
     );
   }
-
-  // Find point data (if no GeoJSON)
-  const pointsData = !processedGeoJSON && data ? findGeoPoints(data) : { validPoints: [] };
-  const hasGeoData = !!processedGeoJSON || pointsData.validPoints.length > 0;
 
   if (!hasGeoData) {
     return (
@@ -127,6 +130,21 @@ const MapVisualization: React.FC<MapVisualizationProps> = ({
     );
   }
 
+  // Get color scale for legend
+  const colorScale = processedGeoJSON 
+    ? Array.from({ length: 7 }, (_, i) => {
+        const t = i / 6;
+        return t < 0.33 ? `rgb(${Math.round(255 * (1-t*3))}, ${Math.round(255)}, 0)` :
+               t < 0.66 ? `rgb(0, ${Math.round(255 * (1-(t-0.33)*3))}, ${Math.round(255 * (t-0.33)*3)})` :
+               `rgb(${Math.round(255 * (t-0.66)*3)}, 0, ${Math.round(255 * (1-(t-0.66)*3))})`;
+      })
+    : [];
+
+  // Min and max values for legend
+  const minMax = processedGeoJSON?.metadata?.numericFields 
+    ? Object.values(processedGeoJSON.metadata.numericFields)[0] 
+    : { min: 0, max: 100 };
+
   return (
     <Card className="w-full">
       <CardHeader className="pb-2">
@@ -134,13 +152,27 @@ const MapVisualization: React.FC<MapVisualizationProps> = ({
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="w-full h-[450px] rounded-md overflow-hidden border border-border">
-          <MapContainerComponent
+        <MapControls 
+          visualizationType={visualizationType} 
+          onVisualizationTypeChange={setVisualizationType} 
+        />
+        <div className="w-full h-[450px] rounded-md overflow-hidden border border-border relative">
+          <MapContainer
             center={mapCenter}
             zoom={mapZoom}
             geoJSON={processedGeoJSON}
             points={pointsData.validPoints}
+            visualizationType={visualizationType}
+            category={category}
           />
+          {visualizationType === 'choropleth' && processedGeoJSON && (
+            <MapLegend
+              min={minMax?.min || 0}
+              max={minMax?.max || 100}
+              colorScale={colorScale}
+              title={category || 'Data Distribution'}
+            />
+          )}
         </div>
       </CardContent>
     </Card>

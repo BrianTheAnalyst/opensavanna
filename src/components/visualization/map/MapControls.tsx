@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Map, HeatMap, BarChart } from 'lucide-react';
+import { Map, BarChart, Layers } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -59,7 +59,7 @@ const MapControls: React.FC<MapControlsProps> = ({
                 className="h-8 w-8"
                 onClick={() => onVisualizationTypeChange('heatmap')}
               >
-                <HeatMap className="h-4 w-4" />
+                <Layers className="h-4 w-4" />
                 <span className="sr-only">Heat Map</span>
               </Button>
             </TooltipTrigger>

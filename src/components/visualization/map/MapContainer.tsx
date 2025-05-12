@@ -63,9 +63,7 @@ const MapContainerComponent: React.FC<MapContainerComponentProps> = ({
   const tileLayerProps = getTileLayer();
 
   return (
-    // @ts-ignore - Type definitions for react-leaflet don't match exactly
     <LeafletMapContainer {...mapContainerProps}>
-      {/* @ts-ignore */}
       <TileLayer {...tileLayerProps} />
       <ZoomControl position="topright" />
       
