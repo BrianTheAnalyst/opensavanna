@@ -15,6 +15,7 @@ const UploadGuidelines: React.FC = () => {
               <li>Include metadata and sources to provide context for your dataset.</li>
               <li>Remove any personal or sensitive information before uploading.</li>
               <li>For geospatial data, ensure coordinates are in standard format (WGS84).</li>
+              <li>Files up to 100MB are accepted, but we recommend optimizing large datasets for better performance.</li>
             </ul>
           </div>
         </div>

@@ -12,17 +12,25 @@ interface FileUploaderProps {
 
 const FileUploader: React.FC<FileUploaderProps> = ({ onFileChange }) => {
   const [filePreview, setFilePreview] = useState<string | null>(null);
+  const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB in bytes
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
+    // Validate file type
     const validTypes = ['text/csv', 'application/json', 'application/geo+json'];
     if (!validTypes.includes(file.type) && 
         !file.name.endsWith('.csv') && 
         !file.name.endsWith('.json') && 
         !file.name.endsWith('.geojson')) {
       toast.error("Invalid file type. Please upload CSV, JSON, or GeoJSON");
+      return;
+    }
+    
+    // Validate file size
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error(`File size exceeds 100MB limit. Your file is ${(file.size / (1024 * 1024)).toFixed(2)}MB`);
       return;
     }
     
@@ -47,7 +55,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onFileChange }) => {
           Drag and drop your file here or click to browse
         </p>
         <p className="text-xs text-foreground/60 mb-3">
-          Accepted formats: CSV, JSON, GeoJSON (max 10MB)
+          Accepted formats: CSV, JSON, GeoJSON (max 100MB)
         </p>
         <Input
           type="file"

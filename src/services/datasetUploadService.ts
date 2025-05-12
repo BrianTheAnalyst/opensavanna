@@ -50,13 +50,18 @@ export const addDataset = async (
       const filePath = `${data.id}/${Date.now()}.${fileExt}`;
       
       // Upload file to storage
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError, data: uploadData } = await supabase.storage
         .from('dataset_files')
         .upload(filePath, file);
       
       if (uploadError) {
         console.error('Error uploading file:', uploadError);
-        toast.error('Dataset added but file upload failed');
+        // Check if the error is related to file size
+        if (uploadError.message?.includes('size')) {
+          toast.error('File exceeds the maximum upload size limit of 100MB');
+        } else {
+          toast.error('Dataset added but file upload failed');
+        }
         return data as Dataset;
       }
       
