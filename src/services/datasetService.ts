@@ -34,42 +34,79 @@ export const getDatasets = async (filters?: DatasetFilters): Promise<Dataset[]> 
       // Default to non-admin if there's an error
     }
     
-    // Start with basic query
-    let query = supabase.from('datasets').select('*');
+    // Construct the query manually rather than through method chaining
+    // to avoid TypeScript recursion issues
+    const query = {
+      table: 'datasets',
+      select: '*',
+      filters: [] as {column: string, operator: string, value: any}[]
+    };
     
-    // Apply search filter if specified
+    // Build filters array
+    if (filters?.search) {
+      // Handle search as a special case since it's an OR condition
+      // We'll apply this separately
+    }
+    
+    if (filters?.category) {
+      query.filters.push({
+        column: 'category',
+        operator: 'eq',
+        value: filters.category
+      });
+    }
+    
+    if (filters?.format) {
+      query.filters.push({
+        column: 'format',
+        operator: 'eq',
+        value: filters.format
+      });
+    }
+    
+    if (filters?.country) {
+      query.filters.push({
+        column: 'country',
+        operator: 'eq',
+        value: filters.country
+      });
+    }
+    
+    if (filters?.verificationStatus) {
+      query.filters.push({
+        column: 'verification_status',
+        operator: 'eq',
+        value: filters.verificationStatus
+      });
+    } else if (!isAdmin) {
+      query.filters.push({
+        column: 'verification_status',
+        operator: 'eq',
+        value: 'approved'
+      });
+    }
+    
+    // Now execute query with manual filtering to avoid deep type recursion
+    let builder = supabase.from('datasets').select('*');
+    
+    // Apply all simple filters
+    query.filters.forEach(filter => {
+      // Use any to bypass TypeScript deep recursion
+      (builder as any) = (builder as any).filter(filter.column, filter.operator, filter.value);
+    });
+    
+    // Apply search filter separately (OR condition)
     if (filters?.search) {
       const searchTerm = `%${filters.search}%`;
-      query = query.or(`title.ilike.${searchTerm},description.ilike.${searchTerm}`);
+      // Use explicit cast to avoid deep type recursion
+      builder = (builder as any).or(`title.ilike.${searchTerm},description.ilike.${searchTerm}`);
     }
     
-    // Apply category filter if specified
-    if (filters?.category) {
-      query = query.eq('category', filters.category);
-    }
+    // Add ordering
+    builder = (builder as any).order('created_at', { ascending: false });
     
-    // Apply format filter if specified
-    if (filters?.format) {
-      query = query.eq('format', filters.format);
-    }
-    
-    // Apply country filter if specified
-    if (filters?.country) {
-      query = query.eq('country', filters.country);
-    }
-    
-    // Apply verification status filter or default to approved for non-admins
-    if (filters?.verificationStatus) {
-      query = query.eq('verification_status', filters.verificationStatus);
-    } else if (!isAdmin) {
-      query = query.eq('verification_status', 'approved');
-    }
-    
-    // Apply ordering
-    query = query.order('created_at', { ascending: false });
-    
-    // Execute query
-    const { data, error } = await query;
+    // Execute the query
+    const { data, error } = await builder;
     
     if (error) {
       console.error('Error fetching datasets:', error);
