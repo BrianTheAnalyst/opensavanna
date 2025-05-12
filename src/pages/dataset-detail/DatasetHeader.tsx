@@ -17,7 +17,7 @@ const DatasetHeader: React.FC<DatasetHeaderProps> = ({ dataset, handleDownload, 
       <div className="md:col-span-2">
         <div className="mb-4">
           {dataset.verificationStatus && (
-            <DatasetVerificationStatus status={dataset.verificationStatus} className="mb-4" />
+            <DatasetVerificationStatus dataset={dataset} className="mb-4" />
           )}
           <h1 className="text-3xl font-medium tracking-tight mb-2">{dataset.title}</h1>
           <p className="text-foreground/70">{dataset.description}</p>

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowUpRight, DownloadCloud, Eye, BarChart3, MapPin, FileText, Trash2 } from 'lucide-react';
@@ -44,7 +43,7 @@ const DatasetCard = ({
     'Chart': <BarChart3 className="h-4 w-4" />,
   };
   
-  // Check if user is admin
+  // Check if user is admin - fix: remove the second argument
   useState(() => {
     const checkAdmin = async () => {
       const admin = await isUserAdmin();

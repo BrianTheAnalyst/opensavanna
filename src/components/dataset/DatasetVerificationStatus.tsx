@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { Dataset } from '@/types/dataset';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, Check, X } from 'lucide-react';
@@ -11,9 +12,13 @@ import {
 
 interface DatasetVerificationStatusProps {
   dataset: Dataset;
+  className?: string;  // Add optional className prop
 }
 
-const DatasetVerificationStatus: React.FC<DatasetVerificationStatusProps> = ({ dataset }) => {
+const DatasetVerificationStatus: React.FC<DatasetVerificationStatusProps> = ({ 
+  dataset,
+  className = '' // Default to empty string
+}) => {
   // Check both the TypeScript property and potentially the database column name
   const verificationStatus = dataset.verificationStatus || (dataset as any).verification_status;
   const verificationNotes = dataset.verificationNotes || (dataset as any).verification_notes;
@@ -23,7 +28,7 @@ const DatasetVerificationStatus: React.FC<DatasetVerificationStatusProps> = ({ d
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Badge variant="outline" className="bg-yellow-100 text-yellow-800 flex items-center gap-1 border-yellow-300">
+            <Badge variant="outline" className={`bg-yellow-100 text-yellow-800 flex items-center gap-1 border-yellow-300 ${className}`}>
               <AlertCircle className="h-3 w-3" />
               <span>Pending Review</span>
             </Badge>
@@ -41,7 +46,7 @@ const DatasetVerificationStatus: React.FC<DatasetVerificationStatusProps> = ({ d
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Badge variant="success" className="bg-green-100 text-green-800 flex items-center gap-1 border-green-300">
+            <Badge variant="success" className={`bg-green-100 text-green-800 flex items-center gap-1 border-green-300 ${className}`}>
               <Check className="h-3 w-3" />
               <span>Verified</span>
             </Badge>
@@ -62,7 +67,7 @@ const DatasetVerificationStatus: React.FC<DatasetVerificationStatusProps> = ({ d
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Badge variant="destructive" className="flex items-center gap-1">
+            <Badge variant="destructive" className={`flex items-center gap-1 ${className}`}>
               <X className="h-3 w-3" />
               <span>Rejected</span>
             </Badge>
