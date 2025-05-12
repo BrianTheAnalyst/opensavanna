@@ -1,3 +1,4 @@
+
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Dataset, DatasetFilters } from "@/types/dataset";
@@ -50,28 +51,22 @@ export const getDatasets = async (filters?: DatasetFilters): Promise<Dataset[]> 
     }
     
     // Map the database field names to our TypeScript model field names
-    const mappedData = data.map(item => {
-      // Create a dataset object with our TypeScript model field names
-      const dataset: Dataset = {
-        id: item.id,
-        title: item.title,
-        description: item.description,
-        category: item.category,
-        format: item.format,
-        country: item.country,
-        date: item.date,
-        downloads: item.downloads || 0,
-        featured: item.featured || false,
-        file: item.file,
-        // Map database verification_status to our model's verificationStatus
-        verificationStatus: (item as any).verification_status as 'pending' | 'approved' | 'rejected' | undefined,
-        // Map database verification_notes to our model's verificationNotes
-        verificationNotes: (item as any).verification_notes
-      };
-      return dataset;
-    });
-    
-    return mappedData;
+    return data.map(item => ({
+      id: item.id,
+      title: item.title,
+      description: item.description,
+      category: item.category,
+      format: item.format,
+      country: item.country,
+      date: item.date,
+      downloads: item.downloads || 0,
+      featured: item.featured || false,
+      file: item.file,
+      // Map database verification_status to our model's verificationStatus
+      verificationStatus: item.verification_status as 'pending' | 'approved' | 'rejected' | undefined,
+      // Map database verification_notes to our model's verificationNotes
+      verificationNotes: item.verification_notes
+    } as Dataset));
   } catch (error) {
     console.error('Error fetching datasets:', error);
     toast.error('Failed to load datasets');
@@ -101,12 +96,27 @@ export const getDatasetById = async (id: string): Promise<Dataset | null> => {
     
     // Check if dataset is approved or user is admin
     const isAdmin = await isUserAdmin();
-    const dataset = data as Dataset;
+    
+    // Map the database column names to our TypeScript model field names
+    const dataset: Dataset = {
+      id: data.id,
+      title: data.title,
+      description: data.description,
+      category: data.category,
+      format: data.format,
+      country: data.country,
+      date: data.date,
+      downloads: data.downloads || 0,
+      featured: data.featured || false,
+      file: data.file,
+      verificationStatus: data.verification_status,
+      verificationNotes: data.verification_notes
+    };
     
     if (!isAdmin && dataset.verificationStatus !== 'approved') {
       // Check if the dataset belongs to the current user
       const { data: { user } } = await supabase.auth.getUser();
-      const isOwner = user && (data as any).user_id === user.id;
+      const isOwner = user && data.user_id === user.id;
       
       if (!isOwner) {
         toast.error('You do not have permission to view this dataset');
