@@ -1,11 +1,12 @@
 
 import React, { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Popup, Marker, CircleMarker } from 'react-leaflet';
-import { GeoJSON } from 'react-leaflet/GeoJSON';
 import { LatLngExpression } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import MapContainerComponent from './map/MapContainer';
+import { findGeoPoints, calculateBounds } from './map/mapUtils';
+import { useLeafletIconFix } from './map/useLeafletIconFix';
 
 // Interface for props
 interface MapVisualizationProps {
@@ -28,28 +29,9 @@ const MapVisualization: React.FC<MapVisualizationProps> = ({
   const [mapCenter, setMapCenter] = useState<LatLngExpression>([0, 0]);
   const [mapZoom, setMapZoom] = useState(2);
   const [processedGeoJSON, setProcessedGeoJSON] = useState<any>(null);
-
+  
   // Fix for Leaflet marker icons in production builds
-  useEffect(() => {
-    // This is needed to properly display markers in Leaflet when using webpack/vite
-    delete (window as any)._leaflet_id;
-    
-    const L = require('leaflet');
-    
-    delete L.Icon.Default.prototype._getIconUrl;
-    
-    L.Icon.Default.mergeOptions({
-      iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-      iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-    });
-  }, []);
-
-  // Default colors for choropleth maps
-  const colors = [
-    '#f7fbff', '#deebf7', '#c6dbef', '#9ecae1',
-    '#6baed6', '#4292c6', '#2171b5', '#08519c', '#08306b'
-  ];
+  useLeafletIconFix();
   
   // Process data for map visualization
   useEffect(() => {
@@ -95,135 +77,6 @@ const MapVisualization: React.FC<MapVisualizationProps> = ({
     }
   }, [data, geoJSON, isLoading]);
 
-  // Helper function to calculate bounds from GeoJSON
-  const calculateBounds = (geoJSON: any) => {
-    if (!geoJSON || !geoJSON.features || !geoJSON.features.length) return null;
-    
-    let north = -90, south = 90, east = -180, west = 180;
-    let hasValidCoordinates = false;
-    
-    // Process all features
-    geoJSON.features.forEach((feature: any) => {
-      if (!feature.geometry || !feature.geometry.coordinates) return;
-      
-      const processCoordinate = (coord: number[]) => {
-        if (coord.length < 2) return;
-        const lng = coord[0];
-        const lat = coord[1];
-        
-        if (isFinite(lat) && isFinite(lng)) {
-          north = Math.max(north, lat);
-          south = Math.min(south, lat);
-          east = Math.max(east, lng);
-          west = Math.min(west, lng);
-          hasValidCoordinates = true;
-        }
-      };
-      
-      const processCoordinatesArray = (coords: any[], depth = 0) => {
-        if (coords.length === 0) return;
-        
-        if (depth > 0 && typeof coords[0] === 'number') {
-          processCoordinate(coords);
-        } else {
-          coords.forEach(coord => processCoordinatesArray(coord, depth + 1));
-        }
-      };
-      
-      processCoordinatesArray(feature.geometry.coordinates);
-    });
-    
-    return hasValidCoordinates ? { north, south, east, west } : null;
-  };
-
-  // Helper function to find geographic points in data
-  const findGeoPoints = (data: any[]) => {
-    const validPoints: { lat: number; lng: number; name?: string; value?: number }[] = [];
-    const latField = findFieldByName(data[0], ['lat', 'latitude', 'y']);
-    const lngField = findFieldByName(data[0], ['lng', 'longitude', 'lon', 'x']);
-    
-    if (latField && lngField) {
-      data.forEach(item => {
-        const lat = parseFloat(item[latField]);
-        const lng = parseFloat(item[lngField]);
-        
-        if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
-          const nameField = findFieldByName(item, ['name', 'title', 'label']);
-          const valueField = findFieldByName(item, ['value', 'data', 'count']);
-          
-          validPoints.push({
-            lat,
-            lng,
-            name: nameField ? item[nameField] : undefined,
-            value: valueField ? parseFloat(item[valueField]) : undefined
-          });
-        }
-      });
-    }
-    
-    return { validPoints, latField, lngField };
-  };
-
-  // Helper function to find a field by possible names
-  const findFieldByName = (obj: any, possibleNames: string[]) => {
-    if (!obj) return null;
-    
-    for (const name of possibleNames) {
-      if (obj.hasOwnProperty(name)) return name;
-    }
-    
-    return null;
-  };
-
-  // Style function for GeoJSON
-  const styleFeature = (feature: any) => {
-    // Default style
-    const baseStyle = {
-      weight: 1,
-      opacity: 0.8,
-      color: '#6366F1',
-      fillOpacity: 0.5,
-      fillColor: '#818CF8'
-    };
-    
-    // If feature has properties with value, use it for choropleth coloring
-    if (feature.properties) {
-      const value = findValueInProperties(feature.properties);
-      if (value !== null) {
-        const colorIndex = Math.min(Math.floor(value * colors.length / 100), colors.length - 1);
-        return {
-          ...baseStyle,
-          fillColor: colors[colorIndex]
-        };
-      }
-    }
-    
-    return baseStyle;
-  };
-
-  // Find a numeric value in properties for choropleth mapping
-  const findValueInProperties = (properties: any) => {
-    if (!properties) return null;
-    
-    // Look for common value fields
-    const valueFields = ['value', 'data', 'count', 'density', 'population'];
-    
-    for (const field of valueFields) {
-      if (properties[field] !== undefined && !isNaN(parseFloat(properties[field]))) {
-        return parseFloat(properties[field]);
-      }
-    }
-    
-    // Try to find any numeric property
-    for (const key in properties) {
-      if (properties[key] !== undefined && !isNaN(parseFloat(properties[key]))) {
-        return parseFloat(properties[key]);
-      }
-    }
-    
-    return null;
-  };
-
   if (isLoading) {
     return (
       <Card className="w-full">
@@ -265,28 +118,6 @@ const MapVisualization: React.FC<MapVisualizationProps> = ({
     );
   }
 
-  // Function for handling GeoJSON feature interactions
-  const onEachFeature = (feature: any, layer: any) => {
-    if (feature.properties) {
-      const popupContent = Object.entries(feature.properties)
-        .map(([key, value]) => `<strong>${key}:</strong> ${value}`)
-        .join('<br>');
-      layer.bindPopup(popupContent);
-    }
-  };
-
-  // Define proper types for Leaflet components props
-  const mapContainerProps = {
-    style: { height: '100%', width: '100%' },
-    center: mapCenter,
-    zoom: mapZoom,
-  };
-
-  const tileLayerProps = {
-    url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-  };
-
   return (
     <Card className="w-full">
       <CardHeader className="pb-2">
@@ -295,51 +126,12 @@ const MapVisualization: React.FC<MapVisualizationProps> = ({
       </CardHeader>
       <CardContent>
         <div className="w-full h-[450px] rounded-md overflow-hidden border border-border">
-          {/* @ts-ignore */}
-          <MapContainer {...mapContainerProps}>
-            {/* @ts-ignore */}
-            <TileLayer {...tileLayerProps} />
-            
-            {processedGeoJSON && (
-              // @ts-ignore
-              <GeoJSON 
-                data={processedGeoJSON}
-                style={styleFeature}
-                onEachFeature={onEachFeature}
-              />
-            )}
-            
-            {pointsData.validPoints.map((point, index) => (
-              point.value ? (
-                // @ts-ignore
-                <CircleMarker 
-                  key={index}
-                  center={[point.lat, point.lng]}
-                  radius={Math.min(10, Math.max(5, point.value / 10))}
-                  fillColor="#8B5CF6"
-                  color="#6D28D9"
-                  weight={1}
-                  opacity={0.8}
-                  fillOpacity={0.6}
-                >
-                  <Popup>
-                    {point.name && <div><strong>{point.name}</strong></div>}
-                    {point.value && <div>Value: {point.value}</div>}
-                    <div>Latitude: {point.lat}</div>
-                    <div>Longitude: {point.lng}</div>
-                  </Popup>
-                </CircleMarker>
-              ) : (
-                <Marker key={index} position={[point.lat, point.lng]}>
-                  <Popup>
-                    {point.name && <div><strong>{point.name}</strong></div>}
-                    <div>Latitude: {point.lat}</div>
-                    <div>Longitude: {point.lng}</div>
-                  </Popup>
-                </Marker>
-              )
-            ))}
-          </MapContainer>
+          <MapContainerComponent
+            center={mapCenter}
+            zoom={mapZoom}
+            geoJSON={processedGeoJSON}
+            points={pointsData.validPoints}
+          />
         </div>
       </CardContent>
     </Card>
