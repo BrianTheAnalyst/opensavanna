@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { ArrowRight, Map, PieChart, FileText, Database } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import Navbar from '@/components/Navbar';
@@ -9,6 +10,9 @@ import Visualization from '@/components/Visualization';
 import Footer from '@/components/Footer';
 import { getDatasets, getCategoryCounts } from '@/services/datasetService';
 import { Dataset } from '@/types/dataset';
+import DataQuerySection from '@/components/dataQuery/DataQuerySection';
+import ExampleQueriesSection from '@/components/dataQuery/ExampleQueriesSection';
+import { toast } from 'sonner';
 
 const Index = () => {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -21,7 +25,15 @@ const Index = () => {
     { title: 'Agriculture', icon: FileText, count: 0, description: 'Crop production, livestock, agricultural statistics' }
   ]);
   
+  const location = useLocation();
+  const [activeQuery, setActiveQuery] = useState<string | null>(null);
+  
   useEffect(() => {
+    // Check for query parameter in URL
+    const searchParams = new URLSearchParams(location.search);
+    const query = searchParams.get('query');
+    setActiveQuery(query);
+    
     const fetchData = async () => {
       try {
         // Get datasets from the database
@@ -78,7 +90,24 @@ const Index = () => {
     };
     
     fetchData();
-  }, []);
+  }, [location]);
+
+  const handleQuerySelect = (query: string) => {
+    // Scroll to the search section
+    const searchElement = document.getElementById('search-section');
+    if (searchElement) {
+      searchElement.scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    // Set the query in URL to trigger search
+    const url = new URL(window.location.href);
+    url.searchParams.set('query', query);
+    window.history.pushState({}, '', url);
+    setActiveQuery(query);
+    
+    // Show a toast notification
+    toast.info('Loading query results...');
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -87,6 +116,14 @@ const Index = () => {
       <main className="flex-grow">
         {/* Hero Section */}
         <Hero />
+
+        {/* Data Query Section - NEW FEATURE */}
+        <section id="search-section" className="py-12 bg-gradient-to-b from-muted/50 to-background">
+          <DataQuerySection />
+        </section>
+        
+        {/* Example Queries Section - NEW FEATURE */}
+        <ExampleQueriesSection onQuerySelect={handleQuerySelect} />
         
         {/* Featured Datasets */}
         <section className="py-20 bg-muted/30">
