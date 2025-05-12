@@ -4,11 +4,11 @@ import { LatLngExpression } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import MapContainer from './map/MapContainer';
-import { findGeoPoints, calculateBounds } from './map/mapUtils';
-import { useLeafletIconFix } from './map/useLeafletIconFix';
-import MapLegend from './map/MapLegend';
-import MapControls from './map/MapControls';
+import MapContainer from './MapContainer';
+import { findGeoPoints, calculateBounds } from './mapUtils';
+import { useLeafletIconFix } from './useLeafletIconFix';
+import MapLegend from './MapLegend';
+import MapControls from './MapControls';
 
 // Interface for props
 interface MapVisualizationProps {
