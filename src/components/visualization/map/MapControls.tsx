@@ -1,11 +1,11 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Map, PieChart, Map as MapIcon } from 'lucide-react'; // Using Map icon as fallback for Heat
+import { Map, PieChart, Activity, Layers } from 'lucide-react'; // Added Activity icon for heatmap
 
 interface MapControlsProps {
-  visualizationType: 'standard' | 'choropleth' | 'heatmap';
-  onVisualizationTypeChange: (type: 'standard' | 'choropleth' | 'heatmap') => void;
+  visualizationType: 'standard' | 'choropleth' | 'heatmap' | 'cluster';
+  onVisualizationTypeChange: (type: 'standard' | 'choropleth' | 'heatmap' | 'cluster') => void;
 }
 
 const MapControls: React.FC<MapControlsProps> = ({ 
@@ -20,7 +20,7 @@ const MapControls: React.FC<MapControlsProps> = ({
         variant={visualizationType === 'standard' ? 'default' : 'outline'} 
         onClick={() => onVisualizationTypeChange('standard')}
       >
-        <MapIcon className="h-4 w-4 mr-1" />
+        <Map className="h-4 w-4 mr-1" />
         Standard
       </Button>
       <Button 
@@ -36,8 +36,16 @@ const MapControls: React.FC<MapControlsProps> = ({
         variant={visualizationType === 'heatmap' ? 'default' : 'outline'} 
         onClick={() => onVisualizationTypeChange('heatmap')}
       >
-        <Map className="h-4 w-4 mr-1" /> {/* Using Map icon as fallback for heat */}
+        <Activity className="h-4 w-4 mr-1" /> {/* Using Activity icon for better heat representation */}
         Heatmap
+      </Button>
+      <Button 
+        size="sm" 
+        variant={visualizationType === 'cluster' ? 'default' : 'outline'} 
+        onClick={() => onVisualizationTypeChange('cluster')}
+      >
+        <Layers className="h-4 w-4 mr-1" />
+        Cluster
       </Button>
     </div>
   );

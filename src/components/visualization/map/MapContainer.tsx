@@ -5,6 +5,7 @@ import { LatLngExpression } from 'leaflet';
 import GeoJSONLayer from './GeoJSONLayer';
 import PointMarkers from './PointMarkers';
 import HeatmapLayer from './HeatmapLayer';
+import ClusterMarkers from './ClusterMarkers';
 
 interface MapContainerComponentProps {
   center: LatLngExpression;
@@ -16,7 +17,7 @@ interface MapContainerComponentProps {
     name?: string;
     value?: number;
   }[];
-  visualizationType?: 'standard' | 'choropleth' | 'heatmap';
+  visualizationType?: 'standard' | 'choropleth' | 'heatmap' | 'cluster';
   category?: string;
 }
 
@@ -51,6 +52,12 @@ const MapContainerComponent: React.FC<MapContainerComponentProps> = ({
           url: "https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png",
           attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
         };
+      case 'cluster':
+        // For cluster view, use a light background
+        return {
+          url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png",
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        };
       default:
         // For standard, use the default OSM tiles
         return {
@@ -68,21 +75,26 @@ const MapContainerComponent: React.FC<MapContainerComponentProps> = ({
       <ZoomControl position="topright" />
       
       {/* GeoJSON layer */}
-      {geoJSON && visualizationType !== 'heatmap' && 
+      {geoJSON && (visualizationType === 'standard' || visualizationType === 'choropleth') && (
         <GeoJSONLayer 
           geoJSON={geoJSON} 
           visualizationType={visualizationType} 
           category={category}
         />
-      }
+      )}
       
       {/* Heatmap layer */}
       {visualizationType === 'heatmap' && points.length > 0 && (
         <HeatmapLayer points={points} />
       )}
       
+      {/* Cluster layer */}
+      {visualizationType === 'cluster' && points.length > 0 && (
+        <ClusterMarkers points={points} />
+      )}
+      
       {/* Point markers */}
-      {visualizationType === 'standard' && points.length > 0 && (
+      {visualizationType === 'standard' && points.length > 0 && !geoJSON && (
         <PointMarkers points={points} />
       )}
     </LeafletMapContainer>

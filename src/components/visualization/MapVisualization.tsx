@@ -37,7 +37,7 @@ const MapVisualization: React.FC<MapVisualizationProps> = ({
   const [mapCenter, setMapCenter] = useState<LatLngExpression>([0, 0]);
   const [mapZoom, setMapZoom] = useState(2);
   const [processedGeoJSON, setProcessedGeoJSON] = useState<any>(null);
-  const [visualizationType, setVisualizationType] = useState<'standard' | 'choropleth' | 'heatmap'>('standard');
+  const [visualizationType, setVisualizationType] = useState<'standard' | 'choropleth' | 'heatmap' | 'cluster'>('standard');
   
   // Fix for Leaflet marker icons in production builds
   useLeafletIconFix();
