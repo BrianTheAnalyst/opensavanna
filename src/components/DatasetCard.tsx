@@ -14,6 +14,7 @@ interface DatasetCardProps {
   date: string;
   downloads: number;
   type: 'default' | 'featured' | 'compact';
+  onDelete?: () => void;
 }
 
 const DatasetCard = ({ 
@@ -25,7 +26,8 @@ const DatasetCard = ({
   country, 
   date, 
   downloads, 
-  type = 'default' 
+  type = 'default',
+  onDelete
 }: DatasetCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   
