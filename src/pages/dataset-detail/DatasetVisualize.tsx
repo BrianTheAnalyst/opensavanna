@@ -1,5 +1,4 @@
 
-import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { Dataset } from '@/types/dataset';
 import LoadingVisualization from '@/components/visualization/LoadingVisualization';
@@ -7,8 +6,9 @@ import NoVisualizationData from '@/components/visualization/NoVisualizationData'
 import VisualizationContainer from '@/components/visualization/VisualizationContainer';
 import VisualizationAbout from '@/components/visualization/VisualizationAbout';
 import { useDatasetVisualization } from '@/hooks/useDatasetVisualization';
-import DatasetAnalytics from '@/components/DatasetAnalytics';
-import { supabase } from "@/integrations/supabase/client";
+import { useDatasetDetail } from '@/hooks/useDatasetDetail';
+import DatasetAnalyticsSection from '@/components/dataset/DatasetAnalyticsSection';
+import { useEffect } from 'react';
 import { toast } from "sonner";
 
 interface DatasetVisualizeProps {
@@ -18,11 +18,17 @@ interface DatasetVisualizeProps {
 
 const DatasetVisualize = ({ datasetProp, visualizationDataProp }: DatasetVisualizeProps) => {
   const { id } = useParams();
-  const [processedFileData, setProcessedFileData] = useState<any>(null);
-  const [isLoadingProcessedData, setIsLoadingProcessedData] = useState(false);
   
   const {
     dataset,
+    processedFileData,
+    isLoadingProcessedData
+  } = useDatasetDetail({
+    id,
+    datasetProp
+  });
+  
+  const {
     visualizationData,
     isLoading,
     error,
@@ -37,38 +43,6 @@ const DatasetVisualize = ({ datasetProp, visualizationDataProp }: DatasetVisuali
     visualizationDataProp
   });
   
-  // Fetch processed file data when dataset is loaded
-  const fetchProcessedFileData = useCallback(async () => {
-    if (!dataset?.id) return;
-    
-    try {
-      setIsLoadingProcessedData(true);
-      const { data, error } = await supabase
-        .from('processed_files')
-        .select('*')
-        .eq('storage_path', `${dataset.id}/%`)
-        .order('created_at', { ascending: false })
-        .limit(1);
-        
-      if (error) {
-        console.error('Error fetching processed file data:', error);
-        return;
-      }
-        
-      if (data && data.length > 0) {
-        setProcessedFileData(data[0]);
-      }
-    } catch (err) {
-      console.error('Error fetching processed file data:', err);
-    } finally {
-      setIsLoadingProcessedData(false);
-    }
-  }, [dataset?.id]);
-  
-  useEffect(() => {
-    fetchProcessedFileData();
-  }, [fetchProcessedFileData]);
-
   // Handle errors during data fetch
   useEffect(() => {
     if (error) {
@@ -106,17 +80,10 @@ const DatasetVisualize = ({ datasetProp, visualizationDataProp }: DatasetVisuali
         geoJSON={geoJSON}
       />
       
-      {isLoadingProcessedData ? (
-        <div className="my-6 p-8 border border-border/50 rounded-xl bg-background/50 animate-pulse">
-          <div className="h-8 w-1/3 bg-muted rounded mb-4"></div>
-          <div className="h-4 w-full bg-muted rounded mb-2"></div>
-          <div className="h-4 w-5/6 bg-muted rounded"></div>
-        </div>
-      ) : processedFileData ? (
-        <div className="my-6">
-          <DatasetAnalytics processedFileData={processedFileData} />
-        </div>
-      ) : null}
+      <DatasetAnalyticsSection
+        processedFileData={processedFileData}
+        isLoading={isLoadingProcessedData}
+      />
       
       <VisualizationAbout dataset={dataset} />
     </>
