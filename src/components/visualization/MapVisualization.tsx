@@ -65,9 +65,12 @@ const MapVisualization: React.FC<MapVisualizationProps> = ({
         const pointsData = findGeoPoints(data);
         
         if (pointsData.validPoints.length > 0) {
-          // Center map on the average position
-          const avgLat = pointsData.validPoints.reduce((sum, p) => sum + p.lat, 0) / pointsData.validPoints.length;
-          const avgLng = pointsData.validPoints.reduce((sum, p) => sum + p.lng, 0) / pointsData.validPoints.length;
+          // Fix: Calculate average latitude and longitude properly
+          const sumLat = pointsData.validPoints.reduce((sum, p) => sum + p.lat, 0);
+          const sumLng = pointsData.validPoints.reduce((sum, p) => sum + p.lng, 0);
+          const avgLat = sumLat / pointsData.validPoints.length;
+          const avgLng = sumLng / pointsData.validPoints.length;
+          
           setMapCenter([avgLat, avgLng]);
           setMapZoom(5);
         }

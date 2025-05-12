@@ -1,6 +1,7 @@
 
 import { LatLngExpression } from 'leaflet';
-import { PathOptions } from 'react-leaflet';
+// Import PathOptions from leaflet directly instead of react-leaflet
+import { PathOptions } from 'leaflet';
 
 // Style function for GeoJSON
 export const styleFeature = (feature: any): PathOptions => {
