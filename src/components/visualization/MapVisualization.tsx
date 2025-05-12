@@ -1,7 +1,7 @@
-
 import React, { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, GeoJSON, Marker, Popup, CircleMarker } from 'react-leaflet';
-import { LatLngExpression, Icon, DivIcon } from 'leaflet';
+import { MapContainer, TileLayer, Popup, Marker, CircleMarker } from 'react-leaflet';
+import { GeoJSON } from 'react-leaflet/GeoJSON';
+import { LatLngExpression } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -283,19 +283,19 @@ const MapVisualization: React.FC<MapVisualizationProps> = ({
       <CardContent>
         <div className="w-full h-[450px] rounded-md overflow-hidden border border-border">
           <MapContainer 
-            center={mapCenter as [number, number]} 
-            zoom={mapZoom} 
             style={{ height: '100%', width: '100%' }}
+            zoom={mapZoom} 
+            center={mapCenter}
           >
             <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             />
             
             {processedGeoJSON && (
               <GeoJSON 
                 data={processedGeoJSON}
-                pathOptions={styleFeature({})}
+                style={styleFeature}
                 onEachFeature={onEachFeature}
               />
             )}
@@ -304,15 +304,13 @@ const MapVisualization: React.FC<MapVisualizationProps> = ({
               point.value ? (
                 <CircleMarker 
                   key={index}
-                  center={[point.lat, point.lng] as [number, number]}
-                  pathOptions={{
-                    radius: Math.min(10, Math.max(5, point.value / 10)),
-                    fillColor: "#8B5CF6",
-                    color: "#6D28D9",
-                    weight: 1,
-                    opacity: 0.8,
-                    fillOpacity: 0.6
-                  }}
+                  center={[point.lat, point.lng]}
+                  radius={Math.min(10, Math.max(5, point.value / 10))}
+                  fillColor="#8B5CF6"
+                  color="#6D28D9"
+                  weight={1}
+                  opacity={0.8}
+                  fillOpacity={0.6}
                 >
                   <Popup>
                     {point.name && <div><strong>{point.name}</strong></div>}
@@ -322,7 +320,7 @@ const MapVisualization: React.FC<MapVisualizationProps> = ({
                   </Popup>
                 </CircleMarker>
               ) : (
-                <Marker key={index} position={[point.lat, point.lng] as [number, number]}>
+                <Marker key={index} position={[point.lat, point.lng]}>
                   <Popup>
                     {point.name && <div><strong>{point.name}</strong></div>}
                     <div>Latitude: {point.lat}</div>

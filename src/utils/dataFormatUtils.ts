@@ -90,7 +90,7 @@ interface VisualizationDataItem {
 }
 
 // Common function to format data for visualization
-export const formatDataForVisualization = (data: any[], category: string): any[] => {
+export const formatDataForVisualization = (data: any[], category: string): VisualizationDataItem[] => {
   // Extract key fields based on category
   if (data.length === 0) return [];
   
