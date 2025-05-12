@@ -4,11 +4,11 @@ import { LatLngExpression } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import MapContainer from '@/components/visualization/map/MapContainer';
-import { findGeoPoints, calculateBounds } from '@/components/visualization/map/mapUtils';
-import { useLeafletIconFix } from '@/components/visualization/map/useLeafletIconFix';
-import MapLegend from '@/components/visualization/map/MapLegend';
-import MapControls from '@/components/visualization/map/MapControls';
+import MapContainer from './map/MapContainer';
+import { findGeoPoints, calculateBounds } from './map/mapUtils';
+import { useLeafletIconFix } from './map/useLeafletIconFix';
+import MapLegend from './map/MapLegend';
+import MapControls from './map/MapControls';
 
 // Interface for props
 interface MapVisualizationProps {
@@ -18,6 +18,12 @@ interface MapVisualizationProps {
   isLoading?: boolean;
   geoJSON?: any;
   category?: string;
+}
+
+// Interface for min/max values
+interface MinMaxValues {
+  min: number;
+  max: number;
 }
 
 const MapVisualization: React.FC<MapVisualizationProps> = ({
@@ -31,7 +37,7 @@ const MapVisualization: React.FC<MapVisualizationProps> = ({
   const [mapCenter, setMapCenter] = useState<LatLngExpression>([0, 0]);
   const [mapZoom, setMapZoom] = useState(2);
   const [processedGeoJSON, setProcessedGeoJSON] = useState<any>(null);
-  const [visualizationType, setVisualizationType] = useState<'standard' | 'choropleth' | 'heatmap'>('standard');
+  const [visualizationType, setVisualizationType] = useState<'standard' | 'choropleth' | 'heatmap' | 'cluster'>('standard');
   
   // Fix for Leaflet marker icons in production builds
   useLeafletIconFix();
@@ -141,9 +147,12 @@ const MapVisualization: React.FC<MapVisualizationProps> = ({
     : [];
 
   // Min and max values for legend with type safety
-  const minMax = processedGeoJSON?.metadata?.numericFields 
-    ? (Object.values(processedGeoJSON.metadata.numericFields)[0] as { min: number, max: number }) || { min: 0, max: 100 }
-    : { min: 0, max: 100 };
+  const minMaxField = processedGeoJSON?.metadata?.numericFields 
+    ? (Object.values(processedGeoJSON.metadata.numericFields)[0] as MinMaxValues | undefined)
+    : undefined;
+    
+  const minValue = minMaxField?.min ?? 0;
+  const maxValue = minMaxField?.max ?? 100;
 
   return (
     <Card className="w-full">
@@ -167,8 +176,8 @@ const MapVisualization: React.FC<MapVisualizationProps> = ({
           />
           {visualizationType === 'choropleth' && processedGeoJSON && (
             <MapLegend
-              min={minMax.min}
-              max={minMax.max}
+              min={minValue}
+              max={maxValue}
               colorScale={colorScale}
               title={category || 'Data Distribution'}
             />
