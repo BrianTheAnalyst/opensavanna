@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
@@ -45,7 +46,7 @@ const Navbar = () => {
       <div className="container mx-auto flex h-16 items-center px-4">
         <Link to="/" className="flex items-center gap-2 shrink-0">
           <Logo />
-          <span className="font-bold text-xl">Data Platform</span>
+          <span className="font-bold text-xl">OpenSavanna</span>
         </Link>
         
         <nav className="hidden lg:flex gap-6 mx-6">
