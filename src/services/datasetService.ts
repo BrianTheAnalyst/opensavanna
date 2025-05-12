@@ -4,6 +4,24 @@ import { supabase } from "@/integrations/supabase/client";
 import { Dataset, DatasetFilters } from "@/types/dataset";
 import { isUserAdmin } from "@/services/userRoleService";
 
+// Interface for raw dataset records from database
+interface RawDataset {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  format: string;
+  country: string;
+  date: string;
+  downloads?: number;
+  featured?: boolean;
+  file?: string;
+  user_id?: string;
+  verification_status?: 'pending' | 'approved' | 'rejected';
+  verification_notes?: string;
+  [key: string]: any; // For any other properties
+}
+
 // Get all datasets with optional filtering
 export const getDatasets = async (filters?: DatasetFilters): Promise<Dataset[]> => {
   try {
@@ -52,9 +70,9 @@ export const getDatasets = async (filters?: DatasetFilters): Promise<Dataset[]> 
       return [];
     }
     
-    // Manually map database records to avoid recursive type issues
-    return data.map(item => {
-      // Create a basic dataset with known fields
+    // Map database records to Dataset type with explicit mapping
+    return data.map((item: RawDataset) => {
+      // Create a dataset with known fields
       const dataset: Dataset = {
         id: item.id,
         title: item.title,
@@ -65,19 +83,16 @@ export const getDatasets = async (filters?: DatasetFilters): Promise<Dataset[]> 
         date: item.date,
         downloads: item.downloads || 0,
         featured: item.featured || false,
-        file: item.file || undefined
+        file: item.file
       };
       
-      // Use type assertion with a simple object literal to avoid deep type nesting
-      const record = item as Record<string, any>;
-      
       // Add optional fields if they exist
-      if (record.verification_status) {
-        dataset.verificationStatus = record.verification_status;
+      if (item.verification_status) {
+        dataset.verificationStatus = item.verification_status;
       }
       
-      if (record.verification_notes) {
-        dataset.verificationNotes = record.verification_notes;
+      if (item.verification_notes) {
+        dataset.verificationNotes = item.verification_notes;
       }
       
       return dataset;
@@ -112,36 +127,37 @@ export const getDatasetById = async (id: string): Promise<Dataset | null> => {
     // Check if dataset is approved or user is admin
     const isAdmin = await isUserAdmin();
     
+    // Cast to our RawDataset interface
+    const rawDataset = data as RawDataset;
+    
     // Create dataset object with known fields
     const dataset: Dataset = {
-      id: data.id,
-      title: data.title,
-      description: data.description,
-      category: data.category,
-      format: data.format,
-      country: data.country,
-      date: data.date,
-      downloads: data.downloads || 0,
-      featured: data.featured || false,
-      file: data.file || undefined
+      id: rawDataset.id,
+      title: rawDataset.title,
+      description: rawDataset.description,
+      category: rawDataset.category,
+      format: rawDataset.format,
+      country: rawDataset.country,
+      date: rawDataset.date,
+      downloads: rawDataset.downloads || 0,
+      featured: rawDataset.featured || false,
+      file: rawDataset.file
     };
     
-    // Use simple record type for additional fields
-    const record = data as Record<string, any>;
-    
-    if (record.verification_status) {
-      dataset.verificationStatus = record.verification_status;
+    // Add optional fields
+    if (rawDataset.verification_status) {
+      dataset.verificationStatus = rawDataset.verification_status;
     }
     
-    if (record.verification_notes) {
-      dataset.verificationNotes = record.verification_notes;
+    if (rawDataset.verification_notes) {
+      dataset.verificationNotes = rawDataset.verification_notes;
     }
     
     // Check permissions
     if (!isAdmin && dataset.verificationStatus !== 'approved') {
       // Check if the dataset belongs to the current user
       const { data: { user } } = await supabase.auth.getUser();
-      const isOwner = user && record.user_id === user.id;
+      const isOwner = user && rawDataset.user_id === user.id;
       
       if (!isOwner) {
         toast.error('You do not have permission to view this dataset');
