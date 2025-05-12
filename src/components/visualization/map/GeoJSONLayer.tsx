@@ -11,7 +11,7 @@ const GeoJSONLayer: React.FC<GeoJSONLayerProps> = ({ geoJSON }) => {
   if (!geoJSON) return null;
   
   return (
-    // @ts-ignore - Type definitions for react-leaflet don't match exactly
+    // @ts-ignore - Type definitions for react-leaflet GeoJSON don't match exactly
     <GeoJSON 
       data={geoJSON}
       style={styleFeature}

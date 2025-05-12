@@ -18,7 +18,7 @@ const PointMarkers: React.FC<PointMarkersProps> = ({ points }) => {
     <>
       {points.map((point, index) => (
         point.value ? (
-          // @ts-ignore - Type definitions for react-leaflet don't match exactly
+          // @ts-ignore - Type definitions for react-leaflet CircleMarker don't match exactly
           <CircleMarker 
             key={index}
             center={[point.lat, point.lng]}
