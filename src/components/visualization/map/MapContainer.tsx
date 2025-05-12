@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { MapContainer as LeafletMapContainer, TileLayer, ZoomControl } from 'react-leaflet';
+import React, { useState } from 'react';
+import { MapContainer as LeafletMapContainer, TileLayer, ZoomControl, LayersControl } from 'react-leaflet';
 import { LatLngExpression } from 'leaflet';
 import GeoJSONLayer from './GeoJSONLayer';
 import PointMarkers from './PointMarkers';
@@ -16,9 +16,12 @@ interface MapContainerComponentProps {
     lng: number;
     name?: string;
     value?: number;
+    timeIndex?: number;
   }[];
   visualizationType?: 'standard' | 'choropleth' | 'heatmap' | 'cluster';
   category?: string;
+  currentTimeIndex?: number;
+  activeLayers?: string[];
 }
 
 const MapContainerComponent: React.FC<MapContainerComponentProps> = ({
@@ -27,7 +30,9 @@ const MapContainerComponent: React.FC<MapContainerComponentProps> = ({
   geoJSON,
   points = [],
   visualizationType = 'standard',
-  category
+  category,
+  currentTimeIndex = 0,
+  activeLayers = ['base', 'data']
 }) => {
   // Define props for Leaflet components
   const mapContainerProps = {
@@ -38,6 +43,11 @@ const MapContainerComponent: React.FC<MapContainerComponentProps> = ({
     attributionControl: true,
     preferCanvas: true, // Improves performance for many markers
   };
+
+  // Filter points by time index if available
+  const filteredPoints = points.filter(point => 
+    !point.hasOwnProperty('timeIndex') || point.timeIndex === currentTimeIndex
+  );
 
   // Choose the appropriate tile layer based on visualization type
   const getTileLayer = () => {
@@ -71,9 +81,12 @@ const MapContainerComponent: React.FC<MapContainerComponentProps> = ({
 
   const tileLayerProps = getTileLayer();
 
-  // Determine which visualization component to render
+  // Check if data layer is active
+  const isDataLayerActive = activeLayers.includes('data');
+
+  // Determine which visualization layer to render
   const renderVisualizationLayer = () => {
-    if (!points.length && !geoJSON) return null;
+    if (!isDataLayerActive || (!filteredPoints.length && !geoJSON)) return null;
 
     switch (visualizationType) {
       case 'choropleth':
@@ -83,16 +96,17 @@ const MapContainerComponent: React.FC<MapContainerComponentProps> = ({
             geoJSON={geoJSON} 
             visualizationType="choropleth" 
             category={category}
+            timeIndex={currentTimeIndex}
           />
         ) : null;
       
       case 'heatmap':
         // Show heatmap layer if we have points
-        return points.length > 0 ? <HeatmapLayer points={points} /> : null;
+        return filteredPoints.length > 0 ? <HeatmapLayer points={filteredPoints} /> : null;
       
       case 'cluster':
         // Show cluster markers if we have points
-        return points.length > 0 ? <ClusterMarkers points={points} /> : null;
+        return filteredPoints.length > 0 ? <ClusterMarkers points={filteredPoints} /> : null;
       
       case 'standard':
       default:
@@ -103,10 +117,11 @@ const MapContainerComponent: React.FC<MapContainerComponentProps> = ({
               geoJSON={geoJSON} 
               visualizationType="standard" 
               category={category}
+              timeIndex={currentTimeIndex}
             />
           );
-        } else if (points.length > 0) {
-          return <PointMarkers points={points} />;
+        } else if (filteredPoints.length > 0) {
+          return <PointMarkers points={filteredPoints} />;
         }
         return null;
     }
@@ -114,9 +129,18 @@ const MapContainerComponent: React.FC<MapContainerComponentProps> = ({
 
   return (
     <LeafletMapContainer {...mapContainerProps}>
-      <TileLayer {...tileLayerProps} />
+      {activeLayers.includes('base') && <TileLayer {...tileLayerProps} />}
       <ZoomControl position="topright" />
       {renderVisualizationLayer()}
+      
+      {/* Optional Layer Controls using Leaflet's built-in control */}
+      {activeLayers.includes('labels') && (
+        <TileLayer 
+          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          zIndex={500}
+        />
+      )}
     </LeafletMapContainer>
   );
 };

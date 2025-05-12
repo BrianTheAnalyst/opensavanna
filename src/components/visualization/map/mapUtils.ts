@@ -1,4 +1,3 @@
-
 import { PathOptions } from 'leaflet';
 
 // Style function for GeoJSON
@@ -260,15 +259,72 @@ export const calculateBounds = (geoJSON: any) => {
   return hasValidCoordinates ? { north, south, east, west } : null;
 };
 
+// Extract time series data from GeoJSON
+export const extractTimeSeriesData = (geoJSON: any) => {
+  if (!geoJSON || !geoJSON.features || !geoJSON.features.length) return undefined;
+  
+  // Look for time-related properties in features
+  const timeProperties = ['year', 'date', 'time', 'period', 'timeIndex'];
+  let timeField: string | null = null;
+  let timeSeries: (string | number)[] = [];
+  
+  // Find the first time property that exists in the features
+  for (const prop of timeProperties) {
+    const timeValues = geoJSON.features
+      .map((feature: any) => feature.properties?.[prop])
+      .filter((val: any) => val !== undefined && val !== null);
+    
+    if (timeValues.length > 0) {
+      timeField = prop;
+      // Get unique time values
+      timeSeries = [...new Set(timeValues)].sort();
+      break;
+    }
+  }
+  
+  // Check if metadata has time information
+  if (!timeField && geoJSON.metadata?.timeSeries) {
+    return {
+      labels: geoJSON.metadata.timeSeries.labels || [],
+      min: 0,
+      max: (geoJSON.metadata.timeSeries.labels?.length || 1) - 1
+    };
+  }
+  
+  // If we found time data
+  if (timeField && timeSeries.length > 1) {
+    return {
+      labels: timeSeries.map(t => String(t)),
+      min: 0,
+      max: timeSeries.length - 1
+    };
+  }
+  
+  return undefined;
+};
+
 // Helper function to find geographic points in data
 export const findGeoPoints = (data: any[]) => {
   if (!data || data.length === 0) return { validPoints: [] };
   
-  const validPoints: { lat: number; lng: number; name?: string; value?: number }[] = [];
+  const validPoints: { 
+    lat: number; 
+    lng: number; 
+    name?: string; 
+    value?: number; 
+    timeIndex?: number;
+  }[] = [];
   const latField = findFieldByName(data[0], ['lat', 'latitude', 'y']);
   const lngField = findFieldByName(data[0], ['lng', 'longitude', 'lon', 'x']);
+  const timeField = findFieldByName(data[0], ['year', 'date', 'time', 'period', 'timeIndex']);
   
   if (latField && lngField) {
+    const timeValues: (string | number)[] = [];
+    if (timeField) {
+      // Collect all unique time values
+      timeValues.push(...new Set(data.map(item => item[timeField]).filter(Boolean)));
+    }
+    
     data.forEach(item => {
       const lat = parseFloat(item[latField]);
       const lng = parseFloat(item[lngField]);
@@ -277,17 +333,34 @@ export const findGeoPoints = (data: any[]) => {
         const nameField = findFieldByName(item, ['name', 'title', 'label', 'country', 'region']);
         const valueField = findFieldByName(item, ['value', 'data', 'count', 'consumption', 'electricity', 'power', 'energy']);
         
-        validPoints.push({
-          lat,
-          lng,
-          name: nameField ? item[nameField] : undefined,
-          value: valueField ? parseFloat(item[valueField]) : undefined
-        });
+        const point: {
+          lat: number;
+          lng: number;
+          name?: string;
+          value?: number;
+          timeIndex?: number;
+        } = { lat, lng };
+        
+        if (nameField) point.name = item[nameField];
+        if (valueField) point.value = parseFloat(item[valueField]);
+        
+        // Add time index if available
+        if (timeField) {
+          const timeValue = item[timeField];
+          if (timeValue !== undefined && timeValue !== null) {
+            const timeIndex = timeValues.indexOf(timeValue);
+            if (timeIndex !== -1) {
+              point.timeIndex = timeIndex;
+            }
+          }
+        }
+        
+        validPoints.push(point);
       }
     });
   }
   
-  return { validPoints, latField, lngField };
+  return { validPoints, latField, lngField, timeField };
 };
 
 // Helper function to find a field by possible names

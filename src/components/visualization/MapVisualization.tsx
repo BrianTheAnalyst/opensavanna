@@ -1,14 +1,16 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { LatLngExpression } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import MapContainer from './map/MapContainer';
-import { findGeoPoints, calculateBounds } from './map/mapUtils';
+import { findGeoPoints, calculateBounds, extractTimeSeriesData } from './map/mapUtils';
 import { useLeafletIconFix } from './map/useLeafletIconFix';
 import MapLegend from './map/MapLegend';
 import MapControls from './map/MapControls';
+import TimeControls from './map/TimeControls';
+import LayerControls from './map/LayerControls';
 
 // Interface for props
 interface MapVisualizationProps {
@@ -38,9 +40,31 @@ const MapVisualization: React.FC<MapVisualizationProps> = ({
   const [mapZoom, setMapZoom] = useState(2);
   const [processedGeoJSON, setProcessedGeoJSON] = useState<any>(null);
   const [visualizationType, setVisualizationType] = useState<'standard' | 'choropleth' | 'heatmap' | 'cluster'>('standard');
+  const [currentTimeIndex, setCurrentTimeIndex] = useState(0);
+  const [timeSeriesData, setTimeSeriesData] = useState<{ labels: string[], min: number, max: number } | undefined>(undefined);
+  const [activeLayers, setActiveLayers] = useState(['base', 'data']);
+  
+  // Define available layers
+  const availableLayers = [
+    { id: 'base', label: 'Base Map', enabled: true },
+    { id: 'data', label: 'Data Layer', enabled: true },
+    { id: 'labels', label: 'Place Labels', enabled: false }
+  ];
   
   // Fix for Leaflet marker icons in production builds
   useLeafletIconFix();
+  
+  // Handle layer toggling
+  const handleLayerToggle = useCallback((layerId: string, enabled: boolean) => {
+    setActiveLayers(current => {
+      if (enabled && !current.includes(layerId)) {
+        return [...current, layerId];
+      } else if (!enabled) {
+        return current.filter(id => id !== layerId);
+      }
+      return current;
+    });
+  }, []);
   
   // Process data for map visualization
   useEffect(() => {
@@ -68,6 +92,12 @@ const MapVisualization: React.FC<MapVisualizationProps> = ({
             else setMapZoom(3);
           }
         }
+        
+        // Check for time series data in GeoJSON
+        const timeData = extractTimeSeriesData(geoJSON);
+        if (timeData && timeData.labels.length > 1) {
+          setTimeSeriesData(timeData);
+        }
       }
       // If we have data with lat/lng properties
       else if (data && Array.isArray(data) && data.length > 0) {
@@ -88,6 +118,28 @@ const MapVisualization: React.FC<MapVisualizationProps> = ({
           
           setMapCenter([avgLat, avgLng]);
           setMapZoom(5);
+          
+          // Check for time series in point data
+          const timeFields = ['year', 'month', 'date', 'time', 'period', 'timeIndex'];
+          let hasTimeSeries = false;
+          let timeLabels: string[] = [];
+          
+          for (const field of timeFields) {
+            const uniqueValues = [...new Set(data.map(item => item[field]).filter(Boolean))].sort();
+            if (uniqueValues.length > 1) {
+              timeLabels = uniqueValues.map(val => String(val));
+              hasTimeSeries = true;
+              break;
+            }
+          }
+          
+          if (hasTimeSeries && timeLabels.length > 1) {
+            setTimeSeriesData({
+              labels: timeLabels,
+              min: 0,
+              max: timeLabels.length - 1
+            });
+          }
         }
       }
     } catch (error) {
@@ -154,6 +206,12 @@ const MapVisualization: React.FC<MapVisualizationProps> = ({
   const minValue = minMaxField?.min ?? 0;
   const maxValue = minMaxField?.max ?? 100;
 
+  // Get current layer states
+  const layerStates = availableLayers.map(layer => ({
+    ...layer,
+    enabled: activeLayers.includes(layer.id)
+  }));
+
   return (
     <Card className="w-full">
       <CardHeader className="pb-2">
@@ -161,10 +219,21 @@ const MapVisualization: React.FC<MapVisualizationProps> = ({
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
-        <MapControls 
-          visualizationType={visualizationType} 
-          onVisualizationTypeChange={setVisualizationType} 
-        />
+        <div className="flex flex-wrap gap-4 mb-4">
+          <MapControls 
+            visualizationType={visualizationType} 
+            onVisualizationTypeChange={setVisualizationType} 
+          />
+          {timeSeriesData && (
+            <div className="flex-1 min-w-[250px]">
+              <TimeControls 
+                timeData={timeSeriesData} 
+                onTimeChange={setCurrentTimeIndex} 
+              />
+            </div>
+          )}
+        </div>
+        
         <div className="w-full h-[450px] rounded-md overflow-hidden border border-border relative">
           <MapContainer
             center={mapCenter}
@@ -173,15 +242,28 @@ const MapVisualization: React.FC<MapVisualizationProps> = ({
             points={pointsData.validPoints}
             visualizationType={visualizationType}
             category={category}
+            currentTimeIndex={currentTimeIndex}
+            activeLayers={activeLayers}
           />
-          {visualizationType === 'choropleth' && processedGeoJSON && (
-            <MapLegend
-              min={minValue}
-              max={maxValue}
-              colorScale={colorScale}
-              title={category || 'Data Distribution'}
+          
+          {/* Legend and layer controls */}
+          <div className="absolute bottom-3 left-3 z-[1000] flex gap-2 flex-col">
+            {visualizationType === 'choropleth' && processedGeoJSON && activeLayers.includes('data') && (
+              <MapLegend
+                min={minValue}
+                max={maxValue}
+                colorScale={colorScale}
+                title={category || 'Data Distribution'}
+              />
+            )}
+          </div>
+          
+          <div className="absolute top-3 right-16 z-[1000]">
+            <LayerControls
+              layers={layerStates}
+              onLayerToggle={handleLayerToggle}
             />
-          )}
+          </div>
         </div>
       </CardContent>
     </Card>
