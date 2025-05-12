@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { PieChart, Map, FileText, Database, BarChart3, Plus } from 'lucide-react';
 import Navbar from '@/components/Navbar';
@@ -66,24 +67,28 @@ const Datasets = () => {
     description: 'Explore economic datasets including GDP, inflation, trade, and employment statistics.'
   });
   
-  useEffect(() => {
-    const loadDatasets = async () => {
-      setIsLoading(true);
-      try {
-        const data = await getDatasets(filters);
-        setDatasets(data);
-      } catch (error) {
-        console.error('Failed to load datasets:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    loadDatasets();
+  const loadDatasets = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const data = await getDatasets(filters);
+      setDatasets(data);
+    } catch (error) {
+      console.error('Failed to load datasets:', error);
+    } finally {
+      setIsLoading(false);
+    }
   }, [filters]);
+  
+  useEffect(() => {
+    loadDatasets();
+  }, [loadDatasets]);
   
   const handleFilterChange = (newFilters: any) => {
     setFilters({ ...filters, ...newFilters });
+  };
+  
+  const refreshDatasets = () => {
+    loadDatasets();
   };
   
   return (
@@ -164,6 +169,7 @@ const Datasets = () => {
               datasets={datasets} 
               loading={isLoading} 
               columns={3}
+              onDataChange={refreshDatasets}
             />
           </div>
         </section>

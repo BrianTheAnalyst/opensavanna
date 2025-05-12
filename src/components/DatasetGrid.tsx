@@ -19,13 +19,15 @@ interface DatasetGridProps {
   loading?: boolean;
   layout?: 'grid' | 'featured' | 'compact';
   columns?: number;
+  onDataChange?: () => void;
 }
 
 const DatasetGrid = ({ 
   datasets = [], 
   loading = false,
   layout = 'grid',
-  columns = 3
+  columns = 3,
+  onDataChange
 }: DatasetGridProps) => {
   const [isLoaded, setIsLoaded] = useState(false);
   
@@ -81,6 +83,7 @@ const DatasetGrid = ({
               date={featuredDataset.date}
               downloads={featuredDataset.downloads}
               type="featured"
+              onDelete={onDataChange}
             />
           )}
         </div>
@@ -97,6 +100,7 @@ const DatasetGrid = ({
               date={dataset.date}
               downloads={dataset.downloads}
               type="default"
+              onDelete={onDataChange}
             />
           ))}
         </div>
@@ -119,6 +123,7 @@ const DatasetGrid = ({
             date={dataset.date}
             downloads={dataset.downloads}
             type="compact"
+            onDelete={onDataChange}
           />
         ))}
       </div>
@@ -145,6 +150,7 @@ const DatasetGrid = ({
           date={dataset.date}
           downloads={dataset.downloads}
           type="default"
+          onDelete={onDataChange}
         />
       ))}
     </div>

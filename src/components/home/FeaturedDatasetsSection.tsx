@@ -8,9 +8,10 @@ import { Dataset } from '@/types/dataset';
 interface FeaturedDatasetsSectionProps {
   datasets: Dataset[];
   isLoaded: boolean;
+  onDataChange?: () => void;
 }
 
-const FeaturedDatasetsSection = ({ datasets, isLoaded }: FeaturedDatasetsSectionProps) => {
+const FeaturedDatasetsSection = ({ datasets, isLoaded, onDataChange }: FeaturedDatasetsSectionProps) => {
   return (
     <section className="py-20 bg-muted/30">
       <div className="container px-4 mx-auto">
@@ -33,6 +34,7 @@ const FeaturedDatasetsSection = ({ datasets, isLoaded }: FeaturedDatasetsSection
           datasets={datasets} 
           loading={!isLoaded} 
           layout="featured" 
+          onDataChange={onDataChange}
         />
       </div>
     </section>

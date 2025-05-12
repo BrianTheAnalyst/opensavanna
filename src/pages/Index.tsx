@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { PieChart, Map, FileText, Database } from 'lucide-react';
 import Navbar from '@/components/Navbar';
@@ -32,69 +32,69 @@ const Index = () => {
   const location = useLocation();
   const [activeQuery, setActiveQuery] = useState<string | null>(null);
   
+  const fetchData = useCallback(async () => {
+    try {
+      // Get datasets from the database
+      const datasets = await getDatasets();
+      
+      // Filter featured datasets - either tagged as featured or take the most recent ones
+      const featured = datasets.filter(d => d.featured).length > 0 
+        ? datasets.filter(d => d.featured)
+        : datasets.slice(0, 4);
+      
+      setFeaturedDatasets(featured);
+      
+      // Get category counts using our new function
+      const categoryCounts = await getCategoryCounts();
+      
+      if (categoryCounts && categoryCounts.length > 0) {
+        setVisData(categoryCounts);
+        
+        // Update category counts in the UI
+        setCategories(prev => 
+          prev.map(cat => ({
+            ...cat,
+            count: categoryCounts.find(c => 
+              c.name.toLowerCase() === cat.title.toLowerCase()
+            )?.value || 0
+          }))
+        );
+      } else {
+        // Fallback if we couldn't get category counts
+        const categoryMap: Record<string, number> = {};
+        
+        datasets.forEach(dataset => {
+          const category = dataset.category;
+          categoryMap[category] = (categoryMap[category] || 0) + 1;
+        });
+        
+        const visDataArray = Object.entries(categoryMap).map(([name, value]) => ({ name, value }));
+        setVisData(visDataArray);
+        
+        // Update category counts in the UI
+        setCategories(prev => 
+          prev.map(cat => ({
+            ...cat,
+            count: categoryMap[cat.title.toLowerCase()] || 0
+          }))
+        );
+      }
+      
+      setIsLoaded(true);
+    } catch (error) {
+      console.error('Error loading homepage data:', error);
+      setIsLoaded(true);
+    }
+  }, []);
+  
   useEffect(() => {
     // Check for query parameter in URL
     const searchParams = new URLSearchParams(location.search);
     const query = searchParams.get('query');
     setActiveQuery(query);
     
-    const fetchData = async () => {
-      try {
-        // Get datasets from the database
-        const datasets = await getDatasets();
-        
-        // Filter featured datasets - either tagged as featured or take the most recent ones
-        const featured = datasets.filter(d => d.featured).length > 0 
-          ? datasets.filter(d => d.featured)
-          : datasets.slice(0, 4);
-        
-        setFeaturedDatasets(featured);
-        
-        // Get category counts using our new function
-        const categoryCounts = await getCategoryCounts();
-        
-        if (categoryCounts && categoryCounts.length > 0) {
-          setVisData(categoryCounts);
-          
-          // Update category counts in the UI
-          setCategories(prev => 
-            prev.map(cat => ({
-              ...cat,
-              count: categoryCounts.find(c => 
-                c.name.toLowerCase() === cat.title.toLowerCase()
-              )?.value || 0
-            }))
-          );
-        } else {
-          // Fallback if we couldn't get category counts
-          const categoryMap: Record<string, number> = {};
-          
-          datasets.forEach(dataset => {
-            const category = dataset.category;
-            categoryMap[category] = (categoryMap[category] || 0) + 1;
-          });
-          
-          const visDataArray = Object.entries(categoryMap).map(([name, value]) => ({ name, value }));
-          setVisData(visDataArray);
-          
-          // Update category counts in the UI
-          setCategories(prev => 
-            prev.map(cat => ({
-              ...cat,
-              count: categoryMap[cat.title.toLowerCase()] || 0
-            }))
-          );
-        }
-        
-        setIsLoaded(true);
-      } catch (error) {
-        console.error('Error loading homepage data:', error);
-        setIsLoaded(true);
-      }
-    };
-    
     fetchData();
-  }, [location]);
+  }, [location, fetchData]);
 
   const handleQuerySelect = (query: string) => {
     // Scroll to the search section
@@ -111,6 +111,10 @@ const Index = () => {
     
     // Show a toast notification
     toast.info('Loading query results...');
+  };
+
+  const handleDatasetUpdate = () => {
+    fetchData();
   };
 
   return (
@@ -133,6 +137,7 @@ const Index = () => {
         <FeaturedDatasetsSection 
           datasets={featuredDatasets} 
           isLoaded={isLoaded} 
+          onDataChange={handleDatasetUpdate}
         />
         
         {/* Data Categories */}

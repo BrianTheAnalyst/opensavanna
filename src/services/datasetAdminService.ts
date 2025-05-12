@@ -62,26 +62,34 @@ export const updateDataset = async (id: string, updates: Partial<Dataset>): Prom
 // Delete a dataset as admin
 export const deleteDataset = async (id: string): Promise<boolean> => {
   try {
+    console.log('Deleting dataset with ID:', id);
+    
     // First delete any files associated with this dataset
     const { error: storageError } = await supabase.storage
       .from('dataset_files')
       .remove([`${id}/*`]);
     
-    if (storageError) {
+    if (storageError && !storageError.message.includes('Object not found')) {
       console.error('Error deleting dataset files:', storageError);
       // Continue anyway, as we still want to delete the dataset record
     }
     
     // Then delete the dataset
-    const { error } = await supabase
+    const { error, count } = await supabase
       .from('datasets')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .select('*', { count: 'exact', head: true });
     
     if (error) {
       console.error('Error deleting dataset:', error);
       toast.error('Failed to delete dataset');
       return false;
+    }
+    
+    // Verify deletion
+    if (count === 0) {
+      console.warn('No dataset was deleted, it may not exist:', id);
     }
     
     toast.success('Dataset deleted successfully');
