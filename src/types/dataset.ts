@@ -35,10 +35,7 @@ export interface DatasetFilters {
   verificationStatus?: string;
 }
 
+// Simplify the DatasetWithEmail type to avoid nesting issues
 export type DatasetWithEmail = Dataset & {
   userEmail?: string;
-  // Include any additional fields that may come from the database but aren't in the Dataset type
-  verification_status?: 'pending' | 'approved' | 'rejected';
-  verification_notes?: string;
-  verification_feedback_sent?: string;
 };

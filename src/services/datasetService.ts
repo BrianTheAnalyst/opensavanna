@@ -48,9 +48,13 @@ export const getDatasets = async (filters?: DatasetFilters): Promise<Dataset[]> 
       return [];
     }
     
-    // Return datasets with mapped properties using simple object creation
-    return data.map(item => {
-      const dataset: Dataset = {
+    if (!data) {
+      return [];
+    }
+    
+    // Use type assertion for the database response to avoid deep type nesting
+    return (data as any[]).map(item => {
+      return {
         id: item.id,
         title: item.title,
         description: item.description,
@@ -61,18 +65,9 @@ export const getDatasets = async (filters?: DatasetFilters): Promise<Dataset[]> 
         downloads: item.downloads || 0,
         featured: item.featured || false,
         file: item.file,
-      };
-      
-      // Add verification fields conditionally to avoid TypeScript errors
-      if ('verification_status' in item) {
-        dataset.verificationStatus = item.verification_status as 'pending' | 'approved' | 'rejected' | undefined;
-      }
-      
-      if ('verification_notes' in item) {
-        dataset.verificationNotes = item.verification_notes as string;
-      }
-      
-      return dataset;
+        verificationStatus: item.verification_status,
+        verificationNotes: item.verification_notes
+      } as Dataset;
     });
   } catch (error) {
     console.error('Error fetching datasets:', error);
@@ -104,8 +99,8 @@ export const getDatasetById = async (id: string): Promise<Dataset | null> => {
     // Check if dataset is approved or user is admin
     const isAdmin = await isUserAdmin();
     
-    // Create dataset object using direct property assignment
-    const dataset: Dataset = {
+    // Use type assertion to create dataset object without complex type nesting
+    const dataset = {
       id: data.id,
       title: data.title,
       description: data.description,
@@ -116,16 +111,9 @@ export const getDatasetById = async (id: string): Promise<Dataset | null> => {
       downloads: data.downloads || 0,
       featured: data.featured || false,
       file: data.file,
-    };
-    
-    // Add verification fields conditionally
-    if ('verification_status' in data) {
-      dataset.verificationStatus = data.verification_status as 'pending' | 'approved' | 'rejected' | undefined;
-    }
-    
-    if ('verification_notes' in data) {
-      dataset.verificationNotes = data.verification_notes as string;
-    }
+      verificationStatus: data.verification_status,
+      verificationNotes: data.verification_notes
+    } as Dataset;
     
     // Check permissions
     if (!isAdmin && dataset.verificationStatus !== 'approved') {
