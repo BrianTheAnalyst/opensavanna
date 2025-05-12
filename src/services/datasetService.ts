@@ -52,23 +52,22 @@ export const getDatasets = async (filters?: DatasetFilters): Promise<Dataset[]> 
       return [];
     }
     
-    // Use type assertion for the database response to avoid deep type nesting
-    return (data as any[]).map(item => {
-      return {
-        id: item.id,
-        title: item.title,
-        description: item.description,
-        category: item.category,
-        format: item.format,
-        country: item.country,
-        date: item.date,
-        downloads: item.downloads || 0,
-        featured: item.featured || false,
-        file: item.file,
-        verificationStatus: item.verification_status,
-        verificationNotes: item.verification_notes
-      } as Dataset;
-    });
+    // Map the database response to Dataset objects
+    return data.map(item => ({
+      id: item.id,
+      title: item.title,
+      description: item.description,
+      category: item.category,
+      format: item.format,
+      country: item.country,
+      date: item.date,
+      downloads: item.downloads || 0,
+      featured: item.featured || false,
+      file: item.file,
+      // Use optional chaining for potentially missing fields
+      verificationStatus: (item as any).verification_status,
+      verificationNotes: (item as any).verification_notes
+    }));
   } catch (error) {
     console.error('Error fetching datasets:', error);
     toast.error('Failed to load datasets');
@@ -99,8 +98,8 @@ export const getDatasetById = async (id: string): Promise<Dataset | null> => {
     // Check if dataset is approved or user is admin
     const isAdmin = await isUserAdmin();
     
-    // Use type assertion to create dataset object without complex type nesting
-    const dataset = {
+    // Map the database response to a Dataset object
+    const dataset: Dataset = {
       id: data.id,
       title: data.title,
       description: data.description,
@@ -111,9 +110,10 @@ export const getDatasetById = async (id: string): Promise<Dataset | null> => {
       downloads: data.downloads || 0,
       featured: data.featured || false,
       file: data.file,
-      verificationStatus: data.verification_status,
-      verificationNotes: data.verification_notes
-    } as Dataset;
+      // Use type assertion for verification fields
+      verificationStatus: (data as any).verification_status,
+      verificationNotes: (data as any).verification_notes
+    };
     
     // Check permissions
     if (!isAdmin && dataset.verificationStatus !== 'approved') {

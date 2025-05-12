@@ -35,7 +35,7 @@ export interface DatasetFilters {
   verificationStatus?: string;
 }
 
-// Simplify the DatasetWithEmail type to avoid nesting issues
+// Simple DatasetWithEmail type
 export type DatasetWithEmail = Dataset & {
   userEmail?: string;
 };
