@@ -25,28 +25,32 @@ interface RawDataset {
 // Get all datasets with optional filtering
 export const getDatasets = async (filters?: DatasetFilters): Promise<Dataset[]> => {
   try {
-    let query = supabase.from('datasets').select('*');
+    // Create a query builder directly without type interference
+    let query = supabase.from('datasets');
+    
+    // Use select without type casting to avoid deep type instantiation
+    let selectQuery = query.select('*');
     
     // Apply filters if provided
     if (filters) {
       if (filters.search) {
-        query = query.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
+        selectQuery = selectQuery.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
       }
       
       if (filters.category) {
-        query = query.eq('category', filters.category);
+        selectQuery = selectQuery.eq('category', filters.category);
       }
       
       if (filters.format) {
-        query = query.eq('format', filters.format);
+        selectQuery = selectQuery.eq('format', filters.format);
       }
       
       if (filters.country) {
-        query = query.eq('country', filters.country);
+        selectQuery = selectQuery.eq('country', filters.country);
       }
       
       if (filters.verificationStatus) {
-        query = query.eq('verification_status', filters.verificationStatus);
+        selectQuery = selectQuery.eq('verification_status', filters.verificationStatus);
       }
     }
     
@@ -55,10 +59,10 @@ export const getDatasets = async (filters?: DatasetFilters): Promise<Dataset[]> 
     
     // If not admin, only show approved datasets
     if (!isAdmin && !filters?.verificationStatus) {
-      query = query.eq('verification_status', 'approved');
+      selectQuery = selectQuery.eq('verification_status', 'approved');
     }
     
-    const { data, error } = await query.order('created_at', { ascending: false });
+    const { data, error } = await selectQuery.order('created_at', { ascending: false });
     
     if (error) {
       console.error('Error fetching datasets:', error);
