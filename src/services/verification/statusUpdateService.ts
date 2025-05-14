@@ -11,6 +11,30 @@ export const updateDatasetVerificationStatus = async (
   try {
     console.log(`Updating dataset ${id} to status: ${status}`);
     
+    // Validate input parameters
+    if (!id) {
+      console.error('Invalid dataset ID provided');
+      toast.error("Update failed", {
+        description: "Invalid dataset ID"
+      });
+      return { success: false, error: "Invalid dataset ID" };
+    }
+    
+    // First verify the dataset exists
+    const { data: existingDataset, error: fetchError } = await supabase
+      .from('datasets')
+      .select('id, title')
+      .eq('id', id)
+      .single();
+      
+    if (fetchError || !existingDataset) {
+      console.error('Error fetching dataset before update:', fetchError);
+      toast.error("Update failed", {
+        description: "Could not find dataset"
+      });
+      return { success: false, error: fetchError };
+    }
+    
     // Now that we have the proper columns in the database, we can use them directly
     const updates: any = {
       verification_status: status
@@ -19,6 +43,8 @@ export const updateDatasetVerificationStatus = async (
     if (notes) {
       updates.verification_notes = notes;
     }
+    
+    console.log(`Sending update to database:`, updates);
     
     const { data, error } = await supabase
       .from('datasets')
@@ -36,6 +62,10 @@ export const updateDatasetVerificationStatus = async (
     }
     
     console.log(`Successfully updated dataset ${id} status to ${status}. Database returned:`, data);
+    toast.success(`Dataset ${status}`, {
+      description: `${data.title} has been ${status === 'approved' ? 'approved' : status === 'rejected' ? 'rejected' : 'updated to pending'}${notes ? ' with notes' : ''}.`
+    });
+    
     return { success: true, data };
   } catch (error) {
     console.error('Error updating dataset verification status:', error);

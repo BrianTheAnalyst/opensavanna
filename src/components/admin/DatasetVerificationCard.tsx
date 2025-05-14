@@ -57,14 +57,12 @@ const DatasetVerificationCard = ({ dataset, updateStatus, sendFeedback, publishD
       console.error(`Publishing error for dataset ${dataset.id} (${dataset.title}):`, error);
       
       setPublishError(errorMessage);
-      
-      // Toast is already handled in publishDataset function so we don't need to do it here
     } finally {
       setIsPublishing(false);
     }
   };
 
-  // Determine the effective verification status by checking both property names
+  // Get the effective verification status from either property
   const effectiveStatus = dataset.verificationStatus || (dataset as any).verification_status || 'pending';
   
   // Log the dataset status to help with debugging

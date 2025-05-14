@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { toast } from "sonner";
 import { DatasetWithEmail } from '@/types/dataset';
@@ -25,21 +24,37 @@ export const useDatasetVerification = () => {
       
       console.log("All datasets loaded:", allDatasets);
       
+      // Helper function to map database columns to TypeScript properties if needed
+      const normalizeDataset = (dataset: any): DatasetWithEmail => {
+        // Create a copy of the dataset with TypeScript properties
+        return {
+          ...dataset,
+          verificationStatus: dataset.verificationStatus || dataset.verification_status || 'pending',
+          verificationNotes: dataset.verificationNotes || dataset.verification_notes
+        };
+      };
+      
       // Filter datasets by verification status - check both property names
-      const pending = allDatasets.filter(d => {
-        const status = d.verificationStatus || (d as any).verification_status;
-        return !status || status === 'pending';
-      });
+      const pending = allDatasets
+        .filter(d => {
+          const status = d.verificationStatus || d.verification_status;
+          return !status || status === 'pending';
+        })
+        .map(normalizeDataset);
       
-      const approved = allDatasets.filter(d => {
-        const status = d.verificationStatus || (d as any).verification_status;
-        return status === 'approved';
-      });
+      const approved = allDatasets
+        .filter(d => {
+          const status = d.verificationStatus || d.verification_status;
+          return status === 'approved';
+        })
+        .map(normalizeDataset);
       
-      const rejected = allDatasets.filter(d => {
-        const status = d.verificationStatus || (d as any).verification_status;
-        return status === 'rejected';
-      });
+      const rejected = allDatasets
+        .filter(d => {
+          const status = d.verificationStatus || d.verification_status;
+          return status === 'rejected';
+        })
+        .map(normalizeDataset);
       
       console.log(`Filtered datasets: ${pending.length} pending, ${approved.length} approved, ${rejected.length} rejected`);
       
@@ -69,11 +84,6 @@ export const useDatasetVerification = () => {
         return;
       }
       
-      // Success notification
-      toast.success(`Dataset ${status}`, {
-        description: `The dataset has been ${status === 'approved' ? 'approved' : status === 'rejected' ? 'rejected' : 'updated to pending'}${notes ? ' with notes' : ''}.`
-      });
-      
       // Get the updated dataset data from the result
       const updatedDataset = result.data;
       console.log('Dataset successfully updated in database:', updatedDataset);
@@ -87,11 +97,10 @@ export const useDatasetVerification = () => {
         }
         
         if (dataset) {
-          // Create updated dataset with new status - fix TypeScript error by using proper property names
+          // Create updated dataset with proper TypeScript properties
           const updatedDatasetWithEmail: DatasetWithEmail = { 
             ...dataset, 
             verificationStatus: status,
-            // Use TypeScript casting for database properties when needed
             verificationNotes: notes || dataset.verificationNotes || (dataset as any).verification_notes
           };
           
@@ -113,7 +122,6 @@ export const useDatasetVerification = () => {
           const updatedDatasetWithEmail: DatasetWithEmail = { 
             ...dataset, 
             verificationStatus: status,
-            // Fix TypeScript error by using only valid properties
             verificationNotes: notes || dataset.verificationNotes || (dataset as any).verification_notes
           };
           
@@ -132,7 +140,6 @@ export const useDatasetVerification = () => {
           const updatedDatasetWithEmail: DatasetWithEmail = { 
             ...dataset, 
             verificationStatus: status,
-            // Fix TypeScript error by using only valid properties
             verificationNotes: notes || dataset.verificationNotes || (dataset as any).verification_notes
           };
           
