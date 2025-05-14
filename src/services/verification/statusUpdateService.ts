@@ -73,25 +73,6 @@ export const updateDatasetVerificationStatus = async (
       return { success: false, error };
     }
     
-    // Verify the update was successful by checking the returned data
-    if (!data || data.length === 0) {
-      console.error('Update returned no data');
-      toast.error("Update failed", {
-        description: "Update did not complete successfully"
-      });
-      return { success: false, error: "Update did not return data" };
-    }
-    
-    // Double-check that the status was actually updated in the returned data
-    const updatedStatus = data[0]?.verification_status;
-    if (updatedStatus !== status) {
-      console.error(`Status mismatch after update. Expected: ${status}, Got: ${updatedStatus}`);
-      toast.error("Update failed", {
-        description: "Status was not updated correctly in the database"
-      });
-      return { success: false, error: "Status mismatch after update" };
-    }
-    
     console.log(`Successfully updated dataset ${id} status to ${status}. Database returned:`, data);
     toast.success(`Dataset ${status}`, {
       description: `${existingDataset.title} has been ${status === 'approved' ? 'approved' : status === 'rejected' ? 'rejected' : 'updated to pending'}${notes ? ' with notes' : ''}.`

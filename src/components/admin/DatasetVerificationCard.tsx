@@ -4,7 +4,6 @@ import { DatasetWithEmail } from '@/types/dataset';
 import DatasetReviewDialog from './DatasetReviewDialog';
 import DatasetInfo from './verification/DatasetInfo';
 import DatasetActionButtons from './verification/DatasetActionButtons';
-import DebugStatusBadge from './verification/DebugStatusBadge';
 import { toast } from "sonner";
 
 interface DatasetVerificationCardProps {
@@ -71,16 +70,6 @@ const DatasetVerificationCard = ({ dataset, updateStatus, sendFeedback, publishD
 
   return (
     <div className="border rounded-lg p-6 bg-background">
-      <div className="flex justify-between items-start mb-4">
-        <h3 className="text-lg font-medium">{dataset.title}</h3>
-        <div className="flex items-center">
-          <span className="text-sm px-2 py-1 rounded-full bg-muted">
-            {effectiveStatus}
-          </span>
-          <DebugStatusBadge datasetId={dataset.id} uiStatus={effectiveStatus} />
-        </div>
-      </div>
-      
       <DatasetInfo dataset={dataset} />
       
       {/* Show error message if publish failed */}

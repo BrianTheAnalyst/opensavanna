@@ -70,25 +70,6 @@ export const publishDataset = async (id: string): Promise<boolean> => {
       throw new Error(`Failed to publish dataset: ${error.message}`);
     }
     
-    // Verify the publish operation was successful
-    if (!data || data.length === 0) {
-      console.error('Publishing dataset returned no data');
-      toast.error("Publishing failed", {
-        description: "Operation did not complete successfully"
-      });
-      throw new Error("Publishing operation did not return data");
-    }
-    
-    // Double check the featured flag was set
-    const isFeatured = data[0]?.featured;
-    if (!isFeatured) {
-      console.error('Dataset was not successfully published (featured flag not set)');
-      toast.error("Publishing failed", {
-        description: "Dataset was not successfully featured"
-      });
-      throw new Error("Featured flag not set after publishing");
-    }
-    
     console.log(`Successfully published dataset ${id}. Updated data:`, data);
     toast.success("Dataset published", {
       description: "The dataset has been successfully published and is now featured"

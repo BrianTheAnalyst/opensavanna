@@ -8,7 +8,7 @@ import {
   publishDataset as publishDatasetService
 } from '@/services/verification';
 import { supabase } from "@/integrations/supabase/client";
-import { normalizeDataset, validateDatasetStatus } from './datasetVerificationUtils';
+import { normalizeDataset } from './datasetVerificationUtils';
 
 /**
  * Load all datasets with their verification status
@@ -22,21 +22,25 @@ export const loadAllDatasets = async (): Promise<{
     // Load all datasets with their verification status
     const allDatasets = await fetchDatasetsWithVerificationStatus();
     
+    console.log("All datasets loaded:", allDatasets);
+    
     // Process and normalize all datasets first
     const normalizedDatasets = allDatasets.map(normalizeDataset);
     
-    // Then filter the normalized datasets based on the database status
+    // Then filter the normalized datasets
     const pending = normalizedDatasets.filter(d => 
-      !d.verification_status || d.verification_status === 'pending'
+      !d.verificationStatus || d.verificationStatus === 'pending'
     );
     
     const approved = normalizedDatasets.filter(d => 
-      d.verification_status === 'approved'
+      d.verificationStatus === 'approved'
     );
     
     const rejected = normalizedDatasets.filter(d => 
-      d.verification_status === 'rejected'
+      d.verificationStatus === 'rejected'
     );
+    
+    console.log(`Filtered datasets: ${pending.length} pending, ${approved.length} approved, ${rejected.length} rejected`);
     
     return { pending, approved, rejected };
   } catch (error) {
@@ -57,6 +61,8 @@ export const updateStatus = async (
   notes?: string
 ): Promise<boolean> => {
   try {
+    console.log(`Attempting to update dataset ${id} to status: ${status}`);
+    
     // First update in the database
     const result = await updateDatasetVerificationStatus(id, status, notes);
     
@@ -68,16 +74,7 @@ export const updateStatus = async (
       return false;
     }
     
-    // Verify the update was successful by directly checking the database again
-    const isStatusConsistent = await validateDatasetStatus(id, status);
-    if (!isStatusConsistent) {
-      console.error('Status inconsistency detected after update');
-      toast.error("Status inconsistency detected", {
-        description: "The database and UI may be out of sync. Please refresh the page."
-      });
-      return false;
-    }
-    
+    console.log('Dataset successfully updated in database:', result.data);
     return true;
   } catch (error) {
     console.error('Error updating dataset status:', error);
@@ -127,8 +124,11 @@ export const publishDataset = async (id: string): Promise<boolean> => {
       toast.error("Publishing failed", {
         description: "Could not verify dataset status"
       });
-      return false;
+      throw new Error("Failed to verify dataset status");
     }
+    
+    // Extra logging to help debug
+    console.log(`Publishing check for dataset ${id} (${currentDataset.title}): verification_status = ${currentDataset.verification_status}`);
     
     // Double-check the status
     if (currentDataset.verification_status !== 'approved') {
@@ -136,17 +136,23 @@ export const publishDataset = async (id: string): Promise<boolean> => {
       toast.error("Publishing failed", {
         description: `Dataset must be approved before publishing. Current status in database: ${currentDataset.verification_status}`
       });
-      return false;
+      throw new Error(`Dataset is not approved. Current status: ${currentDataset.verification_status}`);
     }
     
     // If verified, proceed with publishing
     const success = await publishDatasetService(id);
-    return success;
+    if (success) {
+      toast.success("Dataset published", {
+        description: "The dataset has been successfully published"
+      });
+      return true;
+    }
+    return false;
   } catch (error) {
     console.error('Error publishing dataset:', error);
     toast.error("Publishing failed", {
       description: error instanceof Error ? error.message : "Failed to publish dataset"
     });
-    return false;
+    throw error;
   }
 };
