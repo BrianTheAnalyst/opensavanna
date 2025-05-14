@@ -4,6 +4,7 @@ import { Dataset } from "@/types/dataset";
 import { getDatasets, getDatasetVisualization } from "@/services";
 import { transformSampleDataForCategory } from "@/services/visualization/dataTransformer";
 import { generateInsights } from "@/utils/datasetVisualizationUtils";
+import { getGeoJSONForDataset } from "@/services/visualization/datasetProcessor";
 
 export interface DataInsightResult {
   question: string;
@@ -14,6 +15,8 @@ export interface DataInsightResult {
     title: string;
     type: 'bar' | 'line' | 'pie' | 'area' | 'radar' | 'map';
     data: any[];
+    category?: string;
+    geoJSON?: any;
   }[];
   insights: string[];
   comparisonResult?: {
@@ -37,13 +40,33 @@ export const processDataQuery = async (query: string): Promise<DataInsightResult
       relevantDatasets.map(async (dataset) => {
         try {
           const visualizationData = await getDatasetVisualization(dataset.id);
+          const visType = determineVisualizationType(query, dataset.category);
+          
+          // Special handling for map visualizations
+          let geoJSON = null;
+          if (visType === 'map') {
+            // Try to get GeoJSON data for the dataset
+            geoJSON = await getGeoJSONForDataset(dataset.id);
+            
+            // If no GeoJSON but we need a map, add geo data to points if needed
+            if (!geoJSON && visualizationData && visualizationData.length > 0) {
+              visualizationData.forEach(item => {
+                // Make sure points have coordinates for map rendering if they exist in the data
+                if (item.latitude && !item.lat) item.lat = item.latitude;
+                if (item.longitude && !item.lng) item.lng = item.longitude;
+              });
+            }
+          }
+          
           return {
             datasetId: dataset.id,
             title: dataset.title,
-            type: determineVisualizationType(query, dataset.category),
+            type: visType,
+            category: dataset.category,
             data: visualizationData && visualizationData.length > 0 
               ? visualizationData 
-              : transformSampleDataForCategory(dataset.category, [])
+              : transformSampleDataForCategory(dataset.category, []),
+            geoJSON: geoJSON
           };
         } catch (error) {
           console.error(`Error processing dataset ${dataset.title}:`, error);
@@ -51,6 +74,7 @@ export const processDataQuery = async (query: string): Promise<DataInsightResult
             datasetId: dataset.id,
             title: dataset.title,
             type: 'bar' as const,
+            category: dataset.category,
             data: transformSampleDataForCategory(dataset.category, [])
           };
         }
@@ -178,8 +202,11 @@ const extractKeywords = (query: string): string[] => {
 const determineVisualizationType = (query: string, category: string): 'bar' | 'line' | 'pie' | 'area' | 'radar' | 'map' => {
   const queryLower = query.toLowerCase();
   
-  // Check for specific visualization requests in the query
-  if (queryLower.includes('map') || queryLower.includes('location') || queryLower.includes('where')) {
+  // Enhanced geo detection - look for more location-related keywords
+  const geoKeywords = ['map', 'location', 'where', 'place', 'region', 'country', 
+                      'city', 'area', 'geographic', 'spatial', 'territory', 'world'];
+  
+  if (geoKeywords.some(keyword => queryLower.includes(keyword))) {
     return 'map';
   }
   
@@ -195,18 +222,25 @@ const determineVisualizationType = (query: string, category: string): 'bar' | 'l
     return 'pie';
   }
   
-  // Default visualization types based on category
-  switch (category.toLowerCase()) {
+  // Default visualization types based on category - enhance map detection for categories
+  const categoryLower = category.toLowerCase();
+  if (categoryLower.includes('geo') || categoryLower.includes('map') || 
+      categoryLower.includes('regional') || categoryLower.includes('country') ||
+      categoryLower.includes('territory')) {
+    return 'map';
+  }
+  
+  switch (categoryLower) {
     case 'economics':
       return queryLower.includes('time') ? 'line' : 'bar';
     case 'health':
       return queryLower.includes('distribution') ? 'pie' : 'bar';
     case 'transport':
-      return queryLower.includes('network') ? 'map' : 'bar';
+      return queryLower.includes('network') || queryLower.includes('route') ? 'map' : 'bar';
     case 'education':
       return 'bar';
     case 'environment':
-      return queryLower.includes('areas') ? 'map' : 'line';
+      return queryLower.includes('areas') || queryLower.includes('region') ? 'map' : 'line';
     default:
       return 'bar';
   }
