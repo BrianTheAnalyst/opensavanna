@@ -10,7 +10,7 @@ import { transformSampleDataForCategory } from "./visualization/dataTransformer"
 export const getDatasetVisualization = async (id: string): Promise<any> => {
   try {
     // First, get the dataset to check the category and format
-    const { data: dataset, error: fetchError } = await supabase
+    const { data: rawDataset, error: fetchError } = await supabase
       .from('datasets')
       .select('*')
       .eq('id', id)
@@ -22,11 +22,18 @@ export const getDatasetVisualization = async (id: string): Promise<any> => {
       return [];
     }
     
-    if (!dataset) {
+    if (!rawDataset) {
       toast.error('Dataset not found');
       return [];
     }
 
+    // Normalize and validate the verification status to match our type definition
+    const dataset: Dataset = {
+      ...rawDataset,
+      // Make sure verification_status is properly typed or defaulted
+      verificationStatus: (rawDataset.verification_status as 'pending' | 'approved' | 'rejected') || 'pending'
+    };
+    
     // Try to get processed data first
     const processedData = await getProcessedDataForDataset(dataset);
     if (processedData.length > 0) {

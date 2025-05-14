@@ -25,7 +25,7 @@ export interface Dataset {
     type: string;
   }>;
   // Database column property names (for compatibility)
-  verification_status?: 'pending' | 'approved' | 'rejected';
+  verification_status?: 'pending' | 'approved' | 'rejected' | string;
   verification_notes?: string;
 }
 
