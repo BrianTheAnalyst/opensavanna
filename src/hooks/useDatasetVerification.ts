@@ -23,24 +23,29 @@ export const useDatasetVerification = () => {
       // Load all datasets with their verification status
       const allDatasets = await fetchDatasetsWithVerificationStatus();
       
-      // Filter by verification status
-      // We need to check verification_status from the database column
-      setPendingDatasets(allDatasets.filter(d => 
-        d.verificationStatus === 'pending' || 
-        !d.verificationStatus ||
-        (d as any).verification_status === 'pending' || 
-        !(d as any).verification_status
-      ));
+      console.log("All datasets loaded:", allDatasets);
       
-      setApprovedDatasets(allDatasets.filter(d => 
-        d.verificationStatus === 'approved' || 
-        (d as any).verification_status === 'approved'
-      ));
+      // Filter datasets by verification status
+      const pending = allDatasets.filter(d => {
+        const status = d.verificationStatus || (d as any).verification_status;
+        return !status || status === 'pending';
+      });
       
-      setRejectedDatasets(allDatasets.filter(d => 
-        d.verificationStatus === 'rejected' || 
-        (d as any).verification_status === 'rejected'
-      ));
+      const approved = allDatasets.filter(d => {
+        const status = d.verificationStatus || (d as any).verification_status;
+        return status === 'approved';
+      });
+      
+      const rejected = allDatasets.filter(d => {
+        const status = d.verificationStatus || (d as any).verification_status;
+        return status === 'rejected';
+      });
+      
+      console.log(`Filtered datasets: ${pending.length} pending, ${approved.length} approved, ${rejected.length} rejected`);
+      
+      setPendingDatasets(pending);
+      setApprovedDatasets(approved);
+      setRejectedDatasets(rejected);
     } catch (error) {
       console.error('Error loading datasets:', error);
       toast.error('Failed to load datasets');

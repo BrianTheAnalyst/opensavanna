@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import DatasetReviewDialog from './DatasetReviewDialog';
 import { DatasetWithEmail } from '@/types/dataset';
 import { Badge } from '@/components/ui/badge';
+import { toast } from "sonner";
 
 interface DatasetVerificationCardProps {
   dataset: DatasetWithEmail;
@@ -32,6 +33,18 @@ const DatasetVerificationCard = ({ dataset, updateStatus, sendFeedback }: Datase
     setIsReviewDialogOpen(true);
   };
 
+  // For debugging - log the verification status to see what's happening
+  console.log(`Dataset ${dataset.id} status: ${dataset.verificationStatus || 'undefined'}`);
+  console.log(`Dataset verification data:`, {
+    id: dataset.id,
+    title: dataset.title,
+    status: dataset.verificationStatus,
+    db_status: (dataset as any).verification_status,
+  });
+
+  // Determine the effective verification status, considering both TypeScript property and DB column
+  const effectiveStatus = dataset.verificationStatus || (dataset as any).verification_status || 'pending';
+
   return (
     <div className="border rounded-lg p-6 bg-background">
       <div className="flex items-start justify-between mb-4">
@@ -43,16 +56,17 @@ const DatasetVerificationCard = ({ dataset, updateStatus, sendFeedback }: Datase
         
         <Badge
           variant={
-            dataset.verificationStatus === 'approved'
+            effectiveStatus === 'approved'
               ? 'success'
-              : dataset.verificationStatus === 'rejected'
+              : effectiveStatus === 'rejected'
               ? 'destructive'
               : 'outline'
           }
+          className={effectiveStatus === 'pending' ? "bg-yellow-100 text-yellow-800" : ""}
         >
-          {dataset.verificationStatus === 'approved'
+          {effectiveStatus === 'approved'
             ? 'Approved'
-            : dataset.verificationStatus === 'rejected'
+            : effectiveStatus === 'rejected'
             ? 'Rejected'
             : 'Pending Review'}
         </Badge>
@@ -90,11 +104,11 @@ const DatasetVerificationCard = ({ dataset, updateStatus, sendFeedback }: Datase
         </div>
       )}
       
-      {dataset.verificationStatus === 'pending' && (
+      {effectiveStatus === 'pending' && (
         <div className="flex flex-wrap gap-2 mt-4">
           <Button
             variant="outline"
-            className="flex-1"
+            className="flex-1 border-green-300 text-green-800 hover:bg-green-100"
             onClick={handleApprove}
           >
             <Check className="w-4 h-4 mr-2" />
@@ -119,12 +133,16 @@ const DatasetVerificationCard = ({ dataset, updateStatus, sendFeedback }: Datase
         </div>
       )}
       
-      {dataset.verificationStatus !== 'pending' && (
+      {effectiveStatus !== 'pending' && (
         <div className="flex flex-wrap gap-2 mt-4">
           <Button
             variant="outline"
             className="flex-1"
-            onClick={() => updateStatus(dataset.id, 'pending')}
+            onClick={() => {
+              updateStatus(dataset.id, 'pending')
+                .then(() => toast.success("Status reset to pending"))
+                .catch(err => toast.error("Failed to reset status"));
+            }}
           >
             Reset to Pending
           </Button>

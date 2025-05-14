@@ -6,6 +6,7 @@ import { DatasetWithEmail, Dataset } from "@/types/dataset";
 // Fetch all datasets with their verification status and user email
 export const fetchDatasetsWithVerificationStatus = async (): Promise<DatasetWithEmail[]> => {
   try {
+    console.log("Fetching datasets for verification...");
     const { data, error } = await supabase
       .from('datasets')
       .select('*')
@@ -17,28 +18,51 @@ export const fetchDatasetsWithVerificationStatus = async (): Promise<DatasetWith
       return [];
     }
     
+    console.log(`Fetched ${data?.length || 0} datasets`);
+    
     // For each dataset, try to get the user's email (if user_id exists)
     const datasetsWithEmail = await Promise.all(
       (data as Dataset[]).map(async (dataset) => {
         // Handle user_id if it's not in the Dataset type
         const userId = (dataset as any).user_id;
         if (!userId) {
-          return { ...dataset, userEmail: 'Unknown' };
+          return { 
+            ...dataset, 
+            userEmail: 'Unknown',
+            // Ensure verification status is accessible via the TypeScript property
+            verificationStatus: (dataset as any).verification_status || dataset.verificationStatus || 'pending',
+            verificationNotes: (dataset as any).verification_notes || dataset.verificationNotes,
+          };
         }
         
-        // Try to get user email from auth.users directly
-        // This is a workaround since we don't have a profiles table
+        // Try to get user email
         try {
           const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
           
           if (userError || !userData || !userData.user) {
-            return { ...dataset, userEmail: 'Unknown' };
+            console.log(`Couldn't get user data for ID: ${userId}`, userError);
+            return { 
+              ...dataset, 
+              userEmail: 'Unknown',
+              verificationStatus: (dataset as any).verification_status || dataset.verificationStatus || 'pending',
+              verificationNotes: (dataset as any).verification_notes || dataset.verificationNotes,
+            };
           }
           
-          return { ...dataset, userEmail: userData.user.email || 'Unknown' };
+          return { 
+            ...dataset, 
+            userEmail: userData.user.email || 'Unknown',
+            verificationStatus: (dataset as any).verification_status || dataset.verificationStatus || 'pending',
+            verificationNotes: (dataset as any).verification_notes || dataset.verificationNotes,
+          };
         } catch (err) {
           console.error('Error fetching user email:', err);
-          return { ...dataset, userEmail: 'Unknown' };
+          return { 
+            ...dataset, 
+            userEmail: 'Unknown',
+            verificationStatus: (dataset as any).verification_status || dataset.verificationStatus || 'pending',
+            verificationNotes: (dataset as any).verification_notes || dataset.verificationNotes,
+          };
         }
       })
     );
@@ -58,6 +82,8 @@ export const updateDatasetVerificationStatus = async (
   notes?: string
 ): Promise<boolean> => {
   try {
+    console.log(`Updating dataset ${id} to status: ${status}`);
+    
     // Now that we have the proper columns in the database, we can use them directly
     const updates: any = {
       verification_status: status
@@ -78,6 +104,7 @@ export const updateDatasetVerificationStatus = async (
       return false;
     }
     
+    console.log(`Successfully updated dataset ${id} status to ${status}`);
     return true;
   } catch (error) {
     console.error('Error updating dataset verification status:', error);
@@ -125,6 +152,7 @@ export const sendDatasetFeedback = async (
     // For now, we'll just store the feedback
     // In a production app, you would implement email notifications here
     
+    console.log(`Successfully sent feedback for dataset ${id}`);
     return true;
   } catch (error) {
     console.error('Error sending dataset feedback:', error);
@@ -139,8 +167,7 @@ export const fetchPendingDatasetCount = async (): Promise<number> => {
     const { count, error } = await supabase
       .from('datasets')
       .select('*', { count: 'exact', head: true })
-      .is('verification_status', null)
-      .or('verification_status.eq.pending');
+      .or('verification_status.is.null,verification_status.eq.pending');
     
     if (error) {
       console.error('Error counting pending datasets:', error);
