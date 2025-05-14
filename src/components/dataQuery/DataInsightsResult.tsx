@@ -35,6 +35,9 @@ const DataInsightsResult: React.FC<DataInsightsResultProps> = ({ result }) => {
       const lat = item.lat !== undefined ? item.lat : item.latitude;
       const lng = item.lng !== undefined ? item.lng : item.longitude;
       
+      // Skip items without valid coordinates
+      if (lat === undefined || lng === undefined) return null;
+      
       // Get value for choropleth coloring
       const value = item.value !== undefined ? item.value : 
                    (item.data !== undefined ? item.data : 1);
@@ -52,14 +55,10 @@ const DataInsightsResult: React.FC<DataInsightsResultProps> = ({ result }) => {
           coordinates: [lng, lat] // GeoJSON uses [longitude, latitude] order
         }
       };
-    }).filter((feature: any) => 
-      // Filter out features with invalid coordinates
-      feature.geometry.coordinates[0] !== undefined && 
-      feature.geometry.coordinates[1] !== undefined
-    );
+    }).filter(Boolean); // Remove null entries
     
     // Only create GeoJSON if we have valid features
-    if (features.length === 0) return null;
+    if (!features || features.length === 0) return null;
     
     // Calculate min/max values for choropleth coloring
     const values = features
@@ -83,6 +82,7 @@ const DataInsightsResult: React.FC<DataInsightsResultProps> = ({ result }) => {
   
   return (
     <div className="space-y-6 animate-fade-in">
+      {/* Header Card */}
       <Card>
         <CardHeader>
           <div className="flex items-start justify-between">
@@ -134,11 +134,15 @@ const DataInsightsResult: React.FC<DataInsightsResultProps> = ({ result }) => {
         </CardContent>
       </Card>
       
+      {/* Visualizations */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {result.visualizations.map((viz, index) => {
           if (viz.type === 'map') {
             // Create GeoJSON from points if not provided
             const geoJSON = viz.geoJSON || prepareGeoJSONForMap(viz);
+            
+            // Skip if no geoJSON and no data with coordinates
+            if (!geoJSON && (!viz.data || !Array.isArray(viz.data))) return null;
             
             return (
               <Card key={index} className="md:col-span-2">
@@ -149,7 +153,7 @@ const DataInsightsResult: React.FC<DataInsightsResultProps> = ({ result }) => {
                 <CardContent>
                   <div className="h-[400px]">
                     <MapVisualization
-                      data={viz.data}
+                      data={viz.data || []}
                       title={viz.title}
                       description="Geographic data representation"
                       isLoading={false}
@@ -167,13 +171,13 @@ const DataInsightsResult: React.FC<DataInsightsResultProps> = ({ result }) => {
               <CardHeader>
                 <CardTitle>{viz.title}</CardTitle>
                 <CardDescription>
-                  Visualization based on {viz.data.length} data points
+                  Visualization based on {viz.data?.length || 0} data points
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <InsightCard
                   title=""
-                  data={viz.data}
+                  data={viz.data || []}
                   type={viz.type}
                   dataKey="value"
                   nameKey="name"
@@ -184,6 +188,7 @@ const DataInsightsResult: React.FC<DataInsightsResultProps> = ({ result }) => {
         })}
       </div>
       
+      {/* Comparison Section */}
       {result.comparisonResult && (
         <Card>
           <CardHeader>
@@ -202,6 +207,7 @@ const DataInsightsResult: React.FC<DataInsightsResultProps> = ({ result }) => {
         </Card>
       )}
       
+      {/* Datasets Used */}
       <Card className="bg-muted/30">
         <CardHeader>
           <CardTitle className="text-lg">Datasets Used</CardTitle>

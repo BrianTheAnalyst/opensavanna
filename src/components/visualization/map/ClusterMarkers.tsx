@@ -21,6 +21,12 @@ const ClusterMarkers: React.FC<ClusterMarkersProps> = ({ points }) => {
   React.useEffect(() => {
     if (!map || !points.length) return;
     
+    // Check if leaflet.markercluster is available
+    if (!L.MarkerClusterGroup) {
+      console.error("Leaflet MarkerClusterGroup plugin not loaded");
+      return;
+    }
+    
     // Create marker cluster group with enhanced options
     const markers = L.markerClusterGroup({
       chunkedLoading: true,
