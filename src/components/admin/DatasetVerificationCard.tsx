@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import DatasetReviewDialog from './DatasetReviewDialog';
 import { DatasetWithEmail } from '@/types/dataset';
 import { Badge } from '@/components/ui/badge';
-import { toast } from '@/hooks/use-toast';
+import { toast } from "sonner";
 
 interface DatasetVerificationCardProps {
   dataset: DatasetWithEmail;
@@ -41,15 +41,12 @@ const DatasetVerificationCard = ({ dataset, updateStatus, sendFeedback, publishD
     try {
       setIsPublishing(true);
       await publishDataset(dataset.id);
-      toast({
-        title: "Dataset published",
+      toast("Dataset published", {
         description: "The dataset has been successfully published and is now visible to all users."
       });
     } catch (error) {
-      toast({
-        title: "Failed to publish dataset",
+      toast("Failed to publish dataset", {
         description: "There was an error publishing this dataset. Please try again.",
-        variant: "destructive"
       });
       console.error("Publishing error:", error);
     } finally {
@@ -169,14 +166,11 @@ const DatasetVerificationCard = ({ dataset, updateStatus, sendFeedback, publishD
             className="flex-1"
             onClick={() => {
               updateStatus(dataset.id, 'pending')
-                .then(() => toast({
-                  title: "Status reset",
+                .then(() => toast("Status reset", {
                   description: "Dataset status reset to pending"
                 }))
-                .catch(err => toast({
-                  title: "Failed to reset status",
+                .catch(err => toast("Failed to reset status", {
                   description: "There was an error resetting the dataset status",
-                  variant: "destructive"
                 }));
             }}
           >
@@ -200,14 +194,11 @@ const DatasetVerificationCard = ({ dataset, updateStatus, sendFeedback, publishD
             className="flex-1"
             onClick={() => {
               updateStatus(dataset.id, 'pending')
-                .then(() => toast({
-                  title: "Status reset",
+                .then(() => toast("Status reset", {
                   description: "Dataset status reset to pending"
                 }))
-                .catch(err => toast({
-                  title: "Failed to reset status",
+                .catch(err => toast("Failed to reset status", {
                   description: "There was an error resetting the dataset status",
-                  variant: "destructive"
                 }));
             }}
           >

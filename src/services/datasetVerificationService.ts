@@ -1,5 +1,5 @@
 
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { DatasetWithEmail, Dataset } from "@/types/dataset";
 
@@ -14,10 +14,8 @@ export const fetchDatasetsWithVerificationStatus = async (): Promise<DatasetWith
     
     if (error) {
       console.error('Error fetching datasets:', error);
-      toast({
-        title: "Failed to load datasets",
+      toast("Failed to load datasets", {
         description: "Could not fetch datasets for verification",
-        variant: "destructive"
       });
       return [];
     }
@@ -74,10 +72,8 @@ export const fetchDatasetsWithVerificationStatus = async (): Promise<DatasetWith
     return datasetsWithEmail;
   } catch (error) {
     console.error('Error fetching datasets with verification status:', error);
-    toast({
-      title: "Failed to load datasets",
+    toast("Failed to load datasets", {
       description: "Could not fetch datasets for verification",
-      variant: "destructive"
     });
     return [];
   }
@@ -108,10 +104,8 @@ export const updateDatasetVerificationStatus = async (
     
     if (error) {
       console.error('Error updating dataset verification status:', error);
-      toast({
-        title: "Update failed",
+      toast("Update failed", {
         description: "Failed to update verification status",
-        variant: "destructive"
       });
       return false;
     }
@@ -120,10 +114,8 @@ export const updateDatasetVerificationStatus = async (
     return true;
   } catch (error) {
     console.error('Error updating dataset verification status:', error);
-    toast({
-      title: "Update failed",
+    toast("Update failed", {
       description: "Failed to update verification status",
-      variant: "destructive"
     });
     return false;
   }
@@ -134,22 +126,18 @@ export const publishDataset = async (id: string): Promise<boolean> => {
   try {
     console.log(`Publishing dataset ${id}`);
     
-    const updates = {
-      published: true,
-      published_at: new Date().toISOString()
-    };
-    
+    // Use the correct column names for the datasets table
     const { error } = await supabase
       .from('datasets')
-      .update(updates)
+      .update({
+        featured: true, // Use featured flag instead of published which doesn't exist
+      })
       .eq('id', id);
     
     if (error) {
       console.error('Error publishing dataset:', error);
-      toast({
-        title: "Publishing failed",
+      toast("Publishing failed", {
         description: "Failed to publish dataset",
-        variant: "destructive"
       });
       return false;
     }
@@ -158,10 +146,8 @@ export const publishDataset = async (id: string): Promise<boolean> => {
     return true;
   } catch (error) {
     console.error('Error publishing dataset:', error);
-    toast({
-      title: "Publishing failed",
+    toast("Publishing failed", {
       description: "Failed to publish dataset", 
-      variant: "destructive"
     });
     return false;
   }
@@ -182,10 +168,8 @@ export const sendDatasetFeedback = async (
     
     if (datasetError || !dataset) {
       console.error('Error fetching dataset for feedback:', datasetError);
-      toast({
-        title: "Feedback failed",
+      toast("Feedback failed", {
         description: "Failed to send feedback: dataset not found",
-        variant: "destructive"
       });
       return false;
     }
@@ -203,10 +187,8 @@ export const sendDatasetFeedback = async (
     
     if (updateError) {
       console.error('Error saving feedback:', updateError);
-      toast({
-        title: "Feedback failed",
+      toast("Feedback failed", {
         description: "Failed to save feedback",
-        variant: "destructive"
       });
       return false;
     }
@@ -218,10 +200,8 @@ export const sendDatasetFeedback = async (
     return true;
   } catch (error) {
     console.error('Error sending dataset feedback:', error);
-    toast({
-      title: "Feedback failed",
+    toast("Feedback failed", {
       description: "Failed to send feedback",
-      variant: "destructive"
     });
     return false;
   }

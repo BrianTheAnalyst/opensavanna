@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { DatasetWithEmail } from '@/types/dataset';
 import { 
   fetchDatasetsWithVerificationStatus, 
@@ -48,10 +48,8 @@ export const useDatasetVerification = () => {
       setRejectedDatasets(rejected);
     } catch (error) {
       console.error('Error loading datasets:', error);
-      toast({
-        title: "Failed to load datasets",
+      toast("Failed to load datasets", {
         description: "Could not fetch datasets for verification",
-        variant: "destructive"
       });
     } finally {
       setIsLoading(false);
@@ -63,8 +61,7 @@ export const useDatasetVerification = () => {
       const success = await updateDatasetVerificationStatus(id, status, notes);
       
       if (success) {
-        toast({
-          title: `Dataset ${status === 'approved' ? 'approved' : status === 'rejected' ? 'rejected' : 'status updated'}`,
+        toast(`Dataset ${status === 'approved' ? 'approved' : status === 'rejected' ? 'rejected' : 'status updated'}`, {
           description: `The dataset has been ${status === 'approved' ? 'approved' : status === 'rejected' ? 'rejected' : 'updated to pending'}${notes ? ' with notes' : ''}.`
         });
         
@@ -106,10 +103,8 @@ export const useDatasetVerification = () => {
       }
     } catch (error) {
       console.error('Error updating dataset status:', error);
-      toast({
-        title: "Update failed",
+      toast("Update failed", {
         description: "Failed to update dataset status",
-        variant: "destructive"
       });
     }
   };
@@ -118,39 +113,32 @@ export const useDatasetVerification = () => {
     try {
       const success = await sendDatasetFeedback(id, feedback);
       if (success) {
-        toast({
-          title: "Feedback sent",
+        toast("Feedback sent", {
           description: "Feedback was successfully sent to contributor"
         });
         await refreshData();
       }
     } catch (error) {
       console.error('Error sending feedback:', error);
-      toast({
-        title: "Feedback failed",
+      toast("Feedback failed", {
         description: "Failed to send feedback",
-        variant: "destructive"
       });
     }
   };
   
-  const publishDataset = async (id: string) => {
+  const publishDataset = async (id: string): Promise<void> => {
     try {
       const success = await publishDatasetService(id);
       if (success) {
-        toast({
-          title: "Dataset published",
+        toast("Dataset published", {
           description: "The dataset has been successfully published"
         });
         await refreshData();
       }
-      return success;
     } catch (error) {
       console.error('Error publishing dataset:', error);
-      toast({
-        title: "Publishing failed",
+      toast("Publishing failed", {
         description: "Failed to publish dataset",
-        variant: "destructive"
       });
       throw error;
     }
