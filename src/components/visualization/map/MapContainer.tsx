@@ -138,7 +138,6 @@ const MapContainerComponent: React.FC<MapContainerComponentProps> = ({
         <TileLayer 
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          zIndex={500}
         />
       )}
     </LeafletMapContainer>

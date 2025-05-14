@@ -3,7 +3,7 @@ import React from 'react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { MapLayers, Landmark, Building, Mountain, Road } from 'lucide-react';
+import { Layers, Landmark, Building, Mountain } from 'lucide-react';
 
 interface LayerControlsProps {
   layers: {
@@ -26,16 +26,16 @@ const LayerControls: React.FC<LayerControlsProps> = ({ layers, onLayerToggle }) 
       case 'terrain':
         return Mountain;
       case 'roads':
-        return Road;
+        return Layers; // Changed from Road to Layers as per available icons
       default:
-        return MapLayers;
+        return Layers; // Changed from MapLayers to Layers
     }
   };
   
   return (
     <div className="border rounded-md p-3 bg-background/90 shadow-sm">
       <div className="flex items-center mb-2">
-        <MapLayers className="h-4 w-4 mr-2" />
+        <Layers className="h-4 w-4 mr-2" />
         <h4 className="text-sm font-medium">Map Layers</h4>
       </div>
       <Separator className="my-2" />
