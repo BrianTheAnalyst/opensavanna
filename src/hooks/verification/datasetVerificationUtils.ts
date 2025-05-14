@@ -10,11 +10,9 @@ export const normalizeDataset = (dataset: any): DatasetWithEmail => {
   const normalizedDataset = { ...dataset };
   
   // Ensure verification status uses the TypeScript property
-  normalizedDataset.verificationStatus = dataset.verificationStatus || dataset.verification_status || 'pending';
-  normalizedDataset.verificationNotes = dataset.verificationNotes || dataset.verification_notes;
-  
-  // For debugging
-  console.log(`Normalized dataset ${dataset.id}: status = ${normalizedDataset.verificationStatus}, original_status = ${dataset.verification_status}`);
+  // The database uses verification_status, while the UI uses verificationStatus
+  normalizedDataset.verificationStatus = dataset.verification_status || 'pending';
+  normalizedDataset.verificationNotes = dataset.verification_notes;
   
   return normalizedDataset as DatasetWithEmail;
 };
@@ -27,9 +25,9 @@ export const filterDatasetsByStatus = (
   status: 'pending' | 'approved' | 'rejected'
 ): DatasetWithEmail[] => {
   if (status === 'pending') {
-    return datasets.filter(d => !d.verificationStatus || d.verificationStatus === 'pending');
+    return datasets.filter(d => !d.verification_status || d.verification_status === 'pending');
   }
-  return datasets.filter(d => d.verificationStatus === status);
+  return datasets.filter(d => d.verification_status === status);
 };
 
 /**
@@ -56,8 +54,6 @@ export const validateDatasetStatus = async (id: string, expectedStatus: string):
     
     if (!isConsistent) {
       console.error(`Dataset status mismatch: UI=${expectedStatus}, DB=${dbStatus}`);
-    } else {
-      console.log(`Dataset status consistent: UI=${expectedStatus}, DB=${dbStatus}`);
     }
     
     return isConsistent;
