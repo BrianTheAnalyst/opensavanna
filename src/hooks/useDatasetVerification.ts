@@ -87,13 +87,12 @@ export const useDatasetVerification = () => {
         }
         
         if (dataset) {
-          // Create updated dataset with new status - use both property names for compatibility
+          // Create updated dataset with new status - fix TypeScript error by using proper property names
           const updatedDatasetWithEmail: DatasetWithEmail = { 
             ...dataset, 
             verificationStatus: status,
-            verification_status: status,
-            verificationNotes: notes || dataset.verificationNotes || (dataset as any).verification_notes,
-            verification_notes: notes || dataset.verificationNotes || (dataset as any).verification_notes
+            // Use TypeScript casting for database properties when needed
+            verificationNotes: notes || dataset.verificationNotes || (dataset as any).verification_notes
           };
           
           // Remove from current lists
@@ -114,9 +113,8 @@ export const useDatasetVerification = () => {
           const updatedDatasetWithEmail: DatasetWithEmail = { 
             ...dataset, 
             verificationStatus: status,
-            verification_status: status,
-            verificationNotes: notes || dataset.verificationNotes || (dataset as any).verification_notes,
-            verification_notes: notes || dataset.verificationNotes || (dataset as any).verification_notes
+            // Fix TypeScript error by using only valid properties
+            verificationNotes: notes || dataset.verificationNotes || (dataset as any).verification_notes
           };
           
           setPendingDatasets(prev => prev.filter(d => d.id !== id));
@@ -134,9 +132,8 @@ export const useDatasetVerification = () => {
           const updatedDatasetWithEmail: DatasetWithEmail = { 
             ...dataset, 
             verificationStatus: status,
-            verification_status: status,
-            verificationNotes: notes || dataset.verificationNotes || (dataset as any).verification_notes,
-            verification_notes: notes || dataset.verificationNotes || (dataset as any).verification_notes
+            // Fix TypeScript error by using only valid properties
+            verificationNotes: notes || dataset.verificationNotes || (dataset as any).verification_notes
           };
           
           setApprovedDatasets(prev => prev.filter(d => d.id !== id));
