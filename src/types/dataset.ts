@@ -24,6 +24,9 @@ export interface Dataset {
     description: string;
     type: string;
   }>;
+  // Database column property names (for compatibility)
+  verification_status?: 'pending' | 'approved' | 'rejected';
+  verification_notes?: string;
 }
 
 // Dataset filter options

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { toast } from "sonner";
 import { DatasetWithEmail } from '@/types/dataset';
@@ -8,6 +7,7 @@ import {
   sendDatasetFeedback,
   publishDataset as publishDatasetService
 } from '@/services/datasetVerificationService';
+import { supabase } from "@/integrations/supabase/client";
 
 export const useDatasetVerification = () => {
   const [pendingDatasets, setPendingDatasets] = useState<DatasetWithEmail[]>([]);
@@ -25,9 +25,9 @@ export const useDatasetVerification = () => {
       
       console.log("All datasets loaded:", allDatasets);
       
-      // Helper function to map database columns to TypeScript properties if needed
+      // Helper function to normalize dataset properties for consistency
       const normalizeDataset = (dataset: any): DatasetWithEmail => {
-        // Create a copy of the dataset with TypeScript properties
+        // Create a normalized version with TypeScript properties
         return {
           ...dataset,
           verificationStatus: dataset.verificationStatus || dataset.verification_status || 'pending',
@@ -35,30 +35,21 @@ export const useDatasetVerification = () => {
         };
       };
       
-      // Filter datasets by verification status - using the normalized property names
-      const pending = allDatasets
-        .filter(d => {
-          // Use a temporary variable to check the status from either property name
-          const status = d.verificationStatus || (d as any).verification_status;
-          return !status || status === 'pending';
-        })
-        .map(normalizeDataset);
+      // Process and normalize all datasets first
+      const normalizedDatasets = allDatasets.map(normalizeDataset);
       
-      const approved = allDatasets
-        .filter(d => {
-          // Use a temporary variable to check the status from either property name
-          const status = d.verificationStatus || (d as any).verification_status;
-          return status === 'approved';
-        })
-        .map(normalizeDataset);
+      // Then filter the normalized datasets
+      const pending = normalizedDatasets.filter(d => 
+        !d.verificationStatus || d.verificationStatus === 'pending'
+      );
       
-      const rejected = allDatasets
-        .filter(d => {
-          // Use a temporary variable to check the status from either property name
-          const status = d.verificationStatus || (d as any).verification_status;
-          return status === 'rejected';
-        })
-        .map(normalizeDataset);
+      const approved = normalizedDatasets.filter(d => 
+        d.verificationStatus === 'approved'
+      );
+      
+      const rejected = normalizedDatasets.filter(d => 
+        d.verificationStatus === 'rejected'
+      );
       
       console.log(`Filtered datasets: ${pending.length} pending, ${approved.length} approved, ${rejected.length} rejected`);
       
@@ -77,6 +68,8 @@ export const useDatasetVerification = () => {
 
   const updateStatus = async (id: string, status: 'pending' | 'approved' | 'rejected', notes?: string) => {
     try {
+      console.log(`Attempting to update dataset ${id} to status: ${status}`);
+      
       // First update in the database
       const result = await updateDatasetVerificationStatus(id, status, notes);
       
@@ -244,6 +237,3 @@ export const useDatasetVerification = () => {
     refreshData
   };
 };
-
-// Add missing import for supabase
-import { supabase } from "@/integrations/supabase/client";
