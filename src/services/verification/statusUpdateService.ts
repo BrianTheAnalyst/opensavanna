@@ -23,7 +23,7 @@ export const updateDatasetVerificationStatus = async (
     // First verify the dataset exists
     const { data: existingDataset, error: fetchError } = await supabase
       .from('datasets')
-      .select('id, title')
+      .select('id, title, verification_status')
       .eq('id', id)
       .single();
       
@@ -34,6 +34,9 @@ export const updateDatasetVerificationStatus = async (
       });
       return { success: false, error: fetchError };
     }
+    
+    // Log current status for debugging
+    console.log(`Current dataset status in database: ${existingDataset.verification_status}`);
     
     // Validate status to ensure it's a valid value
     if (status !== 'pending' && status !== 'approved' && status !== 'rejected') {

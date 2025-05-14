@@ -115,7 +115,7 @@ export const publishDataset = async (id: string): Promise<boolean> => {
     // First verify that the dataset is really approved in the database
     const { data: currentDataset, error: fetchError } = await supabase
       .from('datasets')
-      .select('id, verification_status')
+      .select('id, verification_status, title')
       .eq('id', id)
       .single();
       
@@ -127,11 +127,14 @@ export const publishDataset = async (id: string): Promise<boolean> => {
       throw new Error("Failed to verify dataset status");
     }
     
+    // Extra logging to help debug
+    console.log(`Publishing check for dataset ${id} (${currentDataset.title}): verification_status = ${currentDataset.verification_status}`);
+    
     // Double-check the status
     if (currentDataset.verification_status !== 'approved') {
       console.error(`Dataset ${id} is not approved in the database. Current status:`, currentDataset.verification_status);
       toast.error("Publishing failed", {
-        description: "Dataset must be approved before publishing"
+        description: `Dataset must be approved before publishing. Current status in database: ${currentDataset.verification_status}`
       });
       throw new Error(`Dataset is not approved. Current status: ${currentDataset.verification_status}`);
     }

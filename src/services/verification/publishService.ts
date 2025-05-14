@@ -32,13 +32,25 @@ export const publishDataset = async (id: string): Promise<boolean> => {
     
     console.log('Dataset verification status check:', existingDataset);
     
-    if (!existingDataset || existingDataset.verification_status !== 'approved') {
-      console.error('Cannot publish dataset that is not approved. Current status:', 
-        existingDataset?.verification_status);
+    // Explicit check to ensure the dataset is actually approved
+    if (!existingDataset) {
+      console.error('Dataset not found for publishing');
       toast.error("Publishing failed", {
-        description: "Only approved datasets can be published"
+        description: "Dataset not found"
       });
-      throw new Error(`Dataset must be approved before publishing. Current status: ${existingDataset?.verification_status}`);
+      throw new Error('Dataset not found for publishing');
+    }
+    
+    // Very explicit logging and verification to help debug the issue
+    console.log(`Dataset ${id} verification status before publishing:`, existingDataset.verification_status);
+    
+    if (existingDataset.verification_status !== 'approved') {
+      console.error(`Cannot publish dataset that is not approved in the database. Current status:`, 
+        existingDataset.verification_status);
+      toast.error("Publishing failed", {
+        description: `Dataset must be approved before publishing. Current status in database: ${existingDataset.verification_status}`
+      });
+      throw new Error(`Dataset must be approved before publishing. Current status: ${existingDataset.verification_status}`);
     }
     
     // Use the featured flag to publish the dataset
