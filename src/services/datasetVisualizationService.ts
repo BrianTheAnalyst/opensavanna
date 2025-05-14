@@ -27,11 +27,22 @@ export const getDatasetVisualization = async (id: string): Promise<any> => {
       return [];
     }
 
-    // Normalize and validate the verification status to match our type definition
+    // Normalize verification status to ensure type safety
+    const status = rawDataset.verification_status as string;
+    let typedStatus: 'pending' | 'approved' | 'rejected' = 'pending';
+    
+    // Validate status value to ensure it's one of the expected values
+    if (status === 'approved' || status === 'rejected' || status === 'pending') {
+      typedStatus = status;
+    } else if (status) {
+      console.warn(`Unexpected verification status value: ${status}, defaulting to 'pending'`);
+    }
+
+    // Create a properly typed Dataset object
     const dataset: Dataset = {
       ...rawDataset,
-      // Make sure verification_status is properly typed or defaulted
-      verificationStatus: (rawDataset.verification_status as 'pending' | 'approved' | 'rejected') || 'pending'
+      verificationStatus: typedStatus,
+      verification_status: typedStatus // Ensure both properties have the correct type
     };
     
     // Try to get processed data first

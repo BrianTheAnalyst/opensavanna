@@ -35,6 +35,15 @@ export const updateDatasetVerificationStatus = async (
       return { success: false, error: fetchError };
     }
     
+    // Validate status to ensure it's a valid value
+    if (status !== 'pending' && status !== 'approved' && status !== 'rejected') {
+      console.error(`Invalid status value: ${status}`);
+      toast.error("Update failed", {
+        description: "Invalid status value"
+      });
+      return { success: false, error: "Invalid status value" };
+    }
+    
     // Now that we have the proper columns in the database, we can use them directly
     const updates: any = {
       verification_status: status
