@@ -53,26 +53,26 @@ export const updateDatasetVerificationStatus = async (
       updates.verification_notes = notes;
     }
     
-    console.log(`Sending update to database:`, updates);
+    console.log(`Sending update to database with payload:`, updates);
     
+    // Use a more direct approach with explicit column selection
     const { data, error } = await supabase
       .from('datasets')
       .update(updates)
       .eq('id', id)
-      .select('id, title, verification_status, verification_notes')
-      .single();
+      .select('id, title, verification_status, verification_notes');
     
     if (error) {
       console.error('Error updating dataset verification status:', error);
       toast.error("Update failed", {
-        description: "Failed to update verification status"
+        description: "Failed to update verification status: " + error.message
       });
       return { success: false, error };
     }
     
     console.log(`Successfully updated dataset ${id} status to ${status}. Database returned:`, data);
     toast.success(`Dataset ${status}`, {
-      description: `${data.title} has been ${status === 'approved' ? 'approved' : status === 'rejected' ? 'rejected' : 'updated to pending'}${notes ? ' with notes' : ''}.`
+      description: `${existingDataset.title} has been ${status === 'approved' ? 'approved' : status === 'rejected' ? 'rejected' : 'updated to pending'}${notes ? ' with notes' : ''}.`
     });
     
     return { success: true, data };

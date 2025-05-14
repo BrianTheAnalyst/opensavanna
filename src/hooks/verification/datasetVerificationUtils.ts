@@ -6,11 +6,17 @@ import { DatasetWithEmail } from "@/types/dataset";
  * This ensures all datasets have consistent property names regardless of database column naming
  */
 export const normalizeDataset = (dataset: any): DatasetWithEmail => {
-  return {
-    ...dataset,
-    verificationStatus: dataset.verificationStatus || dataset.verification_status || 'pending',
-    verificationNotes: dataset.verificationNotes || dataset.verification_notes
-  };
+  // First make a clean copy of the dataset to avoid reference issues
+  const normalizedDataset = { ...dataset };
+  
+  // Ensure verification status uses the TypeScript property
+  normalizedDataset.verificationStatus = dataset.verificationStatus || dataset.verification_status || 'pending';
+  normalizedDataset.verificationNotes = dataset.verificationNotes || dataset.verification_notes;
+  
+  // For debugging
+  console.log(`Normalized dataset ${dataset.id}: status = ${normalizedDataset.verificationStatus}, original_status = ${dataset.verification_status}`);
+  
+  return normalizedDataset as DatasetWithEmail;
 };
 
 /**
