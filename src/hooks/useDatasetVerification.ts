@@ -1,13 +1,12 @@
+
 import { useState, useEffect } from 'react';
-import { toast } from "sonner";
 import { DatasetWithEmail } from '@/types/dataset';
 import { 
-  fetchDatasetsWithVerificationStatus, 
-  updateDatasetVerificationStatus,
-  sendDatasetFeedback,
-  publishDataset as publishDatasetService
-} from '@/services/datasetVerificationService';
-import { supabase } from "@/integrations/supabase/client";
+  loadAllDatasets,
+  updateStatus,
+  sendFeedbackToContributor,
+  publishDataset as publishDatasetAction
+} from './verification/datasetVerificationService';
 
 export const useDatasetVerification = () => {
   const [pendingDatasets, setPendingDatasets] = useState<DatasetWithEmail[]>([]);
@@ -20,71 +19,27 @@ export const useDatasetVerification = () => {
     setIsLoading(true);
 
     try {
-      // Load all datasets with their verification status
-      const allDatasets = await fetchDatasetsWithVerificationStatus();
-      
-      console.log("All datasets loaded:", allDatasets);
-      
-      // Helper function to normalize dataset properties for consistency
-      const normalizeDataset = (dataset: any): DatasetWithEmail => {
-        // Create a normalized version with TypeScript properties
-        return {
-          ...dataset,
-          verificationStatus: dataset.verificationStatus || dataset.verification_status || 'pending',
-          verificationNotes: dataset.verificationNotes || dataset.verification_notes
-        };
-      };
-      
-      // Process and normalize all datasets first
-      const normalizedDatasets = allDatasets.map(normalizeDataset);
-      
-      // Then filter the normalized datasets
-      const pending = normalizedDatasets.filter(d => 
-        !d.verificationStatus || d.verificationStatus === 'pending'
-      );
-      
-      const approved = normalizedDatasets.filter(d => 
-        d.verificationStatus === 'approved'
-      );
-      
-      const rejected = normalizedDatasets.filter(d => 
-        d.verificationStatus === 'rejected'
-      );
-      
-      console.log(`Filtered datasets: ${pending.length} pending, ${approved.length} approved, ${rejected.length} rejected`);
+      const { pending, approved, rejected } = await loadAllDatasets();
       
       setPendingDatasets(pending);
       setApprovedDatasets(approved);
       setRejectedDatasets(rejected);
     } catch (error) {
-      console.error('Error loading datasets:', error);
-      toast.error('Failed to load datasets', {
-        description: "Could not fetch datasets for verification"
-      });
+      console.error('Error in useDatasetVerification hook:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const updateStatus = async (id: string, status: 'pending' | 'approved' | 'rejected', notes?: string) => {
+  const updateDatasetStatus = async (id: string, status: 'pending' | 'approved' | 'rejected', notes?: string) => {
     try {
       console.log(`Attempting to update dataset ${id} to status: ${status}`);
       
       // First update in the database
-      const result = await updateDatasetVerificationStatus(id, status, notes);
+      const success = await updateStatus(id, status, notes);
       
-      if (!result.success) {
-        console.error('Failed to update dataset status in database:', result.error);
-        toast.error(`Update failed`, {
-          description: `Failed to update dataset status to ${status}`
-        });
-        return;
-      }
+      if (!success) return;
       
-      // Get the updated dataset data from the result
-      const updatedDataset = result.data;
-      console.log('Dataset successfully updated in database:', updatedDataset);
-
       // Now update our local state based on the database confirmation
       if (status === 'approved') {
         // Find dataset in any of our lists
@@ -147,71 +102,26 @@ export const useDatasetVerification = () => {
       }
     } catch (error) {
       console.error('Error updating dataset status:', error);
-      toast.error("Update failed", {
-        description: "Failed to update dataset status"
-      });
     }
   };
   
   const sendFeedback = async (id: string, feedback: string) => {
-    try {
-      const success = await sendDatasetFeedback(id, feedback);
-      if (success) {
-        toast.success("Feedback sent", {
-          description: "Feedback was successfully sent to contributor"
-        });
-        // No need to move datasets between categories for feedback
-      }
-    } catch (error) {
-      console.error('Error sending feedback:', error);
-      toast.error("Feedback failed", {
-        description: "Failed to send feedback"
-      });
-    }
+    await sendFeedbackToContributor(id, feedback);
+    // No need to move datasets between categories for feedback
   };
   
   const publishDataset = async (id: string): Promise<void> => {
     try {
-      // First verify that the dataset is really approved in the database
-      const { data: currentDataset, error: fetchError } = await supabase
-        .from('datasets')
-        .select('id, verification_status')
-        .eq('id', id)
-        .single();
-        
-      if (fetchError || !currentDataset) {
-        console.error('Error verifying dataset status before publishing:', fetchError);
-        toast.error("Publishing failed", {
-          description: "Could not verify dataset status"
-        });
-        throw new Error("Failed to verify dataset status");
-      }
+      const success = await publishDatasetAction(id);
       
-      // Double-check the status
-      if (currentDataset.verification_status !== 'approved') {
-        console.error(`Dataset ${id} is not approved in the database. Current status:`, currentDataset.verification_status);
-        toast.error("Publishing failed", {
-          description: "Dataset must be approved before publishing"
-        });
-        throw new Error(`Dataset is not approved. Current status: ${currentDataset.verification_status}`);
-      }
-      
-      // If verified, proceed with publishing
-      const success = await publishDatasetService(id);
       if (success) {
-        toast.success("Dataset published", {
-          description: "The dataset has been successfully published"
-        });
         // Update the dataset in the approved list to show as featured
         setApprovedDatasets(prev => prev.map(dataset => 
           dataset.id === id ? { ...dataset, featured: true } : dataset
         ));
       }
     } catch (error) {
-      console.error('Error publishing dataset:', error);
-      toast.error("Publishing failed", {
-        description: error instanceof Error ? error.message : "Failed to publish dataset"
-      });
+      // Error is already handled in the service
       throw error;
     }
   };
@@ -230,7 +140,7 @@ export const useDatasetVerification = () => {
     pendingDatasets,
     approvedDatasets,
     rejectedDatasets,
-    updateStatus,
+    updateStatus: updateDatasetStatus,
     sendFeedback,
     publishDataset,
     isLoading,
