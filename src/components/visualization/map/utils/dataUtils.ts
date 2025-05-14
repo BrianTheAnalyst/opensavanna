@@ -27,45 +27,6 @@ export const findValueInProperties = (properties: any) => {
   return null;
 };
 
-// Format properties for display in popup
-export const formatPropertiesForDisplay = (properties: Record<string, any>): string => {
-  if (!properties) return 'No data available';
-  
-  // Skip internal properties and prioritize important ones
-  const skipProperties = ['id', 'gid', 'fid', 'objectid', 'shape_area', 'shape_length'];
-  const priorityProperties = ['name', 'country', 'region', 'state', 'electricity', 'power', 'consumption', 'energy', 'value'];
-  
-  let html = '<div class="map-popup">';
-  
-  // First add the name/title if it exists
-  if (properties.name) {
-    html += `<h4 class="text-sm font-medium mb-1">${properties.name}</h4>`;
-  } else if (properties.title) {
-    html += `<h4 class="text-sm font-medium mb-1">${properties.title}</h4>`;
-  }
-  
-  // Add priority properties first
-  for (const key of priorityProperties) {
-    if (properties[key] !== undefined && !skipProperties.includes(key.toLowerCase())) {
-      const formattedValue = formatPropertyValue(properties[key]);
-      const formattedKey = formatPropertyKey(key);
-      html += `<div class="flex text-xs"><span class="font-medium mr-1">${formattedKey}:</span> ${formattedValue}</div>`;
-    }
-  }
-  
-  // Add other properties
-  for (const key in properties) {
-    if (!priorityProperties.includes(key) && !skipProperties.includes(key.toLowerCase()) && properties[key] !== undefined) {
-      const formattedValue = formatPropertyValue(properties[key]);
-      const formattedKey = formatPropertyKey(key);
-      html += `<div class="flex text-xs"><span class="font-medium mr-1">${formattedKey}:</span> ${formattedValue}</div>`;
-    }
-  }
-  
-  html += '</div>';
-  return html;
-};
-
 // Helper function to find field by possible names
 export const findFieldByName = (obj: any, possibleNames: string[]) => {
   if (!obj) return null;

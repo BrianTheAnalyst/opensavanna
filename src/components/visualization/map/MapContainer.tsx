@@ -56,25 +56,25 @@ const MapContainerComponent: React.FC<MapContainerComponentProps> = ({
         // For choropleth, use a minimal light background
         return {
           url: "https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png",
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          attributionControl: true
         };
       case 'heatmap':
         // For heatmap, use a dark background
         return {
           url: "https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png",
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          attributionControl: true
         };
       case 'cluster':
         // For cluster view, use a light detailed background
         return {
           url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          attributionControl: true
         };
       default:
         // For standard, use the default OSM tiles
         return {
           url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          attributionControl: true
         };
     }
   };
@@ -129,7 +129,7 @@ const MapContainerComponent: React.FC<MapContainerComponentProps> = ({
 
   return (
     <LeafletMapContainer {...mapContainerProps}>
-      {activeLayers.includes('base') && <TileLayer {...tileLayerProps} />}
+      {activeLayers.includes('base') && <TileLayer url={tileLayerProps.url} />}
       <ZoomControl position="topright" />
       {renderVisualizationLayer()}
       
@@ -137,7 +137,6 @@ const MapContainerComponent: React.FC<MapContainerComponentProps> = ({
       {activeLayers.includes('labels') && (
         <TileLayer 
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         />
       )}
     </LeafletMapContainer>

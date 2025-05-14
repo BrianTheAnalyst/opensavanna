@@ -16,8 +16,10 @@ export const extractTimeSeriesData = (geoJSON: any) => {
     
     if (timeValues.length > 0) {
       timeField = prop;
-      // Get unique time values
-      timeSeries = [...new Set(timeValues)].sort();
+      // Get unique time values and ensure they're strings or numbers
+      timeSeries = [...new Set(timeValues)]
+        .filter(val => typeof val === 'string' || typeof val === 'number')
+        .sort() as (string | number)[];
       break;
     }
   }
