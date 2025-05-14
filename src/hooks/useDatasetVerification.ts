@@ -38,21 +38,24 @@ export const useDatasetVerification = () => {
       // Filter datasets by verification status - using the normalized property names
       const pending = allDatasets
         .filter(d => {
-          const status = d.verificationStatus || d.verification_status;
+          // Use a temporary variable to check the status from either property name
+          const status = d.verificationStatus || (d as any).verification_status;
           return !status || status === 'pending';
         })
         .map(normalizeDataset);
       
       const approved = allDatasets
         .filter(d => {
-          const status = d.verificationStatus || d.verification_status;
+          // Use a temporary variable to check the status from either property name
+          const status = d.verificationStatus || (d as any).verification_status;
           return status === 'approved';
         })
         .map(normalizeDataset);
       
       const rejected = allDatasets
         .filter(d => {
-          const status = d.verificationStatus || d.verification_status;
+          // Use a temporary variable to check the status from either property name
+          const status = d.verificationStatus || (d as any).verification_status;
           return status === 'rejected';
         })
         .map(normalizeDataset);
