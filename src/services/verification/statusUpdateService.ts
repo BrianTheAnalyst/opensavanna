@@ -1,5 +1,5 @@
 
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 // Update the verification status of a dataset
@@ -27,8 +27,10 @@ export const updateDatasetVerificationStatus = async (
     
     if (error) {
       console.error('Error updating dataset verification status:', error);
-      toast("Update failed", {
-        description: "Failed to update verification status"
+      toast({
+        title: "Update failed",
+        description: "Failed to update verification status",
+        variant: "destructive"
       });
       return false;
     }
@@ -37,8 +39,10 @@ export const updateDatasetVerificationStatus = async (
     return true;
   } catch (error) {
     console.error('Error updating dataset verification status:', error);
-    toast("Update failed", {
-      description: "Failed to update verification status"
+    toast({
+      title: "Update failed",
+      description: "Failed to update verification status",
+      variant: "destructive"
     });
     return false;
   }
