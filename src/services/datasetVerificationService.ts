@@ -15,7 +15,7 @@ export const fetchDatasetsWithVerificationStatus = async (): Promise<DatasetWith
     if (error) {
       console.error('Error fetching datasets:', error);
       toast("Failed to load datasets", {
-        description: "Could not fetch datasets for verification",
+        description: "Could not fetch datasets for verification"
       });
       return [];
     }
@@ -73,7 +73,7 @@ export const fetchDatasetsWithVerificationStatus = async (): Promise<DatasetWith
   } catch (error) {
     console.error('Error fetching datasets with verification status:', error);
     toast("Failed to load datasets", {
-      description: "Could not fetch datasets for verification",
+      description: "Could not fetch datasets for verification"
     });
     return [];
   }
@@ -105,7 +105,7 @@ export const updateDatasetVerificationStatus = async (
     if (error) {
       console.error('Error updating dataset verification status:', error);
       toast("Update failed", {
-        description: "Failed to update verification status",
+        description: "Failed to update verification status"
       });
       return false;
     }
@@ -115,7 +115,7 @@ export const updateDatasetVerificationStatus = async (
   } catch (error) {
     console.error('Error updating dataset verification status:', error);
     toast("Update failed", {
-      description: "Failed to update verification status",
+      description: "Failed to update verification status"
     });
     return false;
   }
@@ -126,18 +126,18 @@ export const publishDataset = async (id: string): Promise<boolean> => {
   try {
     console.log(`Publishing dataset ${id}`);
     
-    // Use the correct column names for the datasets table
+    // Use the featured flag to publish the dataset
     const { error } = await supabase
       .from('datasets')
       .update({
-        featured: true, // Use featured flag instead of published which doesn't exist
+        featured: true // Use featured flag as the publishing mechanism
       })
       .eq('id', id);
     
     if (error) {
       console.error('Error publishing dataset:', error);
       toast("Publishing failed", {
-        description: "Failed to publish dataset",
+        description: "Failed to publish dataset"
       });
       return false;
     }
@@ -147,7 +147,7 @@ export const publishDataset = async (id: string): Promise<boolean> => {
   } catch (error) {
     console.error('Error publishing dataset:', error);
     toast("Publishing failed", {
-      description: "Failed to publish dataset", 
+      description: "Failed to publish dataset"
     });
     return false;
   }
@@ -169,7 +169,7 @@ export const sendDatasetFeedback = async (
     if (datasetError || !dataset) {
       console.error('Error fetching dataset for feedback:', datasetError);
       toast("Feedback failed", {
-        description: "Failed to send feedback: dataset not found",
+        description: "Failed to send feedback: dataset not found"
       });
       return false;
     }
@@ -188,7 +188,7 @@ export const sendDatasetFeedback = async (
     if (updateError) {
       console.error('Error saving feedback:', updateError);
       toast("Feedback failed", {
-        description: "Failed to save feedback",
+        description: "Failed to save feedback"
       });
       return false;
     }
@@ -201,7 +201,7 @@ export const sendDatasetFeedback = async (
   } catch (error) {
     console.error('Error sending dataset feedback:', error);
     toast("Feedback failed", {
-      description: "Failed to send feedback",
+      description: "Failed to send feedback"
     });
     return false;
   }

@@ -49,7 +49,7 @@ export const useDatasetVerification = () => {
     } catch (error) {
       console.error('Error loading datasets:', error);
       toast("Failed to load datasets", {
-        description: "Could not fetch datasets for verification",
+        description: "Could not fetch datasets for verification"
       });
     } finally {
       setIsLoading(false);
@@ -104,7 +104,7 @@ export const useDatasetVerification = () => {
     } catch (error) {
       console.error('Error updating dataset status:', error);
       toast("Update failed", {
-        description: "Failed to update dataset status",
+        description: "Failed to update dataset status"
       });
     }
   };
@@ -121,7 +121,7 @@ export const useDatasetVerification = () => {
     } catch (error) {
       console.error('Error sending feedback:', error);
       toast("Feedback failed", {
-        description: "Failed to send feedback",
+        description: "Failed to send feedback"
       });
     }
   };
@@ -138,7 +138,7 @@ export const useDatasetVerification = () => {
     } catch (error) {
       console.error('Error publishing dataset:', error);
       toast("Publishing failed", {
-        description: "Failed to publish dataset",
+        description: "Failed to publish dataset"
       });
       throw error;
     }

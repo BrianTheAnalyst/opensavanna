@@ -1,13 +1,17 @@
 
-// Re-export from sonner for consistency across the app
 import { toast } from "sonner";
 
-// This ensures backward compatibility with any existing uses of useToast
+// Re-export the toast function from sonner
+export { toast };
+
+// Provide a legacy interface for backward compatibility
 export const useToast = () => {
   return {
-    toast,
-    toasts: [] // Dummy value for backward compatibility
+    toast: ({ title, description }: { title?: string; description?: string }) => {
+      toast(title || "", {
+        description
+      })
+    },
+    toasts: [] // For compatibility with shadcn/ui toast
   };
 };
-
-export { toast };

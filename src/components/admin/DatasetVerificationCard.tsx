@@ -41,12 +41,10 @@ const DatasetVerificationCard = ({ dataset, updateStatus, sendFeedback, publishD
     try {
       setIsPublishing(true);
       await publishDataset(dataset.id);
-      toast("Dataset published", {
-        description: "The dataset has been successfully published and is now visible to all users."
-      });
+      // Toast notification is handled in the publishDataset function
     } catch (error) {
       toast("Failed to publish dataset", {
-        description: "There was an error publishing this dataset. Please try again.",
+        description: "There was an error publishing this dataset. Please try again."
       });
       console.error("Publishing error:", error);
     } finally {
@@ -166,9 +164,6 @@ const DatasetVerificationCard = ({ dataset, updateStatus, sendFeedback, publishD
             className="flex-1"
             onClick={() => {
               updateStatus(dataset.id, 'pending')
-                .then(() => toast("Status reset", {
-                  description: "Dataset status reset to pending"
-                }))
                 .catch(err => toast("Failed to reset status", {
                   description: "There was an error resetting the dataset status",
                 }));
@@ -194,9 +189,6 @@ const DatasetVerificationCard = ({ dataset, updateStatus, sendFeedback, publishD
             className="flex-1"
             onClick={() => {
               updateStatus(dataset.id, 'pending')
-                .then(() => toast("Status reset", {
-                  description: "Dataset status reset to pending"
-                }))
                 .catch(err => toast("Failed to reset status", {
                   description: "There was an error resetting the dataset status",
                 }));
