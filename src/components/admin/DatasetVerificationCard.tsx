@@ -17,6 +17,7 @@ const DatasetVerificationCard = ({ dataset, updateStatus, sendFeedback, publishD
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
   const [reviewAction, setReviewAction] = useState<'approve' | 'reject' | 'feedback'>('approve');
   const [isPublishing, setIsPublishing] = useState(false);
+  const [publishError, setPublishError] = useState<string | null>(null);
 
   const handleApprove = () => {
     setReviewAction('approve');
@@ -36,15 +37,26 @@ const DatasetVerificationCard = ({ dataset, updateStatus, sendFeedback, publishD
   const handlePublish = async () => {
     if (!publishDataset) return;
     
+    // Reset any previous error state
+    setPublishError(null);
+    
     try {
       setIsPublishing(true);
       await publishDataset(dataset.id);
       // Toast notification is handled in the publishDataset function
     } catch (error) {
+      // Enhanced error handling with more context
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : "Unknown error occurred";
+        
+      console.error(`Publishing error for dataset ${dataset.id} (${dataset.title}):`, error);
+      
+      setPublishError(errorMessage);
+      
       toast("Failed to publish dataset", {
-        description: "There was an error publishing this dataset. Please try again."
+        description: `There was an error publishing "${dataset.title}". Please try again later.`
       });
-      console.error("Publishing error:", error);
     } finally {
       setIsPublishing(false);
     }
@@ -57,6 +69,14 @@ const DatasetVerificationCard = ({ dataset, updateStatus, sendFeedback, publishD
     <div className="border rounded-lg p-6 bg-background">
       <DatasetInfo dataset={dataset} />
       
+      {/* Show error message if publish failed */}
+      {publishError && (
+        <div className="mt-4 p-3 bg-red-100 border border-red-300 rounded-md text-red-800 text-sm">
+          <p className="font-semibold">Publishing failed</p>
+          <p>{publishError}</p>
+        </div>
+      )}
+      
       <DatasetActionButtons 
         status={effectiveStatus as 'pending' | 'approved' | 'rejected'}
         datasetId={dataset.id}
@@ -66,6 +86,7 @@ const DatasetVerificationCard = ({ dataset, updateStatus, sendFeedback, publishD
         updateStatus={updateStatus}
         publishDataset={effectiveStatus === 'approved' ? handlePublish : undefined}
         isPublishing={isPublishing}
+        hasError={!!publishError}
       />
       
       <DatasetReviewDialog

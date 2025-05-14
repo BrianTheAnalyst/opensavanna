@@ -1,7 +1,8 @@
 
-import { Check, X, MessageSquare, Globe } from 'lucide-react';
+import { Check, X, MessageSquare, Globe, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from "@/hooks/use-toast";
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'; 
 
 interface DatasetActionButtonsProps {
   status: 'pending' | 'approved' | 'rejected';
@@ -12,6 +13,7 @@ interface DatasetActionButtonsProps {
   updateStatus: (id: string, status: 'pending' | 'approved' | 'rejected') => Promise<void>;
   publishDataset?: (id: string) => Promise<void>;
   isPublishing?: boolean;
+  hasError?: boolean;
 }
 
 const DatasetActionButtons = ({ 
@@ -22,8 +24,23 @@ const DatasetActionButtons = ({
   onFeedback,
   updateStatus,
   publishDataset,
-  isPublishing = false
+  isPublishing = false,
+  hasError = false
 }: DatasetActionButtonsProps) => {
+  
+  const handleResetStatus = async () => {
+    try {
+      await updateStatus(datasetId, 'pending');
+      toast("Status reset", {
+        description: "Dataset has been reset to pending status"
+      });
+    } catch (err) {
+      console.error("Error resetting status:", err);
+      toast("Failed to reset status", {
+        description: "There was an error resetting the dataset status"
+      });
+    }
+  };
   
   if (status === 'pending') {
     return (
@@ -62,23 +79,32 @@ const DatasetActionButtons = ({
         {publishDataset && (
           <Button
             variant="default" 
-            className="flex-1 bg-blue-600 hover:bg-blue-700"
+            className={`flex-1 ${hasError ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-blue-600 hover:bg-blue-700'}`}
             onClick={() => publishDataset(datasetId)}
             disabled={isPublishing}
           >
-            <Globe className="w-4 h-4 mr-2" />
-            {isPublishing ? 'Publishing...' : 'Publish Dataset'}
+            {isPublishing ? (
+              <>
+                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                Publishing...
+              </>
+            ) : hasError ? (
+              <>
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Retry Publishing
+              </>
+            ) : (
+              <>
+                <Globe className="w-4 h-4 mr-2" />
+                Publish Dataset
+              </>
+            )}
           </Button>
         )}
         <Button
           variant="outline"
           className="flex-1"
-          onClick={() => {
-            updateStatus(datasetId, 'pending')
-              .catch(err => toast("Failed to reset status", {
-                description: "There was an error resetting the dataset status",
-              }));
-          }}
+          onClick={handleResetStatus}
         >
           Reset to Pending
         </Button>
@@ -100,12 +126,7 @@ const DatasetActionButtons = ({
       <Button
         variant="outline"
         className="flex-1"
-        onClick={() => {
-          updateStatus(datasetId, 'pending')
-            .catch(err => toast("Failed to reset status", {
-              description: "There was an error resetting the dataset status",
-            }));
-        }}
+        onClick={handleResetStatus}
       >
         Reset to Pending
       </Button>
