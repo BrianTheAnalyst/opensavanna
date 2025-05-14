@@ -5,6 +5,7 @@ import { useDatasetVerification } from '@/hooks/useDatasetVerification';
 import DatasetVerificationList from './DatasetVerificationList';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
+import { toast } from 'sonner';
 
 const VerificationTabs = () => {
   const [activeTab, setActiveTab] = useState('pending');
@@ -16,8 +17,18 @@ const VerificationTabs = () => {
     sendFeedback,
     publishDataset,
     isLoading,
-    refreshData
+    refreshData,
+    lastOperationSuccess
   } = useDatasetVerification();
+
+  // Effect to watch for operation results and show feedback
+  useEffect(() => {
+    if (lastOperationSuccess === false) {
+      toast.error("Operation failed", {
+        description: "Check browser console for more details"
+      });
+    }
+  }, [lastOperationSuccess]);
 
   const handleUpdateStatus = async (id: string, status: 'pending' | 'approved' | 'rejected', notes?: string) => {
     console.log(`VerificationTabs: Updating dataset ${id} to status ${status}`);
@@ -54,6 +65,14 @@ const VerificationTabs = () => {
     }
   }, [pendingDatasets, approvedDatasets, rejectedDatasets]);
 
+  // Handle refresh button click with feedback
+  const handleRefresh = () => {
+    refreshData();
+    toast.info("Refreshing data", {
+      description: "Getting latest dataset information from the database"
+    });
+  };
+
   return (
     <Tabs 
       defaultValue="pending" 
@@ -75,7 +94,7 @@ const VerificationTabs = () => {
           <TabsTrigger value="rejected">Rejected</TabsTrigger>
         </TabsList>
         
-        <Button variant="outline" size="sm" onClick={refreshData} className="gap-2">
+        <Button variant="outline" size="sm" onClick={handleRefresh} className="gap-2">
           <RefreshCw className="h-4 w-4" />
           Refresh
         </Button>

@@ -14,6 +14,7 @@ export const useDatasetVerification = () => {
   const [rejectedDatasets, setRejectedDatasets] = useState<DatasetWithEmail[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [lastOperationSuccess, setLastOperationSuccess] = useState<boolean | null>(null);
 
   const loadDatasets = async () => {
     setIsLoading(true);
@@ -37,10 +38,14 @@ export const useDatasetVerification = () => {
       
       // First update in the database
       const success = await updateStatus(id, status, notes);
+      setLastOperationSuccess(success);
       
       if (!success) return;
       
-      // Now update our local state based on the database confirmation
+      // Force refresh datasets from the database to ensure UI is in sync
+      refreshData();
+      
+      // This local update is now only for optimistic UI updates while the refresh happens
       if (status === 'approved') {
         // Find dataset in any of our lists
         let dataset = pendingDatasets.find(d => d.id === id);
@@ -101,26 +106,33 @@ export const useDatasetVerification = () => {
         }
       }
     } catch (error) {
+      setLastOperationSuccess(false);
       console.error('Error updating dataset status:', error);
     }
   };
   
   const sendFeedback = async (id: string, feedback: string) => {
-    await sendFeedbackToContributor(id, feedback);
+    const success = await sendFeedbackToContributor(id, feedback);
+    setLastOperationSuccess(success);
     // No need to move datasets between categories for feedback
   };
   
   const publishDataset = async (id: string): Promise<void> => {
     try {
       const success = await publishDatasetAction(id);
+      setLastOperationSuccess(success);
       
       if (success) {
-        // Update the dataset in the approved list to show as featured
+        // Refresh all data after publishing to ensure UI is in sync
+        refreshData();
+        
+        // Update the dataset in the approved list to show as featured (optimistic update)
         setApprovedDatasets(prev => prev.map(dataset => 
           dataset.id === id ? { ...dataset, featured: true } : dataset
         ));
       }
     } catch (error) {
+      setLastOperationSuccess(false);
       // Error is already handled in the service
       throw error;
     }
@@ -144,6 +156,7 @@ export const useDatasetVerification = () => {
     sendFeedback,
     publishDataset,
     isLoading,
-    refreshData
+    refreshData,
+    lastOperationSuccess
   };
 };

@@ -8,7 +8,7 @@ import {
   publishDataset as publishDatasetService
 } from '@/services/verification';
 import { supabase } from "@/integrations/supabase/client";
-import { normalizeDataset } from './datasetVerificationUtils';
+import { normalizeDataset, validateDatasetStatus } from './datasetVerificationUtils';
 
 /**
  * Load all datasets with their verification status
@@ -72,6 +72,15 @@ export const updateStatus = async (
         description: `Failed to update dataset status to ${status}`
       });
       return false;
+    }
+    
+    // Verify the update was successful by directly checking the database again
+    const isStatusConsistent = await validateDatasetStatus(id, status);
+    if (!isStatusConsistent) {
+      console.error('Status inconsistency detected after update');
+      toast.error("Status inconsistency detected", {
+        description: "The database and UI may be out of sync. Please refresh the page."
+      });
     }
     
     console.log('Dataset successfully updated in database:', result.data);

@@ -31,3 +31,38 @@ export const filterDatasetsByStatus = (
   }
   return datasets.filter(d => d.verificationStatus === status);
 };
+
+/**
+ * Debug helper to check if dataset status is consistent between UI and database
+ */
+export const validateDatasetStatus = async (id: string, expectedStatus: string): Promise<boolean> => {
+  try {
+    const { supabase } = await import('@/integrations/supabase/client');
+    
+    // Get the current status directly from the database
+    const { data, error } = await supabase
+      .from('datasets')
+      .select('id, verification_status')
+      .eq('id', id)
+      .single();
+      
+    if (error || !data) {
+      console.error('Failed to validate dataset status:', error);
+      return false;
+    }
+    
+    const dbStatus = data.verification_status;
+    const isConsistent = dbStatus === expectedStatus;
+    
+    if (!isConsistent) {
+      console.error(`Dataset status mismatch: UI=${expectedStatus}, DB=${dbStatus}`);
+    } else {
+      console.log(`Dataset status consistent: UI=${expectedStatus}, DB=${dbStatus}`);
+    }
+    
+    return isConsistent;
+  } catch (error) {
+    console.error('Error validating dataset status:', error);
+    return false;
+  }
+};
