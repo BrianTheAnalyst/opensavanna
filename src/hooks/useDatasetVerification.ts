@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { toast } from "sonner";
 import { DatasetWithEmail } from '@/types/dataset';
@@ -101,7 +102,7 @@ export const useDatasetVerification = () => {
           const updatedDatasetWithEmail: DatasetWithEmail = { 
             ...dataset, 
             verificationStatus: status,
-            verificationNotes: notes || dataset.verificationNotes || (dataset as any).verification_notes
+            verificationNotes: notes || dataset.verificationNotes || dataset.verification_notes
           };
           
           // Remove from current lists
@@ -122,7 +123,7 @@ export const useDatasetVerification = () => {
           const updatedDatasetWithEmail: DatasetWithEmail = { 
             ...dataset, 
             verificationStatus: status,
-            verificationNotes: notes || dataset.verificationNotes || (dataset as any).verification_notes
+            verificationNotes: notes || dataset.verificationNotes || dataset.verification_notes
           };
           
           setPendingDatasets(prev => prev.filter(d => d.id !== id));
@@ -140,7 +141,7 @@ export const useDatasetVerification = () => {
           const updatedDatasetWithEmail: DatasetWithEmail = { 
             ...dataset, 
             verificationStatus: status,
-            verificationNotes: notes || dataset.verificationNotes || (dataset as any).verification_notes
+            verificationNotes: notes || dataset.verificationNotes || dataset.verification_notes
           };
           
           setApprovedDatasets(prev => prev.filter(d => d.id !== id));
