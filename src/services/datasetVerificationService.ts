@@ -1,5 +1,5 @@
 
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { DatasetWithEmail, Dataset } from "@/types/dataset";
 
@@ -14,7 +14,11 @@ export const fetchDatasetsWithVerificationStatus = async (): Promise<DatasetWith
     
     if (error) {
       console.error('Error fetching datasets:', error);
-      toast.error('Failed to load datasets for verification');
+      toast({
+        title: "Failed to load datasets",
+        description: "Could not fetch datasets for verification",
+        variant: "destructive"
+      });
       return [];
     }
     
@@ -70,7 +74,11 @@ export const fetchDatasetsWithVerificationStatus = async (): Promise<DatasetWith
     return datasetsWithEmail;
   } catch (error) {
     console.error('Error fetching datasets with verification status:', error);
-    toast.error('Failed to load datasets for verification');
+    toast({
+      title: "Failed to load datasets",
+      description: "Could not fetch datasets for verification",
+      variant: "destructive"
+    });
     return [];
   }
 };
@@ -100,7 +108,11 @@ export const updateDatasetVerificationStatus = async (
     
     if (error) {
       console.error('Error updating dataset verification status:', error);
-      toast.error('Failed to update verification status');
+      toast({
+        title: "Update failed",
+        description: "Failed to update verification status",
+        variant: "destructive"
+      });
       return false;
     }
     
@@ -108,7 +120,49 @@ export const updateDatasetVerificationStatus = async (
     return true;
   } catch (error) {
     console.error('Error updating dataset verification status:', error);
-    toast.error('Failed to update verification status');
+    toast({
+      title: "Update failed",
+      description: "Failed to update verification status",
+      variant: "destructive"
+    });
+    return false;
+  }
+};
+
+// Publish a dataset (make it publicly available)
+export const publishDataset = async (id: string): Promise<boolean> => {
+  try {
+    console.log(`Publishing dataset ${id}`);
+    
+    const updates = {
+      published: true,
+      published_at: new Date().toISOString()
+    };
+    
+    const { error } = await supabase
+      .from('datasets')
+      .update(updates)
+      .eq('id', id);
+    
+    if (error) {
+      console.error('Error publishing dataset:', error);
+      toast({
+        title: "Publishing failed",
+        description: "Failed to publish dataset",
+        variant: "destructive"
+      });
+      return false;
+    }
+    
+    console.log(`Successfully published dataset ${id}`);
+    return true;
+  } catch (error) {
+    console.error('Error publishing dataset:', error);
+    toast({
+      title: "Publishing failed",
+      description: "Failed to publish dataset", 
+      variant: "destructive"
+    });
     return false;
   }
 };
@@ -128,7 +182,11 @@ export const sendDatasetFeedback = async (
     
     if (datasetError || !dataset) {
       console.error('Error fetching dataset for feedback:', datasetError);
-      toast.error('Failed to send feedback: dataset not found');
+      toast({
+        title: "Feedback failed",
+        description: "Failed to send feedback: dataset not found",
+        variant: "destructive"
+      });
       return false;
     }
     
@@ -145,7 +203,11 @@ export const sendDatasetFeedback = async (
     
     if (updateError) {
       console.error('Error saving feedback:', updateError);
-      toast.error('Failed to save feedback');
+      toast({
+        title: "Feedback failed",
+        description: "Failed to save feedback",
+        variant: "destructive"
+      });
       return false;
     }
     
@@ -156,7 +218,11 @@ export const sendDatasetFeedback = async (
     return true;
   } catch (error) {
     console.error('Error sending dataset feedback:', error);
-    toast.error('Failed to send feedback');
+    toast({
+      title: "Feedback failed",
+      description: "Failed to send feedback",
+      variant: "destructive"
+    });
     return false;
   }
 };

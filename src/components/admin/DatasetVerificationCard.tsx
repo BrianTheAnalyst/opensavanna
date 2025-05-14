@@ -1,22 +1,24 @@
 
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Check, X, FileText, User, Calendar, MessageSquare } from 'lucide-react';
+import { Check, X, FileText, User, Calendar, MessageSquare, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import DatasetReviewDialog from './DatasetReviewDialog';
 import { DatasetWithEmail } from '@/types/dataset';
 import { Badge } from '@/components/ui/badge';
-import { toast } from "sonner";
+import { toast } from '@/hooks/use-toast';
 
 interface DatasetVerificationCardProps {
   dataset: DatasetWithEmail;
   updateStatus: (id: string, status: 'pending' | 'approved' | 'rejected', notes?: string) => Promise<void>;
   sendFeedback?: (id: string, feedback: string) => Promise<void>;
+  publishDataset?: (id: string) => Promise<void>;
 }
 
-const DatasetVerificationCard = ({ dataset, updateStatus, sendFeedback }: DatasetVerificationCardProps) => {
+const DatasetVerificationCard = ({ dataset, updateStatus, sendFeedback, publishDataset }: DatasetVerificationCardProps) => {
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
   const [reviewAction, setReviewAction] = useState<'approve' | 'reject' | 'feedback'>('approve');
+  const [isPublishing, setIsPublishing] = useState(false);
 
   const handleApprove = () => {
     setReviewAction('approve');
@@ -33,14 +35,30 @@ const DatasetVerificationCard = ({ dataset, updateStatus, sendFeedback }: Datase
     setIsReviewDialogOpen(true);
   };
 
+  const handlePublish = async () => {
+    if (!publishDataset) return;
+    
+    try {
+      setIsPublishing(true);
+      await publishDataset(dataset.id);
+      toast({
+        title: "Dataset published",
+        description: "The dataset has been successfully published and is now visible to all users."
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to publish dataset",
+        description: "There was an error publishing this dataset. Please try again.",
+        variant: "destructive"
+      });
+      console.error("Publishing error:", error);
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
   // For debugging - log the verification status to see what's happening
   console.log(`Dataset ${dataset.id} status: ${dataset.verificationStatus || 'undefined'}`);
-  console.log(`Dataset verification data:`, {
-    id: dataset.id,
-    title: dataset.title,
-    status: dataset.verificationStatus,
-    db_status: (dataset as any).verification_status,
-  });
 
   // Determine the effective verification status, considering both TypeScript property and DB column
   const effectiveStatus = dataset.verificationStatus || (dataset as any).verification_status || 'pending';
@@ -133,15 +151,64 @@ const DatasetVerificationCard = ({ dataset, updateStatus, sendFeedback }: Datase
         </div>
       )}
       
-      {effectiveStatus !== 'pending' && (
+      {effectiveStatus === 'approved' && (
+        <div className="flex flex-wrap gap-2 mt-4">
+          {publishDataset && (
+            <Button
+              variant="default" 
+              className="flex-1 bg-blue-600 hover:bg-blue-700"
+              onClick={handlePublish}
+              disabled={isPublishing}
+            >
+              <Globe className="w-4 h-4 mr-2" />
+              {isPublishing ? 'Publishing...' : 'Publish Dataset'}
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            className="flex-1"
+            onClick={() => {
+              updateStatus(dataset.id, 'pending')
+                .then(() => toast({
+                  title: "Status reset",
+                  description: "Dataset status reset to pending"
+                }))
+                .catch(err => toast({
+                  title: "Failed to reset status",
+                  description: "There was an error resetting the dataset status",
+                  variant: "destructive"
+                }));
+            }}
+          >
+            Reset to Pending
+          </Button>
+          <Button
+            variant="outline"
+            className="flex-1"
+            onClick={handleFeedback}
+          >
+            <MessageSquare className="w-4 h-4 mr-2" />
+            Feedback
+          </Button>
+        </div>
+      )}
+      
+      {effectiveStatus === 'rejected' && (
         <div className="flex flex-wrap gap-2 mt-4">
           <Button
             variant="outline"
             className="flex-1"
             onClick={() => {
               updateStatus(dataset.id, 'pending')
-                .then(() => toast.success("Status reset to pending"))
-                .catch(err => toast.error("Failed to reset status"));
+                .then(() => toast({
+                  title: "Status reset",
+                  description: "Dataset status reset to pending"
+                }))
+                .catch(err => toast({
+                  title: "Failed to reset status",
+                  description: "There was an error resetting the dataset status",
+                  variant: "destructive"
+                }));
             }}
           >
             Reset to Pending

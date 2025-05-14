@@ -1,20 +1,20 @@
 
 import { useState, useEffect } from 'react';
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import { DatasetWithEmail } from '@/types/dataset';
 import { 
   fetchDatasetsWithVerificationStatus, 
   updateDatasetVerificationStatus,
-  sendDatasetFeedback
+  sendDatasetFeedback,
+  publishDataset as publishDatasetService
 } from '@/services/datasetVerificationService';
-import { useNavigate } from 'react-router-dom';
 
 export const useDatasetVerification = () => {
   const [pendingDatasets, setPendingDatasets] = useState<DatasetWithEmail[]>([]);
   const [approvedDatasets, setApprovedDatasets] = useState<DatasetWithEmail[]>([]);
   const [rejectedDatasets, setRejectedDatasets] = useState<DatasetWithEmail[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const navigate = useNavigate();
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const loadDatasets = async () => {
     setIsLoading(true);
@@ -48,7 +48,11 @@ export const useDatasetVerification = () => {
       setRejectedDatasets(rejected);
     } catch (error) {
       console.error('Error loading datasets:', error);
-      toast.error('Failed to load datasets');
+      toast({
+        title: "Failed to load datasets",
+        description: "Could not fetch datasets for verification",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
@@ -56,29 +60,110 @@ export const useDatasetVerification = () => {
 
   const updateStatus = async (id: string, status: 'pending' | 'approved' | 'rejected', notes?: string) => {
     try {
-      await updateDatasetVerificationStatus(id, status, notes);
-      toast.success(`Dataset ${status === 'approved' ? 'approved' : status === 'rejected' ? 'rejected' : 'set to pending'}`);
-      await loadDatasets(); // Reload data after update
+      const success = await updateDatasetVerificationStatus(id, status, notes);
+      
+      if (success) {
+        toast({
+          title: `Dataset ${status === 'approved' ? 'approved' : status === 'rejected' ? 'rejected' : 'status updated'}`,
+          description: `The dataset has been ${status === 'approved' ? 'approved' : status === 'rejected' ? 'rejected' : 'updated to pending'}${notes ? ' with notes' : ''}.`
+        });
+        
+        // Update local state to immediately reflect changes
+        // This helps avoid having to wait for the next refresh
+        if (status === 'approved') {
+          // Move from pending to approved
+          const dataset = pendingDatasets.find(d => d.id === id);
+          if (dataset) {
+            const updatedDataset = { ...dataset, verificationStatus: status, verificationNotes: notes || dataset.verificationNotes };
+            setPendingDatasets(prev => prev.filter(d => d.id !== id));
+            setApprovedDatasets(prev => [updatedDataset, ...prev]);
+          }
+        } else if (status === 'rejected') {
+          // Move from pending to rejected
+          const dataset = pendingDatasets.find(d => d.id === id);
+          if (dataset) {
+            const updatedDataset = { ...dataset, verificationStatus: status, verificationNotes: notes || dataset.verificationNotes };
+            setPendingDatasets(prev => prev.filter(d => d.id !== id));
+            setRejectedDatasets(prev => [updatedDataset, ...prev]);
+          }
+        } else if (status === 'pending') {
+          // Move back to pending from either approved or rejected
+          let dataset = approvedDatasets.find(d => d.id === id);
+          if (!dataset) {
+            dataset = rejectedDatasets.find(d => d.id === id);
+          }
+          
+          if (dataset) {
+            const updatedDataset = { ...dataset, verificationStatus: status, verificationNotes: notes || dataset.verificationNotes };
+            setApprovedDatasets(prev => prev.filter(d => d.id !== id));
+            setRejectedDatasets(prev => prev.filter(d => d.id !== id));
+            setPendingDatasets(prev => [updatedDataset, ...prev]);
+          }
+        }
+        
+        // Still trigger a full refresh to ensure consistency with server
+        refreshData();
+      }
     } catch (error) {
       console.error('Error updating dataset status:', error);
-      toast.error('Failed to update dataset status');
+      toast({
+        title: "Update failed",
+        description: "Failed to update dataset status",
+        variant: "destructive"
+      });
     }
   };
   
   const sendFeedback = async (id: string, feedback: string) => {
     try {
-      await sendDatasetFeedback(id, feedback);
-      toast.success('Feedback sent to contributor');
-      await loadDatasets(); // Reload data after update
+      const success = await sendDatasetFeedback(id, feedback);
+      if (success) {
+        toast({
+          title: "Feedback sent",
+          description: "Feedback was successfully sent to contributor"
+        });
+        await refreshData();
+      }
     } catch (error) {
       console.error('Error sending feedback:', error);
-      toast.error('Failed to send feedback');
+      toast({
+        title: "Feedback failed",
+        description: "Failed to send feedback",
+        variant: "destructive"
+      });
     }
+  };
+  
+  const publishDataset = async (id: string) => {
+    try {
+      const success = await publishDatasetService(id);
+      if (success) {
+        toast({
+          title: "Dataset published",
+          description: "The dataset has been successfully published"
+        });
+        await refreshData();
+      }
+      return success;
+    } catch (error) {
+      console.error('Error publishing dataset:', error);
+      toast({
+        title: "Publishing failed",
+        description: "Failed to publish dataset",
+        variant: "destructive"
+      });
+      throw error;
+    }
+  };
+
+  // Function to manually trigger refresh
+  const refreshData = () => {
+    setRefreshTrigger(prev => prev + 1);
   };
 
   useEffect(() => {
     loadDatasets();
-  }, []);
+  }, [refreshTrigger]);
 
   return {
     pendingDatasets,
@@ -86,7 +171,8 @@ export const useDatasetVerification = () => {
     rejectedDatasets,
     updateStatus,
     sendFeedback,
+    publishDataset,
     isLoading,
-    refreshData: loadDatasets
+    refreshData
   };
 };

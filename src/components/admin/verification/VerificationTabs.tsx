@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDatasetVerification } from '@/hooks/useDatasetVerification';
 import DatasetVerificationList from './DatasetVerificationList';
@@ -14,9 +14,22 @@ const VerificationTabs = () => {
     rejectedDatasets, 
     updateStatus,
     sendFeedback,
+    publishDataset,
     isLoading,
     refreshData
   } = useDatasetVerification();
+
+  const handleUpdateStatus = async (id: string, status: 'pending' | 'approved' | 'rejected', notes?: string) => {
+    await updateStatus(id, status, notes);
+    // Refresh data after status update and switch to the appropriate tab
+    if (status === 'approved' && activeTab === 'pending') {
+      setActiveTab('approved');
+    } else if (status === 'rejected' && activeTab === 'pending') {
+      setActiveTab('rejected');
+    } else if (status === 'pending') {
+      setActiveTab('pending');
+    }
+  };
 
   return (
     <Tabs 
@@ -49,7 +62,7 @@ const VerificationTabs = () => {
         <DatasetVerificationList 
           datasets={pendingDatasets}
           status="pending" 
-          updateStatus={updateStatus}
+          updateStatus={handleUpdateStatus}
           sendFeedback={sendFeedback}
           isLoading={isLoading}
         />
@@ -59,8 +72,9 @@ const VerificationTabs = () => {
         <DatasetVerificationList 
           datasets={approvedDatasets}
           status="approved" 
-          updateStatus={updateStatus}
+          updateStatus={handleUpdateStatus}
           sendFeedback={sendFeedback}
+          publishDataset={publishDataset}
           isLoading={isLoading}
         />
       </TabsContent>
@@ -69,7 +83,7 @@ const VerificationTabs = () => {
         <DatasetVerificationList 
           datasets={rejectedDatasets}
           status="rejected" 
-          updateStatus={updateStatus}
+          updateStatus={handleUpdateStatus}
           sendFeedback={sendFeedback}
           isLoading={isLoading}
         />
