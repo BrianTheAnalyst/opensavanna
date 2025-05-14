@@ -27,10 +27,8 @@ export const updateDatasetVerificationStatus = async (
     
     if (error) {
       console.error('Error updating dataset verification status:', error);
-      toast({
-        title: "Update failed",
-        description: "Failed to update verification status",
-        variant: "destructive"
+      toast("Update failed", {
+        description: "Failed to update verification status"
       });
       return false;
     }
@@ -39,10 +37,8 @@ export const updateDatasetVerificationStatus = async (
     return true;
   } catch (error) {
     console.error('Error updating dataset verification status:', error);
-    toast({
-      title: "Update failed",
-      description: "Failed to update verification status",
-      variant: "destructive"
+    toast("Update failed", {
+      description: "Failed to update verification status"
     });
     return false;
   }

@@ -6,10 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 export const publishDataset = async (id: string): Promise<boolean> => {
   if (!id) {
     console.error('Error publishing dataset: No dataset ID provided');
-    toast({
-      title: "Publishing failed",
-      description: "Invalid dataset ID",
-      variant: "destructive"
+    toast("Publishing failed", {
+      description: "Invalid dataset ID"
     });
     throw new Error("Invalid dataset ID");
   }
@@ -26,20 +24,16 @@ export const publishDataset = async (id: string): Promise<boolean> => {
     
     if (fetchError) {
       console.error('Error fetching dataset before publishing:', fetchError);
-      toast({
-        title: "Publishing failed",
-        description: "Could not verify dataset exists",
-        variant: "destructive"
+      toast("Publishing failed", {
+        description: "Could not verify dataset exists"
       });
       throw new Error(`Dataset not found: ${fetchError.message}`);
     }
     
     if (existingDataset.verification_status !== 'approved') {
       console.error('Cannot publish dataset that is not approved');
-      toast({
-        title: "Publishing failed",
-        description: "Only approved datasets can be published",
-        variant: "destructive"
+      toast("Publishing failed", {
+        description: "Only approved datasets can be published"
       });
       throw new Error("Dataset must be approved before publishing");
     }
@@ -54,17 +48,14 @@ export const publishDataset = async (id: string): Promise<boolean> => {
     
     if (error) {
       console.error('Error publishing dataset:', error);
-      toast({
-        title: "Publishing failed",
-        description: error.message || "Failed to update dataset status",
-        variant: "destructive"
+      toast("Publishing failed", {
+        description: error.message || "Failed to update dataset status"
       });
       throw new Error(`Failed to publish dataset: ${error.message}`);
     }
     
     console.log(`Successfully published dataset ${id}`);
-    toast({
-      title: "Dataset published",
+    toast("Dataset published", {
       description: "The dataset has been successfully published and is now featured"
     });
     return true;
