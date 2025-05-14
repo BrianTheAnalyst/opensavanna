@@ -35,7 +35,7 @@ export const useDatasetVerification = () => {
         };
       };
       
-      // Filter datasets by verification status - check both property names
+      // Filter datasets by verification status - using the normalized property names
       const pending = allDatasets
         .filter(d => {
           const status = d.verificationStatus || d.verification_status;
@@ -64,7 +64,7 @@ export const useDatasetVerification = () => {
       setRejectedDatasets(rejected);
     } catch (error) {
       console.error('Error loading datasets:', error);
-      toast.error("Failed to load datasets", {
+      toast.error('Failed to load datasets', {
         description: "Could not fetch datasets for verification"
       });
     } finally {
