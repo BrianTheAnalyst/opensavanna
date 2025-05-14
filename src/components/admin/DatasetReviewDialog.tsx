@@ -24,20 +24,23 @@ const DatasetReviewDialog = ({
   updateStatus,
   sendFeedback
 }: DatasetReviewDialogProps) => {
-  const [notes, setNotes] = useState(dataset.verificationNotes || '');
+  const [notes, setNotes] = useState(dataset.verificationNotes || (dataset as any).verification_notes || '');
   const [feedbackTab, setFeedbackTab] = useState<'notes' | 'email'>('notes');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const handleSubmit = async () => {
+    console.log(`Submitting ${action} for dataset ${dataset.id}`);
     setIsSubmitting(true);
     
     try {
       if (action === 'feedback' && sendFeedback) {
         await sendFeedback(dataset.id, notes);
       } else {
+        const newStatus = action === 'approve' ? 'approved' : 'rejected';
+        console.log(`Updating status to ${newStatus} for dataset ${dataset.id}`);
         await updateStatus(
           dataset.id, 
-          action === 'approve' ? 'approved' : 'rejected',
+          newStatus,
           notes.trim() || undefined
         );
       }

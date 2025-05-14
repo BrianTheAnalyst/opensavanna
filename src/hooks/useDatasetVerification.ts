@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import { DatasetWithEmail } from '@/types/dataset';
 import { 
   fetchDatasetsWithVerificationStatus, 
@@ -65,41 +65,69 @@ export const useDatasetVerification = () => {
           description: `The dataset has been ${status === 'approved' ? 'approved' : status === 'rejected' ? 'rejected' : 'updated to pending'}${notes ? ' with notes' : ''}.`
         });
         
-        // Update local state to immediately reflect changes
-        // This helps avoid having to wait for the next refresh
+        // Update local state immediately to reflect changes - this is crucial for UI updates
         if (status === 'approved') {
-          // Move from pending to approved
-          const dataset = pendingDatasets.find(d => d.id === id);
+          // Find dataset in any of our lists
+          let dataset = pendingDatasets.find(d => d.id === id);
+          if (!dataset) {
+            dataset = rejectedDatasets.find(d => d.id === id);
+          }
+          
           if (dataset) {
-            const updatedDataset = { ...dataset, verificationStatus: status, verificationNotes: notes || dataset.verificationNotes };
+            // Create updated dataset with new status
+            const updatedDataset = { 
+              ...dataset, 
+              verificationStatus: status,
+              verification_status: status, // Update both properties for compatibility
+              verificationNotes: notes || dataset.verificationNotes || (dataset as any).verification_notes 
+            };
+            
+            // Remove from current lists
             setPendingDatasets(prev => prev.filter(d => d.id !== id));
+            setRejectedDatasets(prev => prev.filter(d => d.id !== id));
+            
+            // Add to approved list
             setApprovedDatasets(prev => [updatedDataset, ...prev]);
           }
         } else if (status === 'rejected') {
-          // Move from pending to rejected
-          const dataset = pendingDatasets.find(d => d.id === id);
+          // Find dataset
+          let dataset = pendingDatasets.find(d => d.id === id);
+          if (!dataset) {
+            dataset = approvedDatasets.find(d => d.id === id);
+          }
+          
           if (dataset) {
-            const updatedDataset = { ...dataset, verificationStatus: status, verificationNotes: notes || dataset.verificationNotes };
+            const updatedDataset = { 
+              ...dataset, 
+              verificationStatus: status,
+              verification_status: status,
+              verificationNotes: notes || dataset.verificationNotes || (dataset as any).verification_notes 
+            };
+            
             setPendingDatasets(prev => prev.filter(d => d.id !== id));
+            setApprovedDatasets(prev => prev.filter(d => d.id !== id));
             setRejectedDatasets(prev => [updatedDataset, ...prev]);
           }
         } else if (status === 'pending') {
-          // Move back to pending from either approved or rejected
+          // Find dataset
           let dataset = approvedDatasets.find(d => d.id === id);
           if (!dataset) {
             dataset = rejectedDatasets.find(d => d.id === id);
           }
           
           if (dataset) {
-            const updatedDataset = { ...dataset, verificationStatus: status, verificationNotes: notes || dataset.verificationNotes };
+            const updatedDataset = { 
+              ...dataset, 
+              verificationStatus: status,
+              verification_status: status,
+              verificationNotes: notes || dataset.verificationNotes || (dataset as any).verification_notes 
+            };
+            
             setApprovedDatasets(prev => prev.filter(d => d.id !== id));
             setRejectedDatasets(prev => prev.filter(d => d.id !== id));
             setPendingDatasets(prev => [updatedDataset, ...prev]);
           }
         }
-        
-        // Still trigger a full refresh to ensure consistency with server
-        refreshData();
       }
     } catch (error) {
       console.error('Error updating dataset status:', error);
@@ -116,7 +144,7 @@ export const useDatasetVerification = () => {
         toast("Feedback sent", {
           description: "Feedback was successfully sent to contributor"
         });
-        await refreshData();
+        // No need to move datasets between categories for feedback
       }
     } catch (error) {
       console.error('Error sending feedback:', error);
@@ -133,7 +161,10 @@ export const useDatasetVerification = () => {
         toast("Dataset published", {
           description: "The dataset has been successfully published"
         });
-        await refreshData();
+        // Update the dataset in the approved list to show as featured
+        setApprovedDatasets(prev => prev.map(dataset => 
+          dataset.id === id ? { ...dataset, featured: true } : dataset
+        ));
       }
     } catch (error) {
       console.error('Error publishing dataset:', error);
@@ -146,6 +177,7 @@ export const useDatasetVerification = () => {
 
   // Function to manually trigger refresh
   const refreshData = () => {
+    console.log("Refreshing dataset verification data");
     setRefreshTrigger(prev => prev + 1);
   };
 

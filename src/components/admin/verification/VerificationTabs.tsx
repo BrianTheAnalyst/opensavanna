@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDatasetVerification } from '@/hooks/useDatasetVerification';
 import DatasetVerificationList from './DatasetVerificationList';
@@ -21,15 +21,25 @@ const VerificationTabs = () => {
 
   const handleUpdateStatus = async (id: string, status: 'pending' | 'approved' | 'rejected', notes?: string) => {
     await updateStatus(id, status, notes);
-    // Refresh data after status update and switch to the appropriate tab
-    if (status === 'approved' && activeTab === 'pending') {
+    
+    // Auto-switch to the appropriate tab after status update
+    if (status === 'approved') {
       setActiveTab('approved');
-    } else if (status === 'rejected' && activeTab === 'pending') {
+    } else if (status === 'rejected') {
       setActiveTab('rejected');
     } else if (status === 'pending') {
       setActiveTab('pending');
     }
   };
+
+  // Monitor datasets for debugging
+  useEffect(() => {
+    console.log("Dataset counts: ", {
+      pending: pendingDatasets.length,
+      approved: approvedDatasets.length, 
+      rejected: rejectedDatasets.length
+    });
+  }, [pendingDatasets, approvedDatasets, rejectedDatasets]);
 
   return (
     <Tabs 

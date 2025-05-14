@@ -20,16 +20,19 @@ const DatasetVerificationCard = ({ dataset, updateStatus, sendFeedback, publishD
   const [publishError, setPublishError] = useState<string | null>(null);
 
   const handleApprove = () => {
+    console.log("Opening approve dialog for dataset:", dataset.id);
     setReviewAction('approve');
     setIsReviewDialogOpen(true);
   };
 
   const handleReject = () => {
+    console.log("Opening reject dialog for dataset:", dataset.id);
     setReviewAction('reject');
     setIsReviewDialogOpen(true);
   };
   
   const handleFeedback = () => {
+    console.log("Opening feedback dialog for dataset:", dataset.id);
     setReviewAction('feedback');
     setIsReviewDialogOpen(true);
   };
