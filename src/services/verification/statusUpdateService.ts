@@ -1,5 +1,5 @@
 
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 // Update the verification status of a dataset
@@ -7,7 +7,7 @@ export const updateDatasetVerificationStatus = async (
   id: string,
   status: 'pending' | 'approved' | 'rejected',
   notes?: string
-): Promise<boolean> => {
+): Promise<{ success: boolean, data?: any, error?: any }> => {
   try {
     console.log(`Updating dataset ${id} to status: ${status}`);
     
@@ -20,26 +20,28 @@ export const updateDatasetVerificationStatus = async (
       updates.verification_notes = notes;
     }
     
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('datasets')
       .update(updates)
-      .eq('id', id);
+      .eq('id', id)
+      .select('id, title, verification_status, verification_notes')
+      .single();
     
     if (error) {
       console.error('Error updating dataset verification status:', error);
-      toast("Update failed", {
+      toast.error("Update failed", {
         description: "Failed to update verification status"
       });
-      return false;
+      return { success: false, error };
     }
     
-    console.log(`Successfully updated dataset ${id} status to ${status}`);
-    return true;
+    console.log(`Successfully updated dataset ${id} status to ${status}. Database returned:`, data);
+    return { success: true, data };
   } catch (error) {
     console.error('Error updating dataset verification status:', error);
-    toast("Update failed", {
+    toast.error("Update failed", {
       description: "Failed to update verification status"
     });
-    return false;
+    return { success: false, error };
   }
 };

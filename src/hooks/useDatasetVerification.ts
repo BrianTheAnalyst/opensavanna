@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { DatasetWithEmail } from '@/types/dataset';
 import { 
   fetchDatasetsWithVerificationStatus, 
@@ -25,7 +25,7 @@ export const useDatasetVerification = () => {
       
       console.log("All datasets loaded:", allDatasets);
       
-      // Filter datasets by verification status
+      // Filter datasets by verification status - check both property names
       const pending = allDatasets.filter(d => {
         const status = d.verificationStatus || (d as any).verification_status;
         return !status || status === 'pending';
@@ -48,7 +48,7 @@ export const useDatasetVerification = () => {
       setRejectedDatasets(rejected);
     } catch (error) {
       console.error('Error loading datasets:', error);
-      toast("Failed to load datasets", {
+      toast.error("Failed to load datasets", {
         description: "Could not fetch datasets for verification"
       });
     } finally {
@@ -58,80 +58,95 @@ export const useDatasetVerification = () => {
 
   const updateStatus = async (id: string, status: 'pending' | 'approved' | 'rejected', notes?: string) => {
     try {
-      const success = await updateDatasetVerificationStatus(id, status, notes);
+      // First update in the database
+      const result = await updateDatasetVerificationStatus(id, status, notes);
       
-      if (success) {
-        toast(`Dataset ${status === 'approved' ? 'approved' : status === 'rejected' ? 'rejected' : 'status updated'}`, {
-          description: `The dataset has been ${status === 'approved' ? 'approved' : status === 'rejected' ? 'rejected' : 'updated to pending'}${notes ? ' with notes' : ''}.`
+      if (!result.success) {
+        console.error('Failed to update dataset status in database:', result.error);
+        toast.error(`Update failed`, {
+          description: `Failed to update dataset status to ${status}`
         });
+        return;
+      }
+      
+      // Success notification
+      toast.success(`Dataset ${status}`, {
+        description: `The dataset has been ${status === 'approved' ? 'approved' : status === 'rejected' ? 'rejected' : 'updated to pending'}${notes ? ' with notes' : ''}.`
+      });
+      
+      // Get the updated dataset data from the result
+      const updatedDataset = result.data;
+      console.log('Dataset successfully updated in database:', updatedDataset);
+
+      // Now update our local state based on the database confirmation
+      if (status === 'approved') {
+        // Find dataset in any of our lists
+        let dataset = pendingDatasets.find(d => d.id === id);
+        if (!dataset) {
+          dataset = rejectedDatasets.find(d => d.id === id);
+        }
         
-        // Update local state immediately to reflect changes - this is crucial for UI updates
-        if (status === 'approved') {
-          // Find dataset in any of our lists
-          let dataset = pendingDatasets.find(d => d.id === id);
-          if (!dataset) {
-            dataset = rejectedDatasets.find(d => d.id === id);
-          }
+        if (dataset) {
+          // Create updated dataset with new status - use both property names for compatibility
+          const updatedDatasetWithEmail: DatasetWithEmail = { 
+            ...dataset, 
+            verificationStatus: status,
+            verification_status: status,
+            verificationNotes: notes || dataset.verificationNotes || (dataset as any).verification_notes,
+            verification_notes: notes || dataset.verificationNotes || (dataset as any).verification_notes
+          };
           
-          if (dataset) {
-            // Create updated dataset with new status
-            const updatedDataset = { 
-              ...dataset, 
-              verificationStatus: status,
-              verification_status: status, // Update both properties for compatibility
-              verificationNotes: notes || dataset.verificationNotes || (dataset as any).verification_notes 
-            };
-            
-            // Remove from current lists
-            setPendingDatasets(prev => prev.filter(d => d.id !== id));
-            setRejectedDatasets(prev => prev.filter(d => d.id !== id));
-            
-            // Add to approved list
-            setApprovedDatasets(prev => [updatedDataset, ...prev]);
-          }
-        } else if (status === 'rejected') {
-          // Find dataset
-          let dataset = pendingDatasets.find(d => d.id === id);
-          if (!dataset) {
-            dataset = approvedDatasets.find(d => d.id === id);
-          }
+          // Remove from current lists
+          setPendingDatasets(prev => prev.filter(d => d.id !== id));
+          setRejectedDatasets(prev => prev.filter(d => d.id !== id));
           
-          if (dataset) {
-            const updatedDataset = { 
-              ...dataset, 
-              verificationStatus: status,
-              verification_status: status,
-              verificationNotes: notes || dataset.verificationNotes || (dataset as any).verification_notes 
-            };
-            
-            setPendingDatasets(prev => prev.filter(d => d.id !== id));
-            setApprovedDatasets(prev => prev.filter(d => d.id !== id));
-            setRejectedDatasets(prev => [updatedDataset, ...prev]);
-          }
-        } else if (status === 'pending') {
-          // Find dataset
-          let dataset = approvedDatasets.find(d => d.id === id);
-          if (!dataset) {
-            dataset = rejectedDatasets.find(d => d.id === id);
-          }
+          // Add to approved list
+          setApprovedDatasets(prev => [updatedDatasetWithEmail, ...prev]);
+        }
+      } else if (status === 'rejected') {
+        // Find dataset
+        let dataset = pendingDatasets.find(d => d.id === id);
+        if (!dataset) {
+          dataset = approvedDatasets.find(d => d.id === id);
+        }
+        
+        if (dataset) {
+          const updatedDatasetWithEmail: DatasetWithEmail = { 
+            ...dataset, 
+            verificationStatus: status,
+            verification_status: status,
+            verificationNotes: notes || dataset.verificationNotes || (dataset as any).verification_notes,
+            verification_notes: notes || dataset.verificationNotes || (dataset as any).verification_notes
+          };
           
-          if (dataset) {
-            const updatedDataset = { 
-              ...dataset, 
-              verificationStatus: status,
-              verification_status: status,
-              verificationNotes: notes || dataset.verificationNotes || (dataset as any).verification_notes 
-            };
-            
-            setApprovedDatasets(prev => prev.filter(d => d.id !== id));
-            setRejectedDatasets(prev => prev.filter(d => d.id !== id));
-            setPendingDatasets(prev => [updatedDataset, ...prev]);
-          }
+          setPendingDatasets(prev => prev.filter(d => d.id !== id));
+          setApprovedDatasets(prev => prev.filter(d => d.id !== id));
+          setRejectedDatasets(prev => [updatedDatasetWithEmail, ...prev]);
+        }
+      } else if (status === 'pending') {
+        // Find dataset
+        let dataset = approvedDatasets.find(d => d.id === id);
+        if (!dataset) {
+          dataset = rejectedDatasets.find(d => d.id === id);
+        }
+        
+        if (dataset) {
+          const updatedDatasetWithEmail: DatasetWithEmail = { 
+            ...dataset, 
+            verificationStatus: status,
+            verification_status: status,
+            verificationNotes: notes || dataset.verificationNotes || (dataset as any).verification_notes,
+            verification_notes: notes || dataset.verificationNotes || (dataset as any).verification_notes
+          };
+          
+          setApprovedDatasets(prev => prev.filter(d => d.id !== id));
+          setRejectedDatasets(prev => prev.filter(d => d.id !== id));
+          setPendingDatasets(prev => [updatedDatasetWithEmail, ...prev]);
         }
       }
     } catch (error) {
       console.error('Error updating dataset status:', error);
-      toast("Update failed", {
+      toast.error("Update failed", {
         description: "Failed to update dataset status"
       });
     }
@@ -141,14 +156,14 @@ export const useDatasetVerification = () => {
     try {
       const success = await sendDatasetFeedback(id, feedback);
       if (success) {
-        toast("Feedback sent", {
+        toast.success("Feedback sent", {
           description: "Feedback was successfully sent to contributor"
         });
         // No need to move datasets between categories for feedback
       }
     } catch (error) {
       console.error('Error sending feedback:', error);
-      toast("Feedback failed", {
+      toast.error("Feedback failed", {
         description: "Failed to send feedback"
       });
     }
@@ -156,9 +171,34 @@ export const useDatasetVerification = () => {
   
   const publishDataset = async (id: string): Promise<void> => {
     try {
+      // First verify that the dataset is really approved in the database
+      const { data: currentDataset, error: fetchError } = await supabase
+        .from('datasets')
+        .select('id, verification_status')
+        .eq('id', id)
+        .single();
+        
+      if (fetchError || !currentDataset) {
+        console.error('Error verifying dataset status before publishing:', fetchError);
+        toast.error("Publishing failed", {
+          description: "Could not verify dataset status"
+        });
+        throw new Error("Failed to verify dataset status");
+      }
+      
+      // Double-check the status
+      if (currentDataset.verification_status !== 'approved') {
+        console.error(`Dataset ${id} is not approved in the database. Current status:`, currentDataset.verification_status);
+        toast.error("Publishing failed", {
+          description: "Dataset must be approved before publishing"
+        });
+        throw new Error(`Dataset is not approved. Current status: ${currentDataset.verification_status}`);
+      }
+      
+      // If verified, proceed with publishing
       const success = await publishDatasetService(id);
       if (success) {
-        toast("Dataset published", {
+        toast.success("Dataset published", {
           description: "The dataset has been successfully published"
         });
         // Update the dataset in the approved list to show as featured
@@ -168,8 +208,8 @@ export const useDatasetVerification = () => {
       }
     } catch (error) {
       console.error('Error publishing dataset:', error);
-      toast("Publishing failed", {
-        description: "Failed to publish dataset"
+      toast.error("Publishing failed", {
+        description: error instanceof Error ? error.message : "Failed to publish dataset"
       });
       throw error;
     }
@@ -196,3 +236,6 @@ export const useDatasetVerification = () => {
     refreshData
   };
 };
+
+// Add missing import for supabase
+import { supabase } from "@/integrations/supabase/client";

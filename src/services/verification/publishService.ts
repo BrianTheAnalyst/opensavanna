@@ -1,12 +1,12 @@
 
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 // Publish a dataset (make it publicly available)
 export const publishDataset = async (id: string): Promise<boolean> => {
   if (!id) {
     console.error('Error publishing dataset: No dataset ID provided');
-    toast("Publishing failed", {
+    toast.error("Publishing failed", {
       description: "Invalid dataset ID"
     });
     throw new Error("Invalid dataset ID");
@@ -15,7 +15,7 @@ export const publishDataset = async (id: string): Promise<boolean> => {
   try {
     console.log(`Attempting to publish dataset ${id}`);
     
-    // Check if the dataset exists first
+    // Check if the dataset exists first and verify its status
     const { data: existingDataset, error: fetchError } = await supabase
       .from('datasets')
       .select('id, title, verification_status')
@@ -24,38 +24,42 @@ export const publishDataset = async (id: string): Promise<boolean> => {
     
     if (fetchError) {
       console.error('Error fetching dataset before publishing:', fetchError);
-      toast("Publishing failed", {
+      toast.error("Publishing failed", {
         description: "Could not verify dataset exists"
       });
       throw new Error(`Dataset not found: ${fetchError.message}`);
     }
     
-    if (existingDataset.verification_status !== 'approved') {
-      console.error('Cannot publish dataset that is not approved');
-      toast("Publishing failed", {
+    console.log('Dataset verification status check:', existingDataset);
+    
+    if (!existingDataset || existingDataset.verification_status !== 'approved') {
+      console.error('Cannot publish dataset that is not approved. Current status:', 
+        existingDataset?.verification_status);
+      toast.error("Publishing failed", {
         description: "Only approved datasets can be published"
       });
-      throw new Error("Dataset must be approved before publishing");
+      throw new Error(`Dataset must be approved before publishing. Current status: ${existingDataset?.verification_status}`);
     }
     
     // Use the featured flag to publish the dataset
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('datasets')
       .update({
         featured: true // Use featured flag as the publishing mechanism
       })
-      .eq('id', id);
+      .eq('id', id)
+      .select();
     
     if (error) {
       console.error('Error publishing dataset:', error);
-      toast("Publishing failed", {
+      toast.error("Publishing failed", {
         description: error.message || "Failed to update dataset status"
       });
       throw new Error(`Failed to publish dataset: ${error.message}`);
     }
     
-    console.log(`Successfully published dataset ${id}`);
-    toast("Dataset published", {
+    console.log(`Successfully published dataset ${id}. Updated data:`, data);
+    toast.success("Dataset published", {
       description: "The dataset has been successfully published and is now featured"
     });
     return true;

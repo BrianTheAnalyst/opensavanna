@@ -20,14 +20,18 @@ const VerificationTabs = () => {
   } = useDatasetVerification();
 
   const handleUpdateStatus = async (id: string, status: 'pending' | 'approved' | 'rejected', notes?: string) => {
+    console.log(`VerificationTabs: Updating dataset ${id} to status ${status}`);
     await updateStatus(id, status, notes);
     
     // Auto-switch to the appropriate tab after status update
     if (status === 'approved') {
+      console.log('Switching to approved tab');
       setActiveTab('approved');
     } else if (status === 'rejected') {
+      console.log('Switching to rejected tab');
       setActiveTab('rejected');
     } else if (status === 'pending') {
+      console.log('Switching to pending tab');
       setActiveTab('pending');
     }
   };
@@ -39,6 +43,15 @@ const VerificationTabs = () => {
       approved: approvedDatasets.length, 
       rejected: rejectedDatasets.length
     });
+    
+    // Log each approved dataset for debugging
+    if (approvedDatasets.length > 0) {
+      console.log("Approved datasets:", approvedDatasets.map(d => ({
+        id: d.id,
+        title: d.title,
+        status: d.verificationStatus || (d as any).verification_status
+      })));
+    }
   }, [pendingDatasets, approvedDatasets, rejectedDatasets]);
 
   return (

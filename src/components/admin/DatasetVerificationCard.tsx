@@ -4,7 +4,7 @@ import { DatasetWithEmail } from '@/types/dataset';
 import DatasetReviewDialog from './DatasetReviewDialog';
 import DatasetInfo from './verification/DatasetInfo';
 import DatasetActionButtons from './verification/DatasetActionButtons';
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 interface DatasetVerificationCardProps {
   dataset: DatasetWithEmail;
@@ -45,6 +45,7 @@ const DatasetVerificationCard = ({ dataset, updateStatus, sendFeedback, publishD
     
     try {
       setIsPublishing(true);
+      console.log(`Attempting to publish dataset: ${dataset.id} (${dataset.title})`);
       await publishDataset(dataset.id);
       // Toast notification is handled in the publishDataset function
     } catch (error) {
@@ -57,16 +58,17 @@ const DatasetVerificationCard = ({ dataset, updateStatus, sendFeedback, publishD
       
       setPublishError(errorMessage);
       
-      toast("Failed to publish dataset", {
-        description: `There was an error publishing "${dataset.title}". Please try again later.`
-      });
+      // Toast is already handled in publishDataset function so we don't need to do it here
     } finally {
       setIsPublishing(false);
     }
   };
 
-  // Determine the effective verification status
+  // Determine the effective verification status by checking both property names
   const effectiveStatus = dataset.verificationStatus || (dataset as any).verification_status || 'pending';
+  
+  // Log the dataset status to help with debugging
+  console.log(`Dataset ${dataset.id}: status = ${effectiveStatus}, verificationStatus = ${dataset.verificationStatus}, verification_status = ${(dataset as any).verification_status}`);
 
   return (
     <div className="border rounded-lg p-6 bg-background">
