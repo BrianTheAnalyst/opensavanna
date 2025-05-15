@@ -26,17 +26,16 @@ const TimeControls: React.FC<TimeControlsProps> = ({
     if (!isPlaying) return;
     
     const timer = setInterval(() => {
-      setCurrentIndex((prev: number) => {
-        if (prev >= max) {
-          setIsPlaying(false);
-          return prev;
-        }
-        return prev + 1;
-      });
+      // Instead of using a function, we'll read the current value and calculate the new one
+      const nextIndex = currentIndex >= max ? currentIndex : currentIndex + 1;
+      if (nextIndex >= max) {
+        setIsPlaying(false);
+      }
+      setCurrentIndex(nextIndex);
     }, interval);
     
     return () => clearInterval(timer);
-  }, [isPlaying, max, interval, setCurrentIndex]);
+  }, [isPlaying, max, interval, setCurrentIndex, currentIndex]);
   
   const handlePrevious = () => {
     setCurrentIndex(Math.max(0, currentIndex - 1));
