@@ -29,11 +29,11 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
 
   return (
     <div style={{ height: '100%', width: '100%', borderRadius: '0.375rem' }}>
-      {/* The key issue was here - using the spread syntax to pass all required props */}
+      {/* Using LeafletMapContainer without directly passing unsupported props */}
       <LeafletMapContainer
-        key="map-container"
-        center={center}
-        zoom={zoom}
+        // Remove key prop as it's not needed and causing an error
+        defaultCenter={center}
+        defaultZoom={zoom}
         style={{ height: '100%', width: '100%' }}
         zoomControl={false}
       >

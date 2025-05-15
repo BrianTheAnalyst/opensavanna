@@ -56,5 +56,3 @@ export const shouldHighlightFeature = (feature: any, highlightedProperty?: strin
   
   return feature.properties[highlightedProperty] === highlightedValue;
 };
-
-// Removed duplicate exports at the end to fix the TypeScript errors

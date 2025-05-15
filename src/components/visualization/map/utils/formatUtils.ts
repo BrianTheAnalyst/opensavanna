@@ -1,8 +1,8 @@
-
 import { formatPropertyKey, formatPropertyValue } from './colorUtils';
 
 // Function for handling GeoJSON feature interactions
-export const onEachFeature = (feature: any, layer: any) => {
+// Not exporting this function directly to avoid naming conflicts
+const formatFeaturePopup = (feature: any, layer: any) => {
   if (feature.properties) {
     // Store reference to the feature collection for min/max calculations
     if (feature && layer._source && layer._source.features) {
