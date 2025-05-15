@@ -1,3 +1,4 @@
+
 // Color palettes for different visualization types
 export const colorRanges = {
   // Sequential color palette for choropleth maps
@@ -16,6 +17,32 @@ export const colorRanges = {
   categorical: [
     '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
     '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
+  ],
+  
+  // Enhanced professional palettes for choropleth maps by category
+  energy: [
+    '#ffffd4', '#fee391', '#fec44f', '#fe9929', '#ec7014', '#cc4c02', '#8c2d04'
+  ],
+  electricity: [
+    '#edf8fb', '#b3cde3', '#8c96c6', '#8856a7', '#810f7c'
+  ],
+  health: [
+    '#edf8fb', '#b2e2e2', '#66c2a4', '#2ca25f', '#006d2c'
+  ],
+  economics: [
+    '#f7f7f7', '#d9d9d9', '#bdbdbd', '#969696', '#636363', '#252525'
+  ],
+  environment: [
+    '#edf8fb', '#b2e2e2', '#66c2a4', '#2ca25f', '#006d2c'
+  ],
+  population: [
+    '#f7fbff', '#d8e7f5', '#b9d7ea', '#9ac7da', '#6aaed6', '#4292c6', '#08589e'
+  ],
+  education: [
+    '#f1eef6', '#d4b9da', '#c994c7', '#df65b0', '#dd1c77', '#980043'
+  ],
+  transport: [
+    '#ffffcc', '#c7e9b4', '#7fcdbb', '#41b6c4', '#1d91c0', '#225ea8', '#0c2c84'
   ],
   
   // For heatmaps
@@ -132,30 +159,22 @@ export const generateColorScale = (
 
 // Get a color scale based on data category
 export const getColorScaleForCategory = (category?: string): string[] => {
-  // Color scales optimized for different data types
-  const scales: Record<string, string[]> = {
-    energy: ['#f7fcb9', '#d9f0a3', '#addd8e', '#78c679', '#41ab5d', '#238443', '#005a32'],
-    electricity: ['#feebe2', '#fbb4b9', '#f768a1', '#c51b8a', '#7a0177'], // Added specific scale for electricity
-    power: ['#feebe2', '#fbb4b9', '#f768a1', '#c51b8a', '#7a0177'], // Similar to electricity
-    health: ['#f7fbff', '#deebf7', '#c6dbef', '#9ecae1', '#6baed6', '#4292c6', '#2171b5', '#006d2c'],
-    economics: ['#fff7f3', '#fde0dd', '#fcc5c0', '#fa9fb5', '#f768a1', '#dd3497', '#ae017e', '#7a0177'],
-    environment: ['#f7fcf5', '#e5f5e0', '#c7e9c0', '#a1d99b', '#74c476', '#41ab5d', '#238b45', '#00441b'],
-    default: ['#eff3ff', '#c6dbef', '#9ecae1', '#6baed6', '#3182bd', '#08519c']
-  };
-
-  // Find the most appropriate color scale
-  let key = 'default';
-  if (category) {
-    const lowerCategory = category.toLowerCase();
-    for (const scaleKey of Object.keys(scales)) {
-      if (lowerCategory.includes(scaleKey)) {
-        key = scaleKey;
-        break;
-      }
-    }
-  }
-
-  return scales[key];
+  if (!category) return colorRanges.sequential;
+  
+  const lowerCategory = category.toLowerCase();
+  
+  // Return the appropriate color scale based on category
+  if (lowerCategory.includes('energy')) return colorRanges.energy;
+  if (lowerCategory.includes('electricity') || lowerCategory.includes('power')) return colorRanges.electricity;
+  if (lowerCategory.includes('health')) return colorRanges.health;
+  if (lowerCategory.includes('econom')) return colorRanges.economics;
+  if (lowerCategory.includes('environment') || lowerCategory.includes('climate')) return colorRanges.environment;
+  if (lowerCategory.includes('population') || lowerCategory.includes('demographic')) return colorRanges.population;
+  if (lowerCategory.includes('educat')) return colorRanges.education;
+  if (lowerCategory.includes('transport')) return colorRanges.transport;
+  
+  // Default to sequential
+  return colorRanges.sequential;
 };
 
 // Format property values for display

@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { colorRanges } from './utils/colorUtils';
+import { colorRanges, getColorScaleForCategory } from './utils/colorUtils';
 
 interface MapLegendProps {
   visualizationType: 'standard' | 'choropleth' | 'heatmap' | 'cluster';
@@ -12,41 +12,58 @@ const MapLegend: React.FC<MapLegendProps> = ({ visualizationType, geoJSON, categ
   const [legendData, setLegendData] = useState({
     min: 0,
     max: 100,
-    colorScale: colorRanges.sequential,
-    title: category || 'Data Values'
+    colorScale: [] as string[],
+    title: category || 'Data Values',
+    unit: ''
   });
 
   useEffect(() => {
-    if (!geoJSON || visualizationType !== 'choropleth') {
-      // Default legend for non-choropleth visualizations
-      setLegendData({
-        min: 0,
-        max: 100,
-        colorScale: visualizationType === 'heatmap' 
-          ? colorRanges.heatmap 
-          : colorRanges.sequential,
-        title: visualizationType === 'heatmap' 
-          ? 'Density' 
-          : category || 'Data Values'
-      });
+    if (!geoJSON && visualizationType !== 'choropleth' && visualizationType !== 'heatmap') {
+      // Don't show legend for non-data visualizations
       return;
     }
     
-    // Extract min/max values from GeoJSON for choropleth maps
-    try {
-      const metadata = geoJSON.metadata || {};
-      const numericFields = metadata.numericFields || {};
-      const valueField = numericFields.value || {};
+    // Get color scale for the category
+    const colorScale = visualizationType === 'heatmap' 
+      ? colorRanges.heatmap 
+      : getColorScaleForCategory(category);
       
-      setLegendData({
-        min: valueField.min || 0,
-        max: valueField.max || 100,
-        colorScale: colorRanges.sequential,
-        title: metadata.category || category || 'Data Values'
-      });
-    } catch (error) {
-      console.error('Error extracting legend data from GeoJSON:', error);
+    // Default legend data
+    const defaultData = {
+      min: 0,
+      max: 100,
+      colorScale,
+      title: visualizationType === 'heatmap' 
+        ? 'Density' 
+        : category || 'Data Values',
+      unit: ''
+    };
+    
+    // If we have GeoJSON data, extract metadata from it
+    if (geoJSON) {
+      try {
+        const metadata = geoJSON.metadata || {};
+        
+        // Look for value field in metadata
+        if (metadata.numericFields) {
+          const valueField = Object.values(metadata.numericFields)[0] as any;
+          if (valueField) {
+            defaultData.min = valueField.min || 0;
+            defaultData.max = valueField.max || 100;
+          }
+        }
+        
+        // Set title and unit if available
+        if (metadata.title) defaultData.title = metadata.title;
+        if (metadata.category) defaultData.title = metadata.category;
+        if (metadata.unit) defaultData.unit = metadata.unit;
+        
+      } catch (error) {
+        console.error('Error extracting legend data from GeoJSON:', error);
+      }
     }
+    
+    setLegendData(defaultData);
   }, [visualizationType, geoJSON, category]);
 
   // Don't display legend for standard maps unless they have GeoJSON
@@ -72,9 +89,14 @@ const MapLegend: React.FC<MapLegendProps> = ({ visualizationType, geoJSON, categ
 
   // Generate intermediate labels
   const generateLabels = () => {
+    // Ensure we have a color scale
+    if (legendData.colorScale.length === 0) {
+      return [formatNumber(legendData.min), formatNumber(legendData.max)];
+    }
+    
     const labels = [];
     const range = legendData.max - legendData.min;
-    const steps = legendData.colorScale.length - 1;
+    const steps = legendData.colorScale.length - 1 || 4;
     
     for (let i = 0; i <= steps; i++) {
       const value = legendData.min + (range * i) / steps;
@@ -85,16 +107,24 @@ const MapLegend: React.FC<MapLegendProps> = ({ visualizationType, geoJSON, categ
   };
 
   const labels = generateLabels();
+  
+  // Build the color gradient
+  const colorGradient = legendData.colorScale.length > 0 
+    ? `linear-gradient(to right, ${legendData.colorScale.join(', ')})`
+    : `linear-gradient(to right, ${colorRanges.sequential.join(', ')})`;
 
   return (
-    <div className="absolute bottom-6 right-6 bg-white/90 dark:bg-gray-800/90 p-3 rounded-md shadow-md z-[1000]">
-      <div className="text-xs font-medium mb-1">{legendData.title}</div>
+    <div className="absolute bottom-6 right-6 bg-white/95 dark:bg-gray-800/95 p-3 rounded-md shadow-md z-[1000] min-w-[180px] text-foreground">
+      <div className="text-xs font-medium mb-1 flex items-center justify-between">
+        <span>{legendData.title}</span>
+        {legendData.unit && <span className="text-muted-foreground text-[10px]">{legendData.unit}</span>}
+      </div>
       <div className="flex flex-col">
         <div className="flex items-center">
           <div 
-            className="h-5 flex-1"
+            className="h-6 flex-1 rounded-sm"
             style={{
-              background: `linear-gradient(to right, ${legendData.colorScale.join(', ')})`,
+              background: colorGradient,
             }}
           />
         </div>

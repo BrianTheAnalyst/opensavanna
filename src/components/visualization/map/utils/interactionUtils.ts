@@ -1,56 +1,61 @@
 
+import L from 'leaflet';
+import { formatPropertiesForDisplay } from './formatUtils';
+
 // Function to handle interaction with GeoJSON features
 export const onEachFeature = (feature: any, layer: any) => {
   if (feature.properties) {
-    const properties = feature.properties;
-    
-    // Create a popup content based on feature properties
-    let popupContent = '<div class="p-2">';
-    
-    // Add title if available
-    if (properties.name) {
-      popupContent += `<div class="font-medium">${properties.name}</div>`;
-    } else if (properties.title) {
-      popupContent += `<div class="font-medium">${properties.title}</div>`;
+    // Store reference to the feature collection for min/max calculations
+    if (feature && layer._source && layer._source.features) {
+      feature.parent = layer._source;
     }
     
-    // Add value if available
-    if (properties.value !== undefined) {
-      popupContent += `<div>Value: ${properties.value}</div>`;
-    }
-    
-    // Add other interesting properties (skip internal ones)
-    Object.entries(properties).forEach(([key, value]) => {
-      if (!['name', 'title', 'value', '__id', 'id', 'type', 'properties'].includes(key) && 
-          typeof value !== 'object' && value !== null && value !== undefined) {
-        popupContent += `<div>${key}: ${value}</div>`;
-      }
+    // Create a popup with formatted properties
+    const popupContent = formatPropertiesForDisplay(feature.properties);
+    layer.bindPopup(popupContent, {
+      maxWidth: 300,
+      className: 'feature-popup'
     });
     
-    popupContent += '</div>';
-    
-    // Bind popup to layer
-    layer.bindPopup(popupContent);
-    
-    // Add hover highlighting
+    // Add hover highlighting with professional styling
     layer.on({
       mouseover: (e: any) => {
         const layer = e.target;
         layer.setStyle({
           weight: 2,
-          color: '#222',
+          color: '#ffffff',
+          dashArray: '',
           fillOpacity: 0.8
         });
-        layer.bringToFront();
+        
+        if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+          layer.bringToFront();
+        }
       },
       mouseout: (e: any) => {
+        const layer = e.target;
         layer.setStyle({
           weight: 1,
           opacity: 0.8,
           color: '#555',
           fillOpacity: 0.6
         });
+      },
+      click: (e: any) => {
+        // Could add additional click behavior here
       }
     });
   }
 };
+
+// Helper function to determine if a feature should be highlighted
+export const shouldHighlightFeature = (feature: any, highlightedProperty?: string, highlightedValue?: any): boolean => {
+  if (!feature.properties || !highlightedProperty || highlightedValue === undefined) {
+    return false;
+  }
+  
+  return feature.properties[highlightedProperty] === highlightedValue;
+};
+
+// Export the functions
+export { onEachFeature, shouldHighlightFeature };
