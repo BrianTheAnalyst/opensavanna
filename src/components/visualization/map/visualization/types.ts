@@ -1,7 +1,6 @@
 
 import { LatLngExpression } from 'leaflet';
 
-// Interface for props
 export interface MapVisualizationProps {
   data: any;
   title?: string;
@@ -11,15 +10,15 @@ export interface MapVisualizationProps {
   category?: string;
 }
 
-// Interface for min/max values
-export interface MinMaxValues {
-  min: number;
-  max: number;
-}
-
 export interface GeoDataInfo {
   hasGeoData: boolean;
   mapCenter: LatLngExpression;
   mapZoom: number;
   processedGeoJSON: any | null;
+}
+
+export interface ColorScaleInfo {
+  colorScale: string[];
+  minValue: number;
+  maxValue: number;
 }
