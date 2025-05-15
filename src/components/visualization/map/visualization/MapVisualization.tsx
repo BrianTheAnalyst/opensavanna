@@ -1,6 +1,5 @@
 
 import React, { useEffect, useState } from 'react';
-import { TileLayer } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
@@ -12,7 +11,6 @@ import MapLoadingState from './MapLoadingState';
 import LayerControls from '../LayerControls';
 import MapControls from '../MapControls';
 import TimeControls from '../TimeControls';
-import VisualizationLayerRenderer from '../VisualizationLayerRenderer';
 import MapLegend from '../MapLegend';
 import { useMapData } from './useMapData';
 import { MapVisualizationProps } from './types';

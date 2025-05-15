@@ -23,5 +23,5 @@ export interface MapContainerProps {
 export interface TileLayerConfig {
   url: string;
   attributionControl: boolean;
-  attribution?: string;
+  attribution: string;
 }

@@ -35,7 +35,12 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
         zoomControl={false}
         attributionControl={true}
       >
-        {activeLayers.includes('base') && <TileLayer url={tileLayerProps.url} />}
+        {activeLayers.includes('base') && (
+          <TileLayer 
+            url={tileLayerProps.url}
+            attribution={tileLayerProps.attribution}
+          />
+        )}
         <ZoomControl position="topright" />
         
         <VisualizationLayerRenderer 
@@ -51,6 +56,7 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
         {activeLayers.includes('labels') && (
           <TileLayer 
             url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png"
+            attribution="&copy; OpenStreetMap contributors, &copy; CARTO"
           />
         )}
       </LeafletMapContainer>
