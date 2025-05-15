@@ -1,8 +1,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Dataset } from '@/types/dataset';
-import { getGeoJSONForDataset } from '@/services/visualization/datasetProcessor';
+import { getGeoJSONForDataset } from '@/services/visualization/storage/geoJsonStorage';
 import { createSimplifiedGeoJSON } from './geojsonUtils';
+import { simplifyGeometry } from '@/services/visualization/processors/geoJsonProcessor';
 
 interface UseGeoJsonStorageOptions {
   preferIndexedDB?: boolean;
@@ -44,8 +45,14 @@ export function useGeoJsonStorage({
             timestamp: Date.now()
           });
           
-          await tx.complete;
-          return true;
+          // Use the oncomplete event instead of complete property
+          return new Promise((resolve) => {
+            tx.oncomplete = () => resolve(true);
+            tx.onerror = () => {
+              console.warn('Failed to store in IndexedDB, falling back to localStorage');
+              resolve(false);
+            };
+          });
         } catch (err) {
           console.warn('Failed to store in IndexedDB, falling back to localStorage:', err);
           // Fall back to localStorage
@@ -99,7 +106,13 @@ export function useGeoJsonStorage({
           const tx = db.transaction('geojson', 'readonly');
           const store = tx.objectStore('geojson');
           
-          const result = await store.get(datasetId);
+          // Use a proper Promise to handle IDBRequest
+          const result = await new Promise<any>((resolve, reject) => {
+            const request = store.get(datasetId);
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+          });
+          
           if (result && result.data) {
             return result.data;
           }

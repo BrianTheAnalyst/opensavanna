@@ -1,122 +1,108 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import MapContainer from '../MapContainer';
+import React, { useEffect, useState } from 'react';
+import { MapContainer, TileLayer } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import { useLeafletIconFix } from '../useLeafletIconFix';
-import MapLegend from '../MapLegend';
-import MapControls from '../MapControls';
-import MapLoadingState from './MapLoadingState';
+import { getRandomTileLayer } from '../utils/tileLayerUtils';
+import { MapPoint } from '../types';
 import MapEmptyState from './MapEmptyState';
+import MapLoadingState from './MapLoadingState';
+import LayerControls from '../LayerControls';
+import MapControls from '../MapControls';
+import TimeControls from '../TimeControls';
+import VisualizationLayerRenderer from '../VisualizationLayerRenderer';
+import MapLegend from '../MapLegend';
 import { useMapData } from './useMapData';
-import { useColorScale } from './MapColorScale';
-import { MapVisualizationProps } from './types';
 
-const MapVisualization: React.FC<MapVisualizationProps> = ({
-  data,
-  title = "Geographic Data Visualization",
-  description = "Exploring spatial patterns and geographic distributions",
-  isLoading = false,
+interface MapVisualizationProps {
+  data?: any[];
+  geoJSON?: any;
+  category?: string;
+  isLoading?: boolean;
+}
+
+export const MapVisualization: React.FC<MapVisualizationProps> = ({
+  data = [],
   geoJSON,
-  category
+  category = 'General',
+  isLoading = false
 }) => {
+  useLeafletIconFix();
   const [visualizationType, setVisualizationType] = useState<'standard' | 'choropleth' | 'heatmap' | 'cluster'>('standard');
   const [currentTimeIndex, setCurrentTimeIndex] = useState(0);
+  const [showTimeControls, setShowTimeControls] = useState(false);
+  const [tileLayer, setTileLayer] = useState(getRandomTileLayer());
+  const { points, hasTimeSeriesData, timeLabels } = useMapData(data, geoJSON);
   
-  // Fix for Leaflet marker icons in production builds
-  useLeafletIconFix();
+  // Show time controls if time series data is detected
+  useEffect(() => {
+    setShowTimeControls(hasTimeSeriesData);
+  }, [hasTimeSeriesData]);
   
-  // Get map data from custom hook with optimizations
-  const { 
-    hasGeoData,
-    mapCenter,
-    mapZoom,
-    processedGeoJSON,
-    pointsData,
-    isSimplifying,
-    processingError,
-    progress
-  } = useMapData(data, geoJSON, isLoading);
+  // Reset time index when data changes
+  useEffect(() => {
+    setCurrentTimeIndex(0);
+  }, [data, geoJSON]);
   
-  // Get color scale from custom hook
-  const { colorScale, minValue, maxValue } = useColorScale(processedGeoJSON);
-
-  // Handle loading state
+  // Show loading state
   if (isLoading) {
-    return <MapLoadingState title={title} description={description} />;
+    return <MapLoadingState />;
   }
-
-  // Handle empty state
-  if (!hasGeoData && !isSimplifying) {
-    return <MapEmptyState title={title} description={description} />;
+  
+  // Show empty state if no data
+  if ((points.length === 0 && !geoJSON) || (!data || data.length === 0)) {
+    return <MapEmptyState />;
   }
-
+  
   return (
-    <Card className="w-full">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-xl">{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <MapControls 
-          visualizationType={visualizationType} 
-          onVisualizationTypeChange={setVisualizationType} 
+    <div className="relative w-full h-[500px] bg-slate-50 rounded-lg overflow-hidden">
+      <MapContainer
+        center={[10, 0]}
+        zoom={2}
+        className="h-full w-full z-0"
+        attributionControl={false}
+      >
+        <TileLayer
+          attribution={tileLayer.attribution}
+          url={tileLayer.url}
         />
         
-        {/* Show progress bar during GeoJSON processing */}
-        {isSimplifying && (
-          <div className="mb-4">
-            <div className="flex justify-between items-center mb-1">
-              <span className="text-sm text-muted-foreground">Optimizing geographic data...</span>
-              <span className="text-sm font-medium">{progress}%</span>
-            </div>
-            <Progress value={progress} className="h-2" />
-          </div>
-        )}
+        <VisualizationLayerRenderer
+          visualizationType={visualizationType}
+          geoJSON={geoJSON}
+          points={points as MapPoint[]}
+          category={category}
+          currentTimeIndex={currentTimeIndex}
+          isActive={true}
+        />
         
-        {/* Show error if processing failed */}
-        {processingError && (
-          <div className="mb-4 p-2 bg-destructive/10 text-destructive rounded-md text-sm">
-            Error processing geographic data: {processingError}
-          </div>
-        )}
-        
-        <div className="w-full h-[450px] rounded-md overflow-hidden border border-border relative">
-          <MapContainer
-            center={mapCenter}
-            zoom={mapZoom}
-            geoJSON={processedGeoJSON}
-            points={pointsData.validPoints}
-            visualizationType={visualizationType}
-            category={category}
-            currentTimeIndex={currentTimeIndex}
-          />
-          
-          {visualizationType === 'choropleth' && processedGeoJSON && (
-            <MapLegend
-              min={minValue}
-              max={maxValue}
-              colorScale={colorScale}
-              title={category || 'Data Distribution'}
-            />
-          )}
-          
-          {/* Add loading overlay for simplification progress */}
-          {isSimplifying && (
-            <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
-              <div className="bg-card p-4 rounded-lg shadow-lg max-w-sm">
-                <h3 className="font-medium mb-2">Optimizing Map Data</h3>
-                <p className="text-sm text-muted-foreground mb-2">
-                  Processing geographic information for better performance...
-                </p>
-                <Progress value={progress} className="h-2" />
-              </div>
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+        <LayerControls
+          onTileLayerChange={setTileLayer}
+        />
+      </MapContainer>
+      
+      {showTimeControls && (
+        <TimeControls
+          currentIndex={currentTimeIndex}
+          setCurrentIndex={setCurrentTimeIndex}
+          labels={timeLabels}
+        />
+      )}
+      
+      <MapControls
+        currentType={visualizationType}
+        setType={setVisualizationType}
+        hasGeoJSON={!!geoJSON}
+        hasPoints={points.length > 0}
+      />
+      
+      <MapLegend
+        visualizationType={visualizationType}
+        geoJSON={geoJSON}
+        category={category}
+      />
+    </div>
   );
 };
-
-export default MapVisualization;
