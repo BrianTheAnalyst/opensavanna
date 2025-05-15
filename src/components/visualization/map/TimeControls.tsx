@@ -5,29 +5,23 @@ import { Slider } from '@/components/ui/slider';
 import { Play, Pause, SkipBack, SkipForward } from 'lucide-react';
 
 interface TimeControlsProps {
-  timeData?: {
-    labels: string[];
-    min: number;
-    max: number;
-  };
-  onTimeChange: (timeIndex: number) => void;
+  currentIndex: number;
+  setCurrentIndex: (timeIndex: number) => void;
+  labels: string[];
 }
 
-const TimeControls: React.FC<TimeControlsProps> = ({ timeData, onTimeChange }) => {
-  const [currentTimeIndex, setCurrentTimeIndex] = useState(0);
+const TimeControls: React.FC<TimeControlsProps> = ({ currentIndex, setCurrentIndex, labels }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [playInterval, setPlayInterval] = useState<number | null>(null);
 
   // If no time data is available, don't render the component
-  if (!timeData || timeData.labels.length <= 1) return null;
+  if (!labels || labels.length <= 1) return null;
 
-  const timeLabels = timeData.labels;
-  const totalTimeSteps = timeLabels.length - 1;
+  const totalTimeSteps = labels.length - 1;
   
   const handleTimeChange = (values: number[]) => {
     const newIndex = Math.round(values[0]);
-    setCurrentTimeIndex(newIndex);
-    onTimeChange(newIndex);
+    setCurrentIndex(newIndex);
   };
 
   const handlePlayPause = () => {
@@ -41,9 +35,8 @@ const TimeControls: React.FC<TimeControlsProps> = ({ timeData, onTimeChange }) =
     } else {
       // Start playing
       const interval = window.setInterval(() => {
-        setCurrentTimeIndex(prev => {
+        setCurrentIndex(prev => {
           const nextIndex = prev < totalTimeSteps ? prev + 1 : 0;
-          onTimeChange(nextIndex);
           return nextIndex;
         });
       }, 1500);
@@ -53,15 +46,13 @@ const TimeControls: React.FC<TimeControlsProps> = ({ timeData, onTimeChange }) =
   };
 
   const handleStepBack = () => {
-    const newIndex = currentTimeIndex > 0 ? currentTimeIndex - 1 : totalTimeSteps;
-    setCurrentTimeIndex(newIndex);
-    onTimeChange(newIndex);
+    const newIndex = currentIndex > 0 ? currentIndex - 1 : totalTimeSteps;
+    setCurrentIndex(newIndex);
   };
 
   const handleStepForward = () => {
-    const newIndex = currentTimeIndex < totalTimeSteps ? currentTimeIndex + 1 : 0;
-    setCurrentTimeIndex(newIndex);
-    onTimeChange(newIndex);
+    const newIndex = currentIndex < totalTimeSteps ? currentIndex + 1 : 0;
+    setCurrentIndex(newIndex);
   };
 
   // Clean up interval when component unmounts
@@ -77,7 +68,7 @@ const TimeControls: React.FC<TimeControlsProps> = ({ timeData, onTimeChange }) =
     <div className="flex flex-col gap-2 w-full">
       <div className="flex items-center justify-between">
         <span className="text-sm text-muted-foreground">Time period:</span>
-        <span className="text-sm font-medium">{timeLabels[currentTimeIndex]}</span>
+        <span className="text-sm font-medium">{labels[currentIndex]}</span>
       </div>
       <div className="grid grid-cols-[auto_1fr_auto] gap-2 items-center">
         <div className="flex gap-1">
@@ -115,12 +106,12 @@ const TimeControls: React.FC<TimeControlsProps> = ({ timeData, onTimeChange }) =
             min={0}
             max={totalTimeSteps}
             step={1}
-            value={[currentTimeIndex]}
+            value={[currentIndex]}
             onValueChange={handleTimeChange}
           />
         </div>
         <div className="text-xs text-muted-foreground whitespace-nowrap">
-          {timeLabels[0]} - {timeLabels[totalTimeSteps]}
+          {labels[0]} - {labels[totalTimeSteps]}
         </div>
       </div>
     </div>

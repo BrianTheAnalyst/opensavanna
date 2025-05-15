@@ -15,19 +15,15 @@ import TimeControls from '../TimeControls';
 import VisualizationLayerRenderer from '../VisualizationLayerRenderer';
 import MapLegend from '../MapLegend';
 import { useMapData } from './useMapData';
-
-interface MapVisualizationProps {
-  data?: any[];
-  geoJSON?: any;
-  category?: string;
-  isLoading?: boolean;
-}
+import { MapVisualizationProps } from './types';
 
 export const MapVisualization: React.FC<MapVisualizationProps> = ({
   data = [],
   geoJSON,
   category = 'General',
-  isLoading = false
+  isLoading = false,
+  title,
+  description
 }) => {
   useLeafletIconFix();
   const [visualizationType, setVisualizationType] = useState<'standard' | 'choropleth' | 'heatmap' | 'cluster'>('standard');
@@ -51,16 +47,16 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
   // Show loading state
   if (isLoading) {
     return <MapLoadingState 
-      title="Loading Map Data" 
-      description="Please wait while we prepare your visualization..." 
+      title={title || "Loading Map Data"} 
+      description={description || "Please wait while we prepare your visualization..."} 
     />;
   }
   
   // Show empty state if no data
   if ((points.length === 0 && !geoJSON) || (!data || data.length === 0)) {
     return <MapEmptyState 
-      title="No Map Data Available" 
-      description="There is no geographic data available for this dataset." 
+      title={title || "No Map Data Available"} 
+      description={description || "There is no geographic data available for this dataset."} 
     />;
   }
   
@@ -73,7 +69,6 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
         attributionControl={false}
       >
         <TileLayer
-          attribution={tileLayer.attribution}
           url={tileLayer.url}
         />
         

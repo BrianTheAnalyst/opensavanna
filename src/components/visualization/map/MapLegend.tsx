@@ -1,14 +1,64 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { colorRanges } from './utils/colorUtils';
 
 interface MapLegendProps {
-  min: number;
-  max: number;
-  colorScale: string[];
-  title: string;
+  visualizationType: 'standard' | 'choropleth' | 'heatmap' | 'cluster';
+  geoJSON?: any;
+  category?: string;
 }
 
-const MapLegend: React.FC<MapLegendProps> = ({ min, max, colorScale, title }) => {
+const MapLegend: React.FC<MapLegendProps> = ({ visualizationType, geoJSON, category = 'Default' }) => {
+  const [legendData, setLegendData] = useState({
+    min: 0,
+    max: 100,
+    colorScale: colorRanges.sequential,
+    title: category || 'Data Values'
+  });
+
+  useEffect(() => {
+    if (!geoJSON || visualizationType !== 'choropleth') {
+      // Default legend for non-choropleth visualizations
+      setLegendData({
+        min: 0,
+        max: 100,
+        colorScale: visualizationType === 'heatmap' 
+          ? colorRanges.heatmap 
+          : colorRanges.sequential,
+        title: visualizationType === 'heatmap' 
+          ? 'Density' 
+          : category || 'Data Values'
+      });
+      return;
+    }
+    
+    // Extract min/max values from GeoJSON for choropleth maps
+    try {
+      const metadata = geoJSON.metadata || {};
+      const numericFields = metadata.numericFields || {};
+      const valueField = numericFields.value || {};
+      
+      setLegendData({
+        min: valueField.min || 0,
+        max: valueField.max || 100,
+        colorScale: colorRanges.sequential,
+        title: metadata.category || category || 'Data Values'
+      });
+    } catch (error) {
+      console.error('Error extracting legend data from GeoJSON:', error);
+    }
+  }, [visualizationType, geoJSON, category]);
+
+  // Don't display legend for standard maps unless they have GeoJSON
+  if (visualizationType === 'standard' && !geoJSON) {
+    return null;
+  }
+  
+  // Don't display legend for cluster maps
+  if (visualizationType === 'cluster') {
+    return null;
+  }
+
   // Format numbers for better readability
   const formatNumber = (value: number): string => {
     if (Math.abs(value) >= 1000000) {
@@ -23,11 +73,11 @@ const MapLegend: React.FC<MapLegendProps> = ({ min, max, colorScale, title }) =>
   // Generate intermediate labels
   const generateLabels = () => {
     const labels = [];
-    const range = max - min;
-    const steps = colorScale.length - 1;
+    const range = legendData.max - legendData.min;
+    const steps = legendData.colorScale.length - 1;
     
     for (let i = 0; i <= steps; i++) {
-      const value = min + (range * i) / steps;
+      const value = legendData.min + (range * i) / steps;
       labels.push(formatNumber(value));
     }
     
@@ -38,13 +88,13 @@ const MapLegend: React.FC<MapLegendProps> = ({ min, max, colorScale, title }) =>
 
   return (
     <div className="absolute bottom-6 right-6 bg-white/90 dark:bg-gray-800/90 p-3 rounded-md shadow-md z-[1000]">
-      <div className="text-xs font-medium mb-1">{title}</div>
+      <div className="text-xs font-medium mb-1">{legendData.title}</div>
       <div className="flex flex-col">
         <div className="flex items-center">
           <div 
             className="h-5 flex-1"
             style={{
-              background: `linear-gradient(to right, ${colorScale.join(', ')})`,
+              background: `linear-gradient(to right, ${legendData.colorScale.join(', ')})`,
             }}
           />
         </div>

@@ -95,11 +95,11 @@ const VisualizationTabs: React.FC<VisualizationTabsProps> = ({
         <TabsContent value="map" className="space-y-8">
           <MapVisualization
             data={visualizationData}
-            title={`${dataset.title} - Geographic Visualization`}
-            description="Spatial representation of geographic data"
             isLoading={isLoading}
             category={dataset.category}
             geoJSON={geoJSON}
+            title={`${dataset.title} - Geographic Visualization`}
+            description="Spatial representation of geographic data"
           />
         </TabsContent>
       )}

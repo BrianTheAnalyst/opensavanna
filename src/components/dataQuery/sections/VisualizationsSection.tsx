@@ -31,8 +31,6 @@ const VisualizationsSection: React.FC<VisualizationsSectionProps> = ({ result })
                 <div className="h-[400px]">
                   <MapVisualization
                     data={viz.data || []}
-                    title={viz.title}
-                    description="Geographic data representation"
                     isLoading={false}
                     category={viz.category || ""}
                     geoJSON={geoJSON}

@@ -4,18 +4,13 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Layers, Landmark, Building, Mountain } from 'lucide-react';
+import { TileLayerConfig } from './types';
 
 interface LayerControlsProps {
-  layers: {
-    id: string;
-    label: string;
-    enabled: boolean;
-    icon?: React.ElementType;
-  }[];
-  onLayerToggle: (layerId: string, enabled: boolean) => void;
+  onTileLayerChange: (layer: TileLayerConfig) => void;
 }
 
-const LayerControls: React.FC<LayerControlsProps> = ({ layers, onLayerToggle }) => {
+const LayerControls: React.FC<LayerControlsProps> = ({ onTileLayerChange }) => {
   // Default icons for common layer types
   const getDefaultIcon = (id: string) => {
     switch (id) {
@@ -29,6 +24,38 @@ const LayerControls: React.FC<LayerControlsProps> = ({ layers, onLayerToggle }) 
         return Layers; // Changed from Road to Layers as per available icons
       default:
         return Layers; // Changed from MapLayers to Layers
+    }
+  };
+  
+  // Default layers configuration
+  const defaultLayers = [
+    { id: 'base', label: 'Base Map', enabled: true, icon: Layers },
+    { id: 'points', label: 'Points', enabled: true, icon: Landmark },
+    { id: 'buildings', label: 'Buildings', enabled: false, icon: Building },
+    { id: 'terrain', label: 'Terrain', enabled: false, icon: Mountain },
+  ];
+
+  const [layers, setLayers] = React.useState(defaultLayers);
+  
+  const handleLayerToggle = (layerId: string, enabled: boolean) => {
+    // Update local state
+    setLayers(layers.map(layer => 
+      layer.id === layerId ? { ...layer, enabled } : layer
+    ));
+    
+    // For this example, we'll just pass a simple layer config based on selection
+    if (layerId === 'base' && enabled) {
+      onTileLayerChange({
+        url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        attributionControl: true,
+        attribution: "© OpenStreetMap contributors"
+      });
+    } else if (layerId === 'terrain' && enabled) {
+      onTileLayerChange({
+        url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+        attributionControl: true,
+        attribution: "© OpenStreetMap contributors, © CARTO"
+      });
     }
   };
   
@@ -53,7 +80,7 @@ const LayerControls: React.FC<LayerControlsProps> = ({ layers, onLayerToggle }) 
               <Switch
                 id={`layer-${layer.id}`}
                 checked={layer.enabled}
-                onCheckedChange={(checked) => onLayerToggle(layer.id, checked)}
+                onCheckedChange={(checked) => handleLayerToggle(layer.id, checked)}
               />
             </div>
           );

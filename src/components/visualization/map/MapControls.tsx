@@ -5,13 +5,17 @@ import { Map, PieChart, Activity, Layers } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface MapControlsProps {
-  visualizationType: 'standard' | 'choropleth' | 'heatmap' | 'cluster';
-  onVisualizationTypeChange: (type: 'standard' | 'choropleth' | 'heatmap' | 'cluster') => void;
+  currentType: 'standard' | 'choropleth' | 'heatmap' | 'cluster';
+  setType: (type: 'standard' | 'choropleth' | 'heatmap' | 'cluster') => void;
+  hasGeoJSON: boolean;
+  hasPoints: boolean;
 }
 
 const MapControls: React.FC<MapControlsProps> = ({ 
-  visualizationType, 
-  onVisualizationTypeChange 
+  currentType, 
+  setType,
+  hasGeoJSON,
+  hasPoints
 }) => {
   // Configuration for map visualization types
   const visualizationTypes = [
@@ -48,7 +52,11 @@ const MapControls: React.FC<MapControlsProps> = ({
         <div className="flex flex-wrap gap-2">
           {visualizationTypes.map((type) => {
             const Icon = type.icon;
-            const isActive = visualizationType === type.id;
+            const isActive = currentType === type.id;
+            
+            // Disable choropleth if no GeoJSON data
+            const isDisabled = (type.id === 'choropleth' && !hasGeoJSON) || 
+                               ((type.id === 'heatmap' || type.id === 'cluster') && !hasPoints);
             
             return (
               <Tooltip key={type.id}>
@@ -56,15 +64,18 @@ const MapControls: React.FC<MapControlsProps> = ({
                   <Button 
                     size="sm" 
                     variant={isActive ? 'default' : 'outline'} 
-                    onClick={() => onVisualizationTypeChange(type.id)}
+                    onClick={() => setType(type.id)}
                     className={`transition-all ${isActive ? 'shadow-sm' : ''}`}
+                    disabled={isDisabled}
                   >
                     <Icon className="h-4 w-4 mr-1" />
                     {type.label}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom">
-                  <p>{type.description}</p>
+                  <p>{isDisabled 
+                    ? `${type.description} (requires ${type.id === 'choropleth' ? 'GeoJSON data' : 'point data'})` 
+                    : type.description}</p>
                 </TooltipContent>
               </Tooltip>
             );

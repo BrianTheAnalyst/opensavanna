@@ -10,25 +10,29 @@ export const getTileLayer = (visualizationType: string): TileLayerConfig => {
       // For choropleth, use a minimal light background
       return {
         url: "https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png",
-        attributionControl: true
+        attributionControl: true,
+        attribution: "© OpenStreetMap contributors, © CARTO"
       };
     case 'heatmap':
       // For heatmap, use a dark background
       return {
         url: "https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png",
-        attributionControl: true
+        attributionControl: true,
+        attribution: "© OpenStreetMap contributors, © CARTO"
       };
     case 'cluster':
       // For cluster view, use a light detailed background
       return {
         url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-        attributionControl: true
+        attributionControl: true,
+        attribution: "© OpenStreetMap contributors, © CARTO"
       };
     default:
       // For standard, use the default OSM tiles
       return {
         url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-        attributionControl: true
+        attributionControl: true,
+        attribution: "© OpenStreetMap contributors"
       };
   }
 };

@@ -6,6 +6,8 @@ export interface MapVisualizationProps {
   geoJSON?: any;
   category?: string;
   isLoading?: boolean;
+  title?: string;
+  description?: string;
 }
 
 export interface GeoDataInfo {
