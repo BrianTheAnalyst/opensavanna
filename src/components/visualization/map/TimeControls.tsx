@@ -35,7 +35,10 @@ const TimeControls: React.FC<TimeControlsProps> = ({ currentIndex, setCurrentInd
     } else {
       // Start playing
       const interval = window.setInterval(() => {
-        setCurrentIndex((prev) => prev < totalTimeSteps ? prev + 1 : 0);
+        // Instead of using a callback function that TypeScript doesn't like,
+        // get the current index and calculate the next one directly
+        const nextIndex = currentIndex < totalTimeSteps ? currentIndex + 1 : 0;
+        setCurrentIndex(nextIndex);
       }, 1500);
       setPlayInterval(interval as unknown as number);
       setIsPlaying(true);
