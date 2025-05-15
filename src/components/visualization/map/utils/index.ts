@@ -6,3 +6,4 @@ export * from './dataUtils';
 export * from './formatUtils';
 export * from './geometryUtils';
 export * from './timeSeriesUtils';
+export * from './interactionUtils';
