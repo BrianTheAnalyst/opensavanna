@@ -62,8 +62,8 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
   return (
     <div className="relative w-full h-[500px] bg-slate-50 rounded-lg overflow-hidden">
       <MapContainerComponent
-        center={mapData.mapCenter}
-        zoom={mapData.mapZoom}
+        defaultCenter={mapData.mapCenter}
+        defaultZoom={mapData.mapZoom}
         geoJSON={geoJSON}
         points={points as MapPoint[]}
         visualizationType={visualizationType}

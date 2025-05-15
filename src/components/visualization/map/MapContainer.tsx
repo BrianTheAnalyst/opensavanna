@@ -7,8 +7,8 @@ import { getTileLayer } from './utils/tileLayerUtils';
 
 // Renamed component to avoid confusion with React-Leaflet's MapContainer
 const MapContainerComponent: React.FC<MapContainerProps> = ({
-  center,
-  zoom,
+  defaultCenter,
+  defaultZoom,
   geoJSON,
   points = [],
   visualizationType = 'standard',
@@ -30,8 +30,8 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
   return (
     <div style={{ height: '100%', width: '100%', borderRadius: '0.375rem' }}>
       <LeafletMapContainer
-        center={center}
-        zoom={zoom}
+        center={defaultCenter}
+        zoom={defaultZoom}
         style={{ height: '100%', width: '100%' }}
         zoomControl={false}
       >

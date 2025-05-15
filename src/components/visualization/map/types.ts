@@ -10,8 +10,9 @@ export interface MapPoint {
 }
 
 export interface MapContainerProps {
-  center: LatLngExpression;
-  zoom: number;
+  // Renamed props to avoid conflict with react-leaflet's props
+  defaultCenter: LatLngExpression;
+  defaultZoom: number;
   geoJSON?: any;
   points?: MapPoint[];
   visualizationType?: 'standard' | 'choropleth' | 'heatmap' | 'cluster';
