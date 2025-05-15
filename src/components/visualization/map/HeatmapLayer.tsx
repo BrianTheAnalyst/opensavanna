@@ -1,75 +1,80 @@
 
-import React, { useEffect } from 'react';
-import L from 'leaflet';
+import React, { useEffect, useState } from 'react';
 import { useMap } from 'react-leaflet';
+import L from 'leaflet';
 import 'leaflet.heat';
-
-declare module 'leaflet' {
-  namespace HeatLayer {
-    interface HeatLayerOptions {
-      radius?: number;
-      blur?: number;
-      maxZoom?: number;
-      max?: number;
-      gradient?: Record<string, string>;
-    }
+// Fix TypeScript error by using declaration merging
+// instead of module augmentation (which was causing the error)
+declare global {
+  interface HeatMapOptions {
+    minOpacity?: number;
+    maxZoom?: number;
+    max?: number;
+    radius?: number;
+    blur?: number;
+    gradient?: Record<number, string>;
   }
-
-  function heatLayer(
-    latlngs: Array<[number, number] | [number, number, number]>,
-    options?: HeatLayer.HeatLayerOptions
-  ): L.Layer;
 }
 
 interface HeatmapLayerProps {
-  points: {
+  points: Array<{
     lat: number;
     lng: number;
-    name?: string;
     value?: number;
-  }[];
+    weight?: number;
+  }>;
+  radius?: number;
+  blur?: number;
+  max?: number;
+  gradient?: Record<number, string>;
 }
 
-const HeatmapLayer: React.FC<HeatmapLayerProps> = ({ points }) => {
+const HeatmapLayer: React.FC<HeatmapLayerProps> = ({
+  points,
+  radius = 25,
+  blur = 15,
+  max = 1.0,
+  gradient = { 0.4: 'blue', 0.6: 'cyan', 0.7: 'lime', 0.8: 'yellow', 1.0: 'red' }
+}) => {
   const map = useMap();
+  const [heatLayer, setHeatLayer] = useState<any>(null);
   
   useEffect(() => {
-    // Check if points exist and the heat plugin is available
-    if (!points || points.length === 0) return;
-    if (!L.heatLayer) {
-      console.error("Leaflet heat plugin is not available");
-      return;
+    // Remove existing layer if there is one
+    if (heatLayer) {
+      map.removeLayer(heatLayer);
     }
     
-    // Convert points to format expected by heatLayer
-    const heatPoints = points.map(point => {
-      // Calculate intensity - normalize to 0-1 range if possible
-      let intensity = 1;
-      if (point.value !== undefined) {
-        // Find max value to normalize
-        const maxVal = Math.max(...points.filter(p => p.value !== undefined).map(p => p.value!));
-        intensity = maxVal > 0 ? point.value! / maxVal : 0.5;
-      }
+    if (points && points.length > 0) {
+      // Format points for heatmap
+      const heatPoints = points.map(p => {
+        const intensity = p.value !== undefined ? p.value : (p.weight !== undefined ? p.weight : 1);
+        return [p.lat, p.lng, intensity];
+      });
       
-      return [point.lat, point.lng, intensity] as [number, number, number];
-    });
+      // Create the heat layer
+      // @ts-ignore - TypeScript doesn't recognize the L.heatLayer function
+      const layer = (L as any).heatLayer(heatPoints, {
+        radius,
+        blur,
+        max,
+        gradient
+      });
+      
+      // Add to map
+      layer.addTo(map);
+      setHeatLayer(layer);
+    }
     
-    // Create and add heat layer with custom styling
-    const heatLayer = L.heatLayer(heatPoints, {
-      radius: 25,
-      blur: 15,
-      maxZoom: 17,
-      max: 1.0,
-      gradient: { 0.4: 'blue', 0.65: 'lime', 1: 'red' }
-    }).addTo(map);
-    
-    // Cleanup
+    // Cleanup on unmount
     return () => {
-      map.removeLayer(heatLayer);
+      if (heatLayer) {
+        map.removeLayer(heatLayer);
+      }
     };
-  }, [map, points]);
+  }, [map, points, radius, blur, max, gradient]);
   
-  return null;
+  return null; // This component doesn't render anything visible
 };
 
 export default HeatmapLayer;
