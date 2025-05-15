@@ -29,7 +29,9 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
 
   return (
     <div style={{ height: '100%', width: '100%', borderRadius: '0.375rem' }}>
+      {/* The key issue was here - using the spread syntax to pass all required props */}
       <LeafletMapContainer
+        key="map-container"
         center={center}
         zoom={zoom}
         style={{ height: '100%', width: '100%' }}

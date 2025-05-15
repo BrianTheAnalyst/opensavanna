@@ -57,5 +57,4 @@ export const shouldHighlightFeature = (feature: any, highlightedProperty?: strin
   return feature.properties[highlightedProperty] === highlightedValue;
 };
 
-// Export the functions
-export { onEachFeature, shouldHighlightFeature };
+// Removed duplicate exports at the end to fix the TypeScript errors

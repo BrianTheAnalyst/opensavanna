@@ -6,13 +6,10 @@ export * from './dataUtils';
 export * from './geometryUtils';
 export * from './timeSeriesUtils';
 
-// Export format utils but rename the onEachFeature function to avoid naming conflict
-import { onEachFeature as formatOnEachFeature } from './formatUtils';
-export { formatOnEachFeature };
+// Export format utils
+export * from './formatUtils';
 
 // Export interaction utils
-import { onEachFeature as interactionOnEachFeature } from './interactionUtils';
-export { interactionOnEachFeature };
 export * from './interactionUtils';
 
 // Export tile layer utils
