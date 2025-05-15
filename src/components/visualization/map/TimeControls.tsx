@@ -1,110 +1,102 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
+import { ChevronLeft, ChevronRight, Play, Pause } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
-import { Play, Pause, SkipForward, SkipBack } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 interface TimeControlsProps {
   currentIndex: number;
   setCurrentIndex: (index: number) => void;
-  labels: string[];
+  labels?: string[];
+  interval?: number;
 }
 
-const TimeControls: React.FC<TimeControlsProps> = ({ 
-  currentIndex, 
+const TimeControls: React.FC<TimeControlsProps> = ({
+  currentIndex,
   setCurrentIndex,
-  labels = [] 
+  labels = [],
+  interval = 1500
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [playInterval, setPlayInterval] = useState<number | null>(null);
+  const max = Math.max(labels.length - 1, 0);
   
-  // Total number of time steps (accounting for 0-indexing)
-  const totalTimeSteps = labels.length - 1;
-  
-  // Get the current time label or default value
-  const currentTimeLabel = labels[currentIndex] || 'N/A';
-  
-  // Effect to handle cleanup of interval when component unmounts
+  // Auto-play functionality
   useEffect(() => {
-    return () => {
-      if (playInterval) {
-        clearInterval(playInterval);
-      }
-    };
-  }, [playInterval]);
+    if (!isPlaying) return;
+    
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => {
+        if (prev >= max) {
+          setIsPlaying(false);
+          return prev;
+        }
+        return prev + 1;
+      });
+    }, interval);
+    
+    return () => clearInterval(timer);
+  }, [isPlaying, max, interval, setCurrentIndex]);
   
-  // Toggle play/pause
-  const togglePlay = () => {
-    if (isPlaying) {
-      // Stop playing
-      if (playInterval) clearInterval(playInterval);
-      setPlayInterval(null);
-      setIsPlaying(false);
-    } else {
-      // Start playing
-      const interval = window.setInterval(() => {
-        // Instead of using a callback function that TypeScript doesn't like,
-        // get the current index and calculate the next one directly
-        const nextIndex = currentIndex < totalTimeSteps ? currentIndex + 1 : 0;
-        setCurrentIndex(nextIndex);
-      }, 1500);
-      setPlayInterval(interval as unknown as number);
-      setIsPlaying(true);
-    }
+  const handlePrevious = () => {
+    setCurrentIndex(Math.max(0, currentIndex - 1));
   };
   
-  // Handle stepping forward
-  const stepForward = () => {
-    const nextIndex = currentIndex < totalTimeSteps ? currentIndex + 1 : 0;
-    setCurrentIndex(nextIndex);
+  const handleNext = () => {
+    setCurrentIndex(Math.min(max, currentIndex + 1));
   };
   
-  // Handle stepping backward
-  const stepBackward = () => {
-    const prevIndex = currentIndex > 0 ? currentIndex - 1 : totalTimeSteps;
-    setCurrentIndex(prevIndex);
-  };
-  
-  // Handle slider change
   const handleSliderChange = (value: number[]) => {
     setCurrentIndex(value[0]);
   };
   
+  const togglePlayPause = () => {
+    setIsPlaying(!isPlaying);
+  };
+  
   return (
-    <div className="flex flex-col space-y-2">
+    <div className="flex flex-col space-y-2 w-full px-2">
       <div className="flex items-center justify-between">
-        <div className="text-sm font-medium">
-          Time: {currentTimeLabel}
+        <div className="text-xs font-medium">
+          {labels[currentIndex] || `Time period ${currentIndex + 1}`}
         </div>
-        <div className="flex items-center space-x-2">
+        
+        <div className="flex items-center space-x-1">
           <Button 
+            variant="outline" 
             size="icon" 
-            variant="ghost"
-            onClick={stepBackward}
+            className="h-6 w-6" 
+            onClick={handlePrevious}
+            disabled={currentIndex <= 0}
           >
-            <SkipBack className="h-4 w-4" />
+            <ChevronLeft className="h-4 w-4" />
           </Button>
+          
           <Button 
+            variant="outline" 
             size="icon" 
-            variant="ghost"
-            onClick={togglePlay}
+            className="h-6 w-6" 
+            onClick={togglePlayPause}
           >
-            {isPlaying ? 
-              <Pause className="h-4 w-4" /> : 
-              <Play className="h-4 w-4" />}
+            {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
           </Button>
+          
           <Button 
+            variant="outline" 
             size="icon" 
-            variant="ghost"
-            onClick={stepForward}
+            className="h-6 w-6" 
+            onClick={handleNext}
+            disabled={currentIndex >= max}
           >
-            <SkipForward className="h-4 w-4" />
+            <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
       </div>
+      
       <Slider
         value={[currentIndex]}
-        max={totalTimeSteps}
+        min={0}
+        max={max}
         step={1}
         onValueChange={handleSliderChange}
       />
