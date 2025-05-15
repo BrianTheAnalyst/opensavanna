@@ -26,7 +26,7 @@ const TimeControls: React.FC<TimeControlsProps> = ({
     if (!isPlaying) return;
     
     const timer = setInterval(() => {
-      setCurrentIndex((prev) => {
+      setCurrentIndex((prev: number) => {
         if (prev >= max) {
           setIsPlaying(false);
           return prev;
