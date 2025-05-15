@@ -5,7 +5,7 @@ import LoadingVisualization from '@/components/visualization/LoadingVisualizatio
 import NoVisualizationData from '@/components/visualization/NoVisualizationData';
 import VisualizationContainer from '@/components/visualization/VisualizationContainer';
 import VisualizationAbout from '@/components/visualization/VisualizationAbout';
-import { useDatasetVisualization } from '@/hooks/useDatasetVisualization';
+import { useDatasetVisualization } from '@/hooks/useDatasetVisualization'; // This import will now use the re-export
 import { useDatasetDetail } from '@/hooks/useDatasetDetail';
 import DatasetAnalyticsSection from '@/components/dataset/DatasetAnalyticsSection';
 import { useEffect } from 'react';

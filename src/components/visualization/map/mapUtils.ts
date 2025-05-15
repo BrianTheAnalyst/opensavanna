@@ -2,6 +2,8 @@
 // Re-export all map utilities from the utils directory
 export { calculateBounds } from './utils/geometryUtils';
 export { extractTimeSeriesData } from './utils/timeSeriesUtils';
+export { styleFeature, getStyleForFeature } from './utils/styleUtils';
+export { onEachFeature } from './utils/interactionUtils';
 
 // Find geographic points in data
 export const findGeoPoints = (data: any[]) => {

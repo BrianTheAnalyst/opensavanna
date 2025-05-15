@@ -1,38 +1,40 @@
 
-import { PathOptions } from 'leaflet';
-import { getColorScaleForCategory } from './colorUtils';
-import { findValueInProperties } from './dataUtils';
-
-// Style function for GeoJSON
-export const styleFeature = (feature: any, visualizationType: string = 'standard', category?: string): PathOptions => {
-  // Default colors for standard maps
-  const baseStyle: PathOptions = {
+// Re-export the function with a better name for clarity
+export const styleFeature = (feature: any, visualizationType: string = 'standard', category?: string) => {
+  const baseStyle = {
     weight: 1,
     opacity: 0.8,
-    color: '#6366F1',
-    fillOpacity: 0.5,
-    fillColor: '#818CF8'
+    color: '#555',
+    fillOpacity: 0.6,
+    fillColor: '#6366f1' // Default indigo color
   };
-
-  // If not using choropleth, return the standard style
-  if (visualizationType !== 'choropleth') {
-    return baseStyle;
-  }
   
-  // For choropleth maps, determine color based on value
-  if (feature.properties) {
-    const value = findValueInProperties(feature.properties);
-    if (value !== null) {
-      const colorScale = getColorScaleForCategory(category);
-      const normalizedValue = getNormalizedValue(value, feature, colorScale.length);
-      
+  if (visualizationType === 'choropleth' && feature && feature.properties) {
+    // Find a numeric value for choropleth coloring
+    const value = feature.properties.value || 
+                feature.properties.data || 
+                feature.properties.electricity ||
+                feature.properties.consumption ||
+                0;
+    
+    // Get color based on value
+    // We could implement a more sophisticated color scale based on min/max values
+    const intensity = Math.min(Math.max((value / 100) * 255, 0), 255);
+    
+    if (category?.toLowerCase().includes('health')) {
       return {
         ...baseStyle,
-        weight: 1,
-        color: '#fff',
-        opacity: 0.5,
-        fillColor: colorScale[normalizedValue],
-        fillOpacity: 0.8
+        fillColor: `rgb(${255-intensity}, ${intensity}, 100)`
+      };
+    } else if (category?.toLowerCase().includes('education')) {
+      return {
+        ...baseStyle,
+        fillColor: `rgb(100, ${intensity}, ${255-intensity})`
+      };
+    } else {
+      return {
+        ...baseStyle,
+        fillColor: `rgb(${255-intensity}, ${Math.round(intensity*0.7)}, ${intensity})`
       };
     }
   }
@@ -40,32 +42,4 @@ export const styleFeature = (feature: any, visualizationType: string = 'standard
   return baseStyle;
 };
 
-// Get normalized value index for color scale
-const getNormalizedValue = (value: number, feature: any, numColors: number): number => {
-  // Try to find min/max values in the feature collection if available
-  const collection = feature?.parent;
-  
-  if (collection && collection.features && collection.features.length > 0) {
-    const values = collection.features
-      .map((f: any) => findValueInProperties(f.properties))
-      .filter((v: number | null) => v !== null) as number[];
-    
-    if (values.length > 0) {
-      const min = Math.min(...values);
-      const max = Math.max(...values);
-      if (min !== max) {
-        const normalized = Math.floor(((value - min) / (max - min)) * (numColors - 1));
-        return Math.max(0, Math.min(normalized, numColors - 1));
-      }
-    }
-  }
-  
-  // Fallback to simple value-based bucketing
-  // Scale value to a number between 0 and numColors-1
-  if (value > 1000) return numColors - 1;
-  if (value > 500) return Math.floor(numColors * 0.8);
-  if (value > 100) return Math.floor(numColors * 0.6);
-  if (value > 50) return Math.floor(numColors * 0.4);
-  if (value > 10) return Math.floor(numColors * 0.2);
-  return 0;
-};
+export { styleFeature as getStyleForFeature }; // Also export with old name for backward compatibility
