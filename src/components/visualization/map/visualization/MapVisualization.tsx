@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { MapContainer, TileLayer } from 'react-leaflet';
+import { TileLayer } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
@@ -16,6 +16,7 @@ import VisualizationLayerRenderer from '../VisualizationLayerRenderer';
 import MapLegend from '../MapLegend';
 import { useMapData } from './useMapData';
 import { MapVisualizationProps } from './types';
+import MapContainer from '../MapContainer';
 
 export const MapVisualization: React.FC<MapVisualizationProps> = ({
   data = [],
@@ -65,41 +66,37 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
       <MapContainer
         center={mapData.mapCenter}
         zoom={mapData.mapZoom}
-        className="h-full w-full z-0"
-        attributionControl={false}
-      >
-        <TileLayer
-          url={tileLayer.url}
-        />
-        
-        <VisualizationLayerRenderer
-          visualizationType={visualizationType}
-          geoJSON={geoJSON}
-          points={points as MapPoint[]}
-          category={category}
-          currentTimeIndex={currentTimeIndex}
-          isActive={true}
-        />
-        
+        geoJSON={geoJSON}
+        points={points as MapPoint[]}
+        visualizationType={visualizationType}
+        category={category}
+        currentTimeIndex={currentTimeIndex}
+      />
+      
+      <div className="absolute bottom-3 left-3 right-3 z-10 bg-white/80 dark:bg-gray-800/80 p-2 rounded-md">
+        {showTimeControls && (
+          <TimeControls
+            currentIndex={currentTimeIndex}
+            setCurrentIndex={setCurrentTimeIndex}
+            labels={mapData.timeLabels}
+          />
+        )}
+      </div>
+      
+      <div className="absolute top-3 right-3 z-10">
         <LayerControls
           onTileLayerChange={setTileLayer}
         />
-      </MapContainer>
+      </div>
       
-      {showTimeControls && (
-        <TimeControls
-          currentIndex={currentTimeIndex}
-          setCurrentIndex={setCurrentTimeIndex}
-          labels={mapData.timeLabels}
+      <div className="absolute top-3 left-3 z-10">
+        <MapControls
+          currentType={visualizationType}
+          setType={setVisualizationType}
+          hasGeoJSON={!!geoJSON}
+          hasPoints={points.length > 0}
         />
-      )}
-      
-      <MapControls
-        currentType={visualizationType}
-        setType={setVisualizationType}
-        hasGeoJSON={!!geoJSON}
-        hasPoints={points.length > 0}
-      />
+      </div>
       
       <MapLegend
         visualizationType={visualizationType}

@@ -27,32 +27,34 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
   const isDataLayerActive = activeLayers.includes('data');
 
   return (
-    <LeafletMapContainer
-      center={center}
-      zoom={zoom}
-      style={{ height: '100%', width: '100%', borderRadius: '0.375rem' }}
-      zoomControl={false}
-      attributionControl={true}
-    >
-      {activeLayers.includes('base') && <TileLayer url={tileLayerProps.url} />}
-      <ZoomControl position="topright" />
-      
-      <VisualizationLayerRenderer 
-        visualizationType={visualizationType}
-        geoJSON={geoJSON}
-        points={filteredPoints}
-        category={category}
-        currentTimeIndex={currentTimeIndex}
-        isActive={isDataLayerActive}
-      />
-      
-      {/* Optional Layer Controls using Leaflet's built-in control */}
-      {activeLayers.includes('labels') && (
-        <TileLayer 
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png"
+    <div style={{ height: '100%', width: '100%', borderRadius: '0.375rem' }}>
+      <LeafletMapContainer
+        center={center}
+        zoom={zoom}
+        style={{ height: '100%', width: '100%' }}
+        zoomControl={false}
+        attributionControl={true}
+      >
+        {activeLayers.includes('base') && <TileLayer url={tileLayerProps.url} />}
+        <ZoomControl position="topright" />
+        
+        <VisualizationLayerRenderer 
+          visualizationType={visualizationType}
+          geoJSON={geoJSON}
+          points={filteredPoints}
+          category={category}
+          currentTimeIndex={currentTimeIndex}
+          isActive={isDataLayerActive}
         />
-      )}
-    </LeafletMapContainer>
+        
+        {/* Optional Layer Controls using Leaflet's built-in control */}
+        {activeLayers.includes('labels') && (
+          <TileLayer 
+            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png"
+          />
+        )}
+      </LeafletMapContainer>
+    </div>
   );
 };
 
