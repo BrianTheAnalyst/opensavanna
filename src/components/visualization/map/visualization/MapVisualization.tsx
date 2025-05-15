@@ -23,39 +23,6 @@ interface MapVisualizationProps {
   isLoading?: boolean;
 }
 
-interface MapEmptyStateProps {
-  title?: string;
-  description?: string;
-}
-
-interface MapLoadingStateProps {
-  title?: string;
-  description?: string;
-}
-
-interface LayerControlsProps {
-  onTileLayerChange: (layer: any) => void;
-}
-
-interface TimeControlsProps {
-  currentIndex: number;
-  setCurrentIndex: (index: number) => void;
-  labels: string[];
-}
-
-interface MapControlsProps {
-  currentType: 'standard' | 'choropleth' | 'heatmap' | 'cluster';
-  setType: (type: 'standard' | 'choropleth' | 'heatmap' | 'cluster') => void;
-  hasGeoJSON: boolean;
-  hasPoints: boolean;
-}
-
-interface MapLegendProps {
-  visualizationType: 'standard' | 'choropleth' | 'heatmap' | 'cluster';
-  geoJSON?: any;
-  category?: string;
-}
-
 export const MapVisualization: React.FC<MapVisualizationProps> = ({
   data = [],
   geoJSON,
@@ -67,15 +34,14 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
   const [currentTimeIndex, setCurrentTimeIndex] = useState(0);
   const [showTimeControls, setShowTimeControls] = useState(false);
   const [tileLayer, setTileLayer] = useState(getTileLayer('standard'));
-  const mapData = useMapData(data, geoJSON);
+  
+  const mapData = useMapData(data, geoJSON, isLoading);
   const points = mapData.pointsData?.validPoints || [];
-  const hasTimeSeriesData = mapData.hasTimeSeriesData || false;
-  const timeLabels = mapData.timeLabels || [];
   
   // Show time controls if time series data is detected
   useEffect(() => {
-    setShowTimeControls(hasTimeSeriesData);
-  }, [hasTimeSeriesData]);
+    setShowTimeControls(mapData.hasTimeSeriesData);
+  }, [mapData.hasTimeSeriesData]);
   
   // Reset time index when data changes
   useEffect(() => {
@@ -101,8 +67,8 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
   return (
     <div className="relative w-full h-[500px] bg-slate-50 rounded-lg overflow-hidden">
       <MapContainer
-        center={[10, 0]}
-        zoom={2}
+        center={mapData.mapCenter}
+        zoom={mapData.mapZoom}
         className="h-full w-full z-0"
         attributionControl={false}
       >
@@ -129,7 +95,7 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
         <TimeControls
           currentIndex={currentTimeIndex}
           setCurrentIndex={setCurrentTimeIndex}
-          labels={timeLabels}
+          labels={mapData.timeLabels}
         />
       )}
       
