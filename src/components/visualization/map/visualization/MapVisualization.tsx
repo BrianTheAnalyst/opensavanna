@@ -14,7 +14,7 @@ import TimeControls from '../TimeControls';
 import MapLegend from '../MapLegend';
 import { useMapData } from './useMapData';
 import { MapVisualizationProps } from './types';
-import MapContainer from '../MapContainer';
+import MapContainerComponent from '../MapContainer';
 
 export const MapVisualization: React.FC<MapVisualizationProps> = ({
   data = [],
@@ -61,7 +61,7 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
   
   return (
     <div className="relative w-full h-[500px] bg-slate-50 rounded-lg overflow-hidden">
-      <MapContainer
+      <MapContainerComponent
         center={mapData.mapCenter}
         zoom={mapData.mapZoom}
         geoJSON={geoJSON}

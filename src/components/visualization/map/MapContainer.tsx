@@ -5,6 +5,7 @@ import VisualizationLayerRenderer from './VisualizationLayerRenderer';
 import { MapContainerProps } from './types';
 import { getTileLayer } from './utils/tileLayerUtils';
 
+// Renamed component to avoid confusion with React-Leaflet's MapContainer
 const MapContainerComponent: React.FC<MapContainerProps> = ({
   center,
   zoom,
