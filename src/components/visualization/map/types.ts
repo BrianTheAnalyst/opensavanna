@@ -9,7 +9,6 @@ export interface MapPoint {
   timeIndex?: number;
 }
 
-// Updated interface to ensure compatibility with LeafletMapContainer
 export interface MapContainerProps {
   center: LatLngExpression;
   zoom: number;

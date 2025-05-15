@@ -30,7 +30,6 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
   return (
     <div style={{ height: '100%', width: '100%', borderRadius: '0.375rem' }}>
       <LeafletMapContainer
-        key="map-container" // Add a key to force re-render when props change
         center={center}
         zoom={zoom}
         style={{ height: '100%', width: '100%' }}
