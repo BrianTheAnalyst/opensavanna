@@ -1,12 +1,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { toast } from 'sonner';
 import { Dataset } from '@/types/dataset';
-import { getDatasetById } from '@/services/datasetService';
-import { getDatasetVisualization } from '@/services/datasetVisualizationService';
-import { generateSampleData, generateInsights } from '@/utils/datasetVisualizationUtils';
-import { getGeoJSONForDataset } from '@/services/visualization/datasetProcessor';
-import { createSimplifiedGeoJSON } from './geojsonUtils';
+import { fetchDatasetAndVisualization, processPropsData } from './dataFetcher';
 import { UseDatasetVisualizationProps, UseDatasetVisualizationResult } from './types';
 
 export function useDatasetVisualization({
@@ -23,55 +18,13 @@ export function useDatasetVisualization({
   const [retryCount, setRetryCount] = useState(0);
   const [geoJSON, setGeoJSON] = useState<any | null>(null);
 
-  // Function to generate insights memoized to prevent unnecessary recalculations
-  const generateInsightsForData = useCallback((data: any[], category: string, title: string) => {
-    try {
-      return generateInsights(data, category, title);
-    } catch (err) {
-      console.error("Error generating insights:", err);
-      return ["Unable to generate insights for this dataset."];
-    }
-  }, []);
-
   const fetchDatasetAndVisualize = useCallback(async () => {
     // Skip fetching if data was passed as prop
     if (datasetProp && visualizationDataProp) {
       try {
-        // Check for GeoJSON data
-        if (datasetProp.id) {
-          const geoData = await getGeoJSONForDataset(datasetProp.id);
-          if (geoData) {
-            console.log("GeoJSON data found for dataset:", datasetProp.id);
-            setGeoJSON(geoData);
-          } else {
-            // For electricity datasets, try to create a simplified GeoJSON if none exists
-            if (datasetProp.category.toLowerCase().includes('electricity') || 
-                datasetProp.category.toLowerCase().includes('power') ||
-                datasetProp.category.toLowerCase().includes('energy')) {
-              
-              console.log("Creating simplified GeoJSON for electricity dataset");
-              const simplifiedGeoJSON = createSimplifiedGeoJSON(visualizationDataProp, datasetProp.category);
-              if (simplifiedGeoJSON) {
-                setGeoJSON(simplifiedGeoJSON);
-                
-                // Store it for future use
-                try {
-                  localStorage.setItem(`geojson_${datasetProp.id}`, JSON.stringify(simplifiedGeoJSON));
-                } catch (e) {
-                  console.warn("Could not store simplified GeoJSON in localStorage:", e);
-                }
-              }
-            }
-          }
-        }
-        
-        // Generate insights based on provided data
-        const generatedInsights = generateInsightsForData(
-          visualizationDataProp, 
-          datasetProp.category, 
-          datasetProp.title
-        );
-        setInsights(generatedInsights);
+        const result = await processPropsData(datasetProp, visualizationDataProp);
+        setGeoJSON(result.geoJSON);
+        setInsights(result.insights);
         setIsLoading(false);
         return;
       } catch (err: any) {
@@ -90,88 +43,20 @@ export function useDatasetVisualization({
       setIsLoading(true);
       setError(null);
       
-      // Fetch the dataset metadata
-      const datasetData = await getDatasetById(id);
+      const result = await fetchDatasetAndVisualization(id);
       
-      if (!datasetData) {
-        throw new Error("Dataset not found");
-      }
-      
-      setDataset(datasetData);
-      
-      // Check for GeoJSON data
-      const geoData = await getGeoJSONForDataset(id);
-      if (geoData) {
-        console.log("GeoJSON data found for dataset:", id);
-        setGeoJSON(geoData);
-      }
-      
-      try {
-        // Get visualization data for the dataset
-        const visData = await getDatasetVisualization(id);
-        
-        if (!visData || visData.length === 0) {
-          throw new Error("Failed to generate visualization data");
-        }
-        
-        setVisualizationData(visData);
-        
-        // If we have data but no GeoJSON for electricity datasets, try to create one
-        if (!geoData && 
-            (datasetData.category.toLowerCase().includes('electricity') || 
-             datasetData.category.toLowerCase().includes('power') ||
-             datasetData.category.toLowerCase().includes('energy'))) {
-          
-          console.log("Creating simplified GeoJSON for electricity dataset");
-          const simplifiedGeoJSON = createSimplifiedGeoJSON(visData, datasetData.category);
-          if (simplifiedGeoJSON) {
-            setGeoJSON(simplifiedGeoJSON);
-            
-            // Store it for future use
-            try {
-              localStorage.setItem(`geojson_${id}`, JSON.stringify(simplifiedGeoJSON));
-            } catch (e) {
-              console.warn("Could not store simplified GeoJSON in localStorage:", e);
-            }
-          }
-        }
-        
-        // Generate insights based on the data
-        const generatedInsights = generateInsightsForData(visData, datasetData.category, datasetData.title);
-        setInsights(generatedInsights);
-
-        toast.success("Insights generated from your dataset");
-      } catch (dataError: any) {
-        console.error("Error processing dataset:", dataError);
-        
-        // Fall back to sample data
-        const fallbackData = generateSampleData(datasetData.category, datasetData.title);
-        setVisualizationData(fallbackData);
-        
-        // Generate insights based on the fallback data
-        const generatedInsights = generateInsightsForData(fallbackData, datasetData.category, datasetData.title);
-        setInsights(generatedInsights);
-        
-        toast.info("Using sample data for visualization");
-      }
+      setDataset(result.dataset);
+      setVisualizationData(result.visualizationData);
+      setGeoJSON(result.geoJSON);
+      setInsights(result.insights);
+      setError(result.error);
     } catch (error: any) {
-      console.error("Error fetching dataset for visualization:", error);
+      console.error("Error in useDatasetVisualization:", error);
       setError(error?.message || "Failed to load visualization data");
-      toast.error("Failed to load visualization data");
-      
-      // Provide default data even in case of error
-      const defaultData = [
-        { name: 'Sample 1', value: 200 },
-        { name: 'Sample 2', value: 300 },
-        { name: 'Sample 3', value: 400 },
-        { name: 'Sample 4', value: 500 },
-        { name: 'Sample 5', value: 600 }
-      ];
-      setVisualizationData(defaultData);
     } finally {
       setIsLoading(false);
     }
-  }, [id, datasetProp, visualizationDataProp, generateInsightsForData]);
+  }, [id, datasetProp, visualizationDataProp]);
   
   useEffect(() => {
     fetchDatasetAndVisualize();
@@ -194,7 +79,7 @@ export function useDatasetVisualization({
     setAnalysisMode,
     handleRetry,
     geoJSON
-  }), [dataset, visualizationData, isLoading, error, insights, analysisMode, setAnalysisMode, handleRetry, geoJSON]);
+  }), [dataset, visualizationData, isLoading, error, insights, analysisMode, handleRetry, geoJSON]);
 
   return result;
 }
