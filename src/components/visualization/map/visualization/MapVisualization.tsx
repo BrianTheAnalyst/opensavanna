@@ -5,7 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import { useLeafletIconFix } from '../useLeafletIconFix';
-import { getRandomTileLayer } from '../utils/tileLayerUtils';
+import { getTileLayer } from '../utils/tileLayerUtils';
 import { MapPoint } from '../types';
 import MapEmptyState from './MapEmptyState';
 import MapLoadingState from './MapLoadingState';
@@ -23,6 +23,39 @@ interface MapVisualizationProps {
   isLoading?: boolean;
 }
 
+interface MapEmptyStateProps {
+  title?: string;
+  description?: string;
+}
+
+interface MapLoadingStateProps {
+  title?: string;
+  description?: string;
+}
+
+interface LayerControlsProps {
+  onTileLayerChange: (layer: any) => void;
+}
+
+interface TimeControlsProps {
+  currentIndex: number;
+  setCurrentIndex: (index: number) => void;
+  labels: string[];
+}
+
+interface MapControlsProps {
+  currentType: 'standard' | 'choropleth' | 'heatmap' | 'cluster';
+  setType: (type: 'standard' | 'choropleth' | 'heatmap' | 'cluster') => void;
+  hasGeoJSON: boolean;
+  hasPoints: boolean;
+}
+
+interface MapLegendProps {
+  visualizationType: 'standard' | 'choropleth' | 'heatmap' | 'cluster';
+  geoJSON?: any;
+  category?: string;
+}
+
 export const MapVisualization: React.FC<MapVisualizationProps> = ({
   data = [],
   geoJSON,
@@ -33,8 +66,11 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
   const [visualizationType, setVisualizationType] = useState<'standard' | 'choropleth' | 'heatmap' | 'cluster'>('standard');
   const [currentTimeIndex, setCurrentTimeIndex] = useState(0);
   const [showTimeControls, setShowTimeControls] = useState(false);
-  const [tileLayer, setTileLayer] = useState(getRandomTileLayer());
-  const { points, hasTimeSeriesData, timeLabels } = useMapData(data, geoJSON);
+  const [tileLayer, setTileLayer] = useState(getTileLayer('standard'));
+  const mapData = useMapData(data, geoJSON);
+  const points = mapData.pointsData?.validPoints || [];
+  const hasTimeSeriesData = mapData.hasTimeSeriesData || false;
+  const timeLabels = mapData.timeLabels || [];
   
   // Show time controls if time series data is detected
   useEffect(() => {
@@ -48,12 +84,18 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
   
   // Show loading state
   if (isLoading) {
-    return <MapLoadingState />;
+    return <MapLoadingState 
+      title="Loading Map Data" 
+      description="Please wait while we prepare your visualization..." 
+    />;
   }
   
   // Show empty state if no data
   if ((points.length === 0 && !geoJSON) || (!data || data.length === 0)) {
-    return <MapEmptyState />;
+    return <MapEmptyState 
+      title="No Map Data Available" 
+      description="There is no geographic data available for this dataset." 
+    />;
   }
   
   return (
@@ -106,3 +148,5 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
     </div>
   );
 };
+
+export default MapVisualization;
