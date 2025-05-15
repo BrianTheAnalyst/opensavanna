@@ -15,16 +15,6 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
   currentTimeIndex = 0,
   activeLayers = ['base', 'data']
 }) => {
-  // Define props for Leaflet components
-  const mapContainerProps = {
-    style: { height: '100%', width: '100%', borderRadius: '0.375rem' },
-    center,
-    zoom,
-    zoomControl: false,
-    attributionControl: true,
-    preferCanvas: true, // Improves performance for many markers
-  };
-
   // Filter points by time index if available
   const filteredPoints = points.filter(point => 
     !point.hasOwnProperty('timeIndex') || point.timeIndex === currentTimeIndex
@@ -37,7 +27,13 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
   const isDataLayerActive = activeLayers.includes('data');
 
   return (
-    <LeafletMapContainer {...mapContainerProps}>
+    <LeafletMapContainer
+      center={center}
+      zoom={zoom}
+      style={{ height: '100%', width: '100%', borderRadius: '0.375rem' }}
+      zoomControl={false}
+      attributionControl={true}
+    >
       {activeLayers.includes('base') && <TileLayer url={tileLayerProps.url} />}
       <ZoomControl position="topright" />
       

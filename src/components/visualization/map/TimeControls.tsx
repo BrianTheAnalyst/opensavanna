@@ -35,7 +35,7 @@ const TimeControls: React.FC<TimeControlsProps> = ({ currentIndex, setCurrentInd
     } else {
       // Start playing
       const interval = window.setInterval(() => {
-        setCurrentIndex(prev => {
+        setCurrentIndex((prev: number) => {
           const nextIndex = prev < totalTimeSteps ? prev + 1 : 0;
           return nextIndex;
         });
