@@ -1,30 +1,11 @@
 
-import React, { useState } from 'react';
-import { MapContainer as LeafletMapContainer, TileLayer, ZoomControl, LayersControl } from 'react-leaflet';
-import { LatLngExpression } from 'leaflet';
-import GeoJSONLayer from './GeoJSONLayer';
-import PointMarkers from './PointMarkers';
-import HeatmapLayer from './HeatmapLayer';
-import ClusterMarkers from './ClusterMarkers';
+import React from 'react';
+import { MapContainer as LeafletMapContainer, TileLayer, ZoomControl } from 'react-leaflet';
+import VisualizationLayerRenderer from './VisualizationLayerRenderer';
+import { MapContainerProps } from './types';
+import { getTileLayer } from './utils/tileLayerUtils';
 
-interface MapContainerComponentProps {
-  center: LatLngExpression;
-  zoom: number;
-  geoJSON?: any;
-  points?: {
-    lat: number;
-    lng: number;
-    name?: string;
-    value?: number;
-    timeIndex?: number;
-  }[];
-  visualizationType?: 'standard' | 'choropleth' | 'heatmap' | 'cluster';
-  category?: string;
-  currentTimeIndex?: number;
-  activeLayers?: string[];
-}
-
-const MapContainerComponent: React.FC<MapContainerComponentProps> = ({
+const MapContainerComponent: React.FC<MapContainerProps> = ({
   center,
   zoom,
   geoJSON,
@@ -49,89 +30,25 @@ const MapContainerComponent: React.FC<MapContainerComponentProps> = ({
     !point.hasOwnProperty('timeIndex') || point.timeIndex === currentTimeIndex
   );
 
-  // Choose the appropriate tile layer based on visualization type
-  const getTileLayer = () => {
-    switch (visualizationType) {
-      case 'choropleth':
-        // For choropleth, use a minimal light background
-        return {
-          url: "https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png",
-          attributionControl: true
-        };
-      case 'heatmap':
-        // For heatmap, use a dark background
-        return {
-          url: "https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png",
-          attributionControl: true
-        };
-      case 'cluster':
-        // For cluster view, use a light detailed background
-        return {
-          url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-          attributionControl: true
-        };
-      default:
-        // For standard, use the default OSM tiles
-        return {
-          url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-          attributionControl: true
-        };
-    }
-  };
-
-  const tileLayerProps = getTileLayer();
+  // Get the appropriate tile layer based on visualization type
+  const tileLayerProps = getTileLayer(visualizationType);
 
   // Check if data layer is active
   const isDataLayerActive = activeLayers.includes('data');
-
-  // Determine which visualization layer to render
-  const renderVisualizationLayer = () => {
-    if (!isDataLayerActive || (!filteredPoints.length && !geoJSON)) return null;
-
-    switch (visualizationType) {
-      case 'choropleth':
-        // Show GeoJSON layer for choropleth
-        return geoJSON ? (
-          <GeoJSONLayer 
-            geoJSON={geoJSON} 
-            visualizationType="choropleth" 
-            category={category}
-            timeIndex={currentTimeIndex}
-          />
-        ) : null;
-      
-      case 'heatmap':
-        // Show heatmap layer if we have points
-        return filteredPoints.length > 0 ? <HeatmapLayer points={filteredPoints} /> : null;
-      
-      case 'cluster':
-        // Show cluster markers if we have points
-        return filteredPoints.length > 0 ? <ClusterMarkers points={filteredPoints} /> : null;
-      
-      case 'standard':
-      default:
-        // Standard view - show GeoJSON if available, otherwise show point markers
-        if (geoJSON) {
-          return (
-            <GeoJSONLayer 
-              geoJSON={geoJSON} 
-              visualizationType="standard" 
-              category={category}
-              timeIndex={currentTimeIndex}
-            />
-          );
-        } else if (filteredPoints.length > 0) {
-          return <PointMarkers points={filteredPoints} />;
-        }
-        return null;
-    }
-  };
 
   return (
     <LeafletMapContainer {...mapContainerProps}>
       {activeLayers.includes('base') && <TileLayer url={tileLayerProps.url} />}
       <ZoomControl position="topright" />
-      {renderVisualizationLayer()}
+      
+      <VisualizationLayerRenderer 
+        visualizationType={visualizationType}
+        geoJSON={geoJSON}
+        points={filteredPoints}
+        category={category}
+        currentTimeIndex={currentTimeIndex}
+        isActive={isDataLayerActive}
+      />
       
       {/* Optional Layer Controls using Leaflet's built-in control */}
       {activeLayers.includes('labels') && (
