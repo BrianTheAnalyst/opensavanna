@@ -7,8 +7,8 @@ export * from './geometryUtils';
 export * from './timeSeriesUtils';
 
 // Export format utils but rename the onEachFeature function to avoid naming conflict
-import { onEachFeature as formatOnEachFeature, formatValue } from './formatUtils';
-export { formatOnEachFeature, formatValue };
+import { onEachFeature as formatOnEachFeature } from './formatUtils';
+export { formatOnEachFeature };
 
 // Export interaction utils
 import { onEachFeature as interactionOnEachFeature } from './interactionUtils';

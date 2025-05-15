@@ -2,14 +2,12 @@
 import { useParams } from 'react-router-dom';
 import { Dataset } from '@/types/dataset';
 import LoadingVisualization from '@/components/visualization/LoadingVisualization';
-import NoVisualizationData from '@/components/visualization/NoVisualizationData';
-import VisualizationContainer from '@/components/visualization/VisualizationContainer';
-import VisualizationAbout from '@/components/visualization/VisualizationAbout';
-import { useDatasetVisualization } from '@/hooks/useDatasetVisualization'; // This import will now use the re-export
+import { useDatasetVisualization } from '@/hooks/useDatasetVisualization';
 import { useDatasetDetail } from '@/hooks/useDatasetDetail';
-import DatasetAnalyticsSection from '@/components/dataset/DatasetAnalyticsSection';
 import { useEffect } from 'react';
 import { toast } from "sonner";
+import DatasetVisualizeContent from './components/DatasetVisualizeContent';
+import DatasetVisualizeError from './components/DatasetVisualizeError';
 
 interface DatasetVisualizeProps {
   datasetProp?: Dataset;
@@ -50,43 +48,34 @@ const DatasetVisualize = ({ datasetProp, visualizationDataProp }: DatasetVisuali
     }
   }, [error]);
   
+  // Show loading state
   if (isLoading) {
     return <LoadingVisualization />;
   }
   
+  // Show error if no dataset found
   if (!dataset) {
-    return <NoVisualizationData onRetry={handleRetry} error="Dataset not found" />;
+    return <DatasetVisualizeError onRetry={handleRetry} error="Dataset not found" />;
   }
 
+  // Show error if no visualization data
   if (!visualizationData || visualizationData.length === 0) {
-    return <NoVisualizationData onRetry={handleRetry} error={error || "No visualization data available"} />;
+    return <DatasetVisualizeError onRetry={handleRetry} error={error} />;
   }
-
-  // Make sure we always have an array of data objects with at least name and value properties
-  const processedData = Array.isArray(visualizationData) && visualizationData.length > 0
-    ? visualizationData
-    : [{ name: 'No Data', value: 0 }];
   
+  // Show visualization content
   return (
-    <>
-      <VisualizationContainer 
-        dataset={dataset}
-        visualizationData={processedData}
-        insights={insights}
-        analysisMode={analysisMode}
-        setAnalysisMode={setAnalysisMode}
-        error={error || undefined}
-        isLoading={false}
-        geoJSON={geoJSON}
-      />
-      
-      <DatasetAnalyticsSection
-        processedFileData={processedFileData}
-        isLoading={isLoadingProcessedData}
-      />
-      
-      <VisualizationAbout dataset={dataset} />
-    </>
+    <DatasetVisualizeContent
+      dataset={dataset}
+      visualizationData={visualizationData}
+      insights={insights}
+      analysisMode={analysisMode}
+      setAnalysisMode={setAnalysisMode}
+      processedFileData={processedFileData}
+      isLoadingProcessedData={isLoadingProcessedData}
+      error={error}
+      geoJSON={geoJSON}
+    />
   );
 };
 
