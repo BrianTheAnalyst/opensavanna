@@ -29,11 +29,10 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
 
   return (
     <div style={{ height: '100%', width: '100%', borderRadius: '0.375rem' }}>
-      {/* Using LeafletMapContainer without directly passing unsupported props */}
+      {/* Use correct props for react-leaflet v4 */}
       <LeafletMapContainer
-        // Remove key prop as it's not needed and causing an error
-        defaultCenter={center}
-        defaultZoom={zoom}
+        center={center}
+        zoom={zoom}
         style={{ height: '100%', width: '100%' }}
         zoomControl={false}
       >
