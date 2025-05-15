@@ -29,9 +29,8 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
 
   return (
     <div style={{ height: '100%', width: '100%', borderRadius: '0.375rem' }}>
-      {/* Use correct props for react-leaflet v4 */}
       <LeafletMapContainer
-        center={center}
+        center={center as [number, number]}
         zoom={zoom}
         style={{ height: '100%', width: '100%' }}
         zoomControl={false}
