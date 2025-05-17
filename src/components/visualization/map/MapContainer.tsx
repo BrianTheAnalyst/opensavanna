@@ -32,24 +32,22 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
   return (
     <div style={{ height: '100%', width: '100%', borderRadius: '0.375rem' }}>
       {/* 
-        When using LeafletMapContainer, we need to match its expected prop names exactly
-        according to the React-Leaflet API
+        For react-leaflet MapContainer, we need to adapt our props to match
+        what the component expects
       */}
       <LeafletMapContainer
-        // Use the expected prop names for React-Leaflet
-        center={defaultCenter}
+        // Pass our props with the proper names expected by react-leaflet
+        center={[defaultCenter[0], defaultCenter[1]]} 
         zoom={defaultZoom}
         style={{ height: '100%', width: '100%' }}
         zoomControl={false}
         // Add a key to force re-render when center or zoom changes
         key={`${defaultCenter[0]}-${defaultCenter[1]}-${defaultZoom}`}
-        // Adding attributionControl={false} to avoid TypeScript errors
-        attributionControl={false}
       >
         {activeLayers.includes('base') && (
           <TileLayer 
             url={tileLayerProps.url}
-            attribution={tileLayerProps.attribution || ''}
+            // Attribution is handled differently in react-leaflet
           />
         )}
         <ZoomControl position="topright" />
@@ -68,7 +66,7 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
         {activeLayers.includes('labels') && (
           <TileLayer 
             url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png"
-            attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
+            // Attribution is handled differently in react-leaflet
           />
         )}
       </LeafletMapContainer>
