@@ -7,15 +7,15 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowRight, BarChart2, Layers, Workflow } from 'lucide-react';
 
 interface CorrelationPanelProps {
-  variables: { id: string; name: string; category: string }[];
-  onCorrelationAnalyze: (var1: string, var2: string) => void;
+  availableVariables: { id: string; name: string; category: string }[];
+  onAnalyze: (var1: string, var2: string) => void;
   correlationValue?: number | null;
   isAnalyzing?: boolean;
 }
 
 const CorrelationPanel: React.FC<CorrelationPanelProps> = ({
-  variables,
-  onCorrelationAnalyze,
+  availableVariables,
+  onAnalyze,
   correlationValue = null,
   isAnalyzing = false
 }) => {
@@ -23,7 +23,7 @@ const CorrelationPanel: React.FC<CorrelationPanelProps> = ({
   const [variable2, setVariable2] = useState<string>('');
 
   // Group variables by category for better organization
-  const categorizedVariables = variables.reduce((acc: Record<string, typeof variables>, variable) => {
+  const categorizedVariables = availableVariables.reduce((acc: Record<string, typeof availableVariables>, variable) => {
     if (!acc[variable.category]) {
       acc[variable.category] = [];
     }
@@ -34,7 +34,7 @@ const CorrelationPanel: React.FC<CorrelationPanelProps> = ({
   // Handle analyze button click
   const handleAnalyze = () => {
     if (variable1 && variable2 && variable1 !== variable2) {
-      onCorrelationAnalyze(variable1, variable2);
+      onAnalyze(variable1, variable2);
     }
   };
 

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
@@ -11,7 +10,7 @@ interface LayerBlendingControlsProps {
   secondaryLayer: string;
   blendMode: string;
   blendOpacity: number;
-  availableLayers: Array<{ id: string; name: string }>;
+  availableLayers: Array<{ id: string; name: string; category?: string }>;
   onPrimaryLayerChange: (layerId: string) => void;
   onSecondaryLayerChange: (layerId: string) => void;
   onBlendModeChange: (mode: string) => void;

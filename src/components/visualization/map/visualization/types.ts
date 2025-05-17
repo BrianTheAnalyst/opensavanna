@@ -30,8 +30,8 @@ export interface MapEmptyStateProps {
 }
 
 export interface MapLoadingStateProps {
-  title?: string;
-  description?: string;
+  title: string;
+  description: string;
 }
 
 export interface LayerControlsProps {
@@ -40,8 +40,9 @@ export interface LayerControlsProps {
 
 export interface TimeControlsProps {
   currentIndex: number;
-  setCurrentIndex: (index: number) => void;
-  labels: string[];
+  maxIndex: number; // Added maxIndex property
+  onChange: (index: number) => void;
+  labels?: string[]; // Made labels optional
 }
 
 export interface MapControlsProps {
@@ -60,4 +61,14 @@ export interface MapLegendProps {
 export interface AnomalyDetectionProps {
   anomalyDetection: boolean;
   anomalyThreshold: number;
+}
+
+// Define the Insight interface with strict types
+export interface Insight {
+  id: string;
+  title: string;
+  description: string;
+  type: 'spatial' | 'temporal' | 'correlation' | 'anomaly';
+  confidence: number;
+  applied?: boolean;
 }

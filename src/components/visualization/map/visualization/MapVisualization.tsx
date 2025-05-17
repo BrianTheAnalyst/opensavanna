@@ -17,28 +17,18 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AnomalyControls } from '../AnomalyControls';
+import AnomalyControls from '../AnomalyControls';
 import TimeControls from '../TimeControls';
 import MapLoadingState from './MapLoadingState';
 import MapEmptyState from './MapEmptyState';
-import useMapData from './useMapData';
-import { MapVisualizationProps } from './types';
+import { useMapData } from './useMapData';
+import { MapVisualizationProps, Insight } from './types';
 import MapContainerComponent from '../MapContainer';
 import { detectAnomalies } from '../utils/anomalyDetection';
 import SpatialFilterPanel from '../SpatialFilterPanel';
 import CorrelationPanel from '../CorrelationPanel';
 import LayerBlendingControls from '../LayerBlendingControls';
 import InsightSuggestionPanel from '../InsightSuggestionPanel';
-
-// Define Insight interface to match InsightSuggestionPanel component
-interface Insight {
-  id: string;
-  title: string;
-  description: string;
-  type: 'spatial' | 'temporal' | 'correlation' | 'anomaly';
-  confidence: number;
-  applied?: boolean;
-}
 
 export const MapVisualization: React.FC<MapVisualizationProps> = ({
   data = [],
@@ -118,8 +108,8 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
   const points = mapData.pointsData?.validPoints || [];
   
   // Default center and zoom level
-  const defaultCenter = mapData.mapConfig.center || [20, 0];
-  const defaultZoom = mapData.mapConfig.zoom || 2;
+  const defaultCenter = mapData.mapCenter || [20, 0];
+  const defaultZoom = mapData.mapZoom || 2;
   
   // Handle visualization type change
   const handleVisualizationTypeChange = (type: 'standard' | 'choropleth' | 'heatmap' | 'cluster') => {
@@ -200,7 +190,7 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
   };
 
   if (isLoading) {
-    return <MapLoadingState title={title} />;
+    return <MapLoadingState title={title} description={description} />;
   }
 
   if ((!points || points.length === 0) && !geoJSON) {
@@ -255,7 +245,7 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
                     <div className="absolute bottom-0 left-0 right-0 p-2 bg-background/95 backdrop-blur-sm rounded-t-md border-t">
                       <TimeControls 
                         currentIndex={timeIndex}
-                        maxIndex={10} // This should be determined from the actual data
+                        maxIndex={10} 
                         onChange={handleTimeIndexChange}
                       />
                     </div>
@@ -293,11 +283,11 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
             secondaryLayer={secondaryLayer}
             availableLayers={availableLayers}
             blendMode={blendMode}
-            opacity={opacity}
+            blendOpacity={opacity}
             onPrimaryLayerChange={setPrimaryLayer}
             onSecondaryLayerChange={setSecondaryLayer}
             onBlendModeChange={setBlendMode}
-            onOpacityChange={setOpacity}
+            onBlendOpacityChange={setOpacity}
           />
           
           <InsightSuggestionPanel

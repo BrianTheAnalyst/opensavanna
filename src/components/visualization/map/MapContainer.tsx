@@ -32,9 +32,8 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
   return (
     <div style={{ height: '100%', width: '100%', borderRadius: '0.375rem' }}>
       {/* 
-        We need to specify props that LeafletMapContainer accepts
-        The issue is with typing - we need to use specific props that the underlying 
-        Leaflet component expects
+        When rendering a LeafletMapContainer, we need to pass its specific props directly
+        and not our custom named props
       */}
       <LeafletMapContainer
         center={defaultCenter}
