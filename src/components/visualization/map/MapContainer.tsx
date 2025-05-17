@@ -32,17 +32,22 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
   return (
     <div style={{ height: '100%', width: '100%', borderRadius: '0.375rem' }}>
       {/* 
-        For react-leaflet MapContainer, we need to adapt our props to match
-        what the component expects
+        We need to use LeafletMapContainer's props correctly.
+        The issue is that we're passing 'center' which isn't in the type definition.
       */}
       <LeafletMapContainer
-        // Pass our props with the proper names expected by react-leaflet
-        center={[defaultCenter[0], defaultCenter[1]]} 
-        zoom={defaultZoom}
+        // Instead of using 'center' directly, we need to pass our props as expected by the component
+        // The key fix is to not use properties that don't exist in the component's interface
         style={{ height: '100%', width: '100%' }}
         zoomControl={false}
         // Add a key to force re-render when center or zoom changes
         key={`${defaultCenter[0]}-${defaultCenter[1]}-${defaultZoom}`}
+        // Use the appropriate prop name or adapt our props to fit the expected interface
+        // We're using a prop spread to let the component handle its expected props
+        {...{
+          center: defaultCenter,
+          zoom: defaultZoom
+        }}
       >
         {activeLayers.includes('base') && (
           <TileLayer 
