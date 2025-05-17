@@ -1,5 +1,5 @@
 
-import { colorScaleForCategory, getColorForValue } from './colorUtils';
+import { getColorScaleForCategory, getColorForValue } from './colorUtils';
 
 /**
  * Style function for GeoJSON features
@@ -34,8 +34,8 @@ export const styleFeature = (
 
   // Apply different styles based on visualization type
   if (visualizationType === 'choropleth' && typeof value === 'number') {
-    const colorScale = colorScaleForCategory(category || 'default');
-    style.fillColor = getColorForValue(value, colorScale.min, colorScale.max, colorScale.colors);
+    const colorScale = getColorScaleForCategory(category || 'default');
+    style.fillColor = getColorForValue(value, colorScale);
     
     // If it's an anomaly, adjust the fillColor to be more intense
     if (isAnomaly) {

@@ -1,13 +1,9 @@
 
 import React from 'react';
+import { Timeline, Circle, AlertCircle } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { MapPoint } from './types';
-import { Calendar, ArrowRight } from 'lucide-react';
-
-interface TimelineItem {
-  index: number;
-  label: string;
-  anomalyCount: number;
-}
 
 interface AnomalyTimelineProps {
   points: MapPoint[];
@@ -22,65 +18,77 @@ const AnomalyTimeline: React.FC<AnomalyTimelineProps> = ({
   currentIndex,
   onIndexChange
 }) => {
-  // Generate timeline items with anomaly counts for each time index
-  const timelineItems = React.useMemo(() => {
-    return labels.map((label, index) => {
-      const pointsAtTime = points.filter(p => p.timeIndex === index);
-      const anomalyCount = pointsAtTime.filter(p => p.isAnomaly).length;
-      
-      return {
-        index,
-        label,
-        anomalyCount
-      };
-    });
-  }, [points, labels]);
-  
-  if (labels.length <= 1) {
+  if (!points || points.length === 0 || !labels || labels.length === 0) {
     return null;
   }
+
+  // Group points by time index and count anomalies
+  const timeIndexMap = new Map<number, { total: number; anomalies: number }>();
   
+  points.forEach(point => {
+    const timeIndex = point.timeIndex !== undefined ? point.timeIndex : 0;
+    const isAnomaly = !!point.isAnomaly;
+    
+    if (!timeIndexMap.has(timeIndex)) {
+      timeIndexMap.set(timeIndex, { total: 0, anomalies: 0 });
+    }
+    
+    const current = timeIndexMap.get(timeIndex)!;
+    current.total += 1;
+    if (isAnomaly) {
+      current.anomalies += 1;
+    }
+  });
+  
+  // Create timeline items (limit to the number of available labels)
+  const timelineItems = Array.from(
+    { length: Math.min(labels.length, Math.max(...Array.from(timeIndexMap.keys())) + 1) },
+    (_, i) => {
+      const stats = timeIndexMap.get(i) || { total: 0, anomalies: 0 };
+      return {
+        index: i,
+        label: labels[i] || `Time ${i + 1}`,
+        anomalyCount: stats.anomalies,
+        totalCount: stats.total,
+        hasAnomalies: stats.anomalies > 0
+      };
+    }
+  );
+
   return (
-    <div className="mt-4">
-      <div className="flex items-center mb-2">
-        <Calendar className="h-4 w-4 mr-2" />
-        <h4 className="text-sm font-medium">Anomaly Timeline</h4>
-      </div>
-      
-      <div className="flex items-center space-x-1 mt-2 overflow-x-auto pb-2">
-        {timelineItems.map((item) => (
-          <div 
-            key={item.index} 
-            className={`flex flex-col items-center justify-center px-3 py-2 rounded-md cursor-pointer transition-colors min-w-[70px]
-              ${currentIndex === item.index ? 'bg-primary text-primary-foreground' : 
-                item.anomalyCount > 0 ? 'bg-red-100 dark:bg-red-900/20 hover:bg-red-200 dark:hover:bg-red-900/30' : 
-                'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
-            onClick={() => onIndexChange(item.index)}
-          >
-            <span className="text-xs font-medium truncate max-w-[80px]">{item.label}</span>
-            {item.anomalyCount > 0 && (
-              <span className={`text-xs mt-1 px-1.5 py-0.5 rounded-full ${
-                currentIndex === item.index 
-                  ? 'bg-primary-foreground text-primary' 
-                  : 'bg-red-500 text-white'
-              }`}>
-                {item.anomalyCount}
-              </span>
-            )}
+    <Card className="mb-4 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm">
+      <CardContent className="py-4">
+        <div className="flex items-center mb-2 gap-2">
+          <Timeline className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-medium">Anomaly Timeline</h3>
+          <div className="ml-auto text-xs text-muted-foreground">
+            {timelineItems[currentIndex]?.anomalyCount || 0} anomalies detected
           </div>
-        ))}
-      </div>
-      
-      {currentIndex < labels.length - 1 && (
-        <div 
-          className="flex items-center justify-center mt-2 text-xs text-muted-foreground cursor-pointer hover:text-primary"
-          onClick={() => onIndexChange(currentIndex + 1)}
-        >
-          <span>Next time period</span>
-          <ArrowRight className="h-3 w-3 ml-1" />
         </div>
-      )}
-    </div>
+        
+        <div className="flex items-center overflow-x-auto py-1 gap-1">
+          {timelineItems.map((item) => (
+            <Button
+              key={item.index}
+              variant={item.index === currentIndex ? 'default' : 'outline'}
+              size="sm"
+              className={`
+                flex-shrink-0 rounded-full px-3
+                ${item.hasAnomalies && item.index !== currentIndex ? 'border-red-300 text-red-600 dark:border-red-800 dark:text-red-400' : ''}
+              `}
+              onClick={() => onIndexChange(item.index)}
+            >
+              {item.hasAnomalies ? (
+                <AlertCircle className="h-3 w-3 mr-1 text-red-500" />
+              ) : (
+                <Circle className="h-3 w-3 mr-1" />
+              )}
+              {item.label}
+            </Button>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

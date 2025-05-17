@@ -2,107 +2,108 @@
 import { MapPoint } from '../types';
 
 /**
- * Detects anomalies in point data using z-score method
+ * Detect anomalies in geographic point data using z-scores
+ * 
  * @param points Array of map points with values
  * @param threshold Z-score threshold for anomaly detection (default: 2.0)
- * @returns Array of points with anomaly flags and z-scores
+ * @returns Array of map points with isAnomaly and zScore properties added
  */
-export function detectAnomalies(points: MapPoint[], threshold: number = 2.0): MapPoint[] {
-  if (!points || points.length === 0) return [];
-
-  // Extract values for z-score calculation
-  const values = points.map(p => typeof p.value === 'number' ? p.value : 0).filter(v => v !== undefined);
+export const detectAnomalies = (points: MapPoint[], threshold: number = 2.0): MapPoint[] => {
+  if (!points || points.length === 0) return points;
   
-  if (values.length === 0) return points;
+  // Only consider points with numeric values
+  const validPoints = points.filter(point => 
+    typeof point.value === 'number' && !isNaN(point.value)
+  );
   
-  // Calculate mean
+  if (validPoints.length === 0) return points;
+  
+  // Calculate mean and standard deviation of values
+  const values = validPoints.map(p => p.value as number);
   const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
   
-  // Calculate standard deviation
-  const squareDiffs = values.map(value => {
-    const diff = value - mean;
-    return diff * diff;
-  });
-  const avgSquareDiff = squareDiffs.reduce((sum, val) => sum + val, 0) / squareDiffs.length;
-  const stdDev = Math.sqrt(avgSquareDiff);
+  // Calculate variance and standard deviation
+  const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
+  const stdDev = Math.sqrt(variance);
   
-  // If standard deviation is too small (near-constant data), return original points
+  // If standard deviation is too small, no anomalies
   if (stdDev < 0.0001) return points;
   
-  // Calculate z-scores and flag anomalies
+  // Calculate z-score for each point and mark anomalies
   return points.map(point => {
-    if (typeof point.value !== 'number') {
-      return { ...point, isAnomaly: false, zScore: 0 };
+    if (typeof point.value === 'number') {
+      const zScore = (point.value - mean) / stdDev;
+      const isAnomaly = Math.abs(zScore) > threshold;
+      
+      return {
+        ...point,
+        isAnomaly,
+        zScore
+      };
     }
-    
-    const zScore = Math.abs((point.value - mean) / stdDev);
-    const isAnomaly = zScore > threshold;
-    
-    return {
-      ...point,
-      isAnomaly,
-      zScore
-    };
+    return point;
   });
-}
+};
 
 /**
- * Detects anomalies in GeoJSON feature properties
- * @param geoJSON GeoJSON data
- * @param propertyName Property name to analyze for anomalies
+ * Detect anomalies in GeoJSON features
+ * 
+ * @param geoJSON GeoJSON object with features
+ * @param propertyName Property name containing the value to analyze
  * @param threshold Z-score threshold for anomaly detection
- * @returns Modified GeoJSON with anomaly flags
+ * @returns GeoJSON with isAnomaly and zScore properties added to features
  */
-export function detectGeoJSONAnomalies(geoJSON: any, propertyName: string = 'value', threshold: number = 2.0): any {
+export const detectGeoJSONAnomalies = (
+  geoJSON: any, 
+  propertyName: string = 'value',
+  threshold: number = 2.0
+): any => {
   if (!geoJSON || !geoJSON.features || !Array.isArray(geoJSON.features)) {
     return geoJSON;
   }
   
-  // Extract values for the specified property
-  const values = geoJSON.features
-    .map(f => f.properties && f.properties[propertyName])
-    .filter(v => typeof v === 'number');
+  // Extract values from features
+  const values: number[] = [];
+  geoJSON.features.forEach((feature: any) => {
+    if (feature.properties && typeof feature.properties[propertyName] === 'number') {
+      values.push(feature.properties[propertyName]);
+    }
+  });
   
   if (values.length === 0) return geoJSON;
   
-  // Calculate mean
-  const mean = values.reduce((sum: number, val: number) => sum + val, 0) / values.length;
+  // Calculate mean and standard deviation
+  const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
+  const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
+  const stdDev = Math.sqrt(variance);
   
-  // Calculate standard deviation
-  const squareDiffs = values.map((value: number) => {
-    const diff = value - mean;
-    return diff * diff;
-  });
-  const avgSquareDiff = squareDiffs.reduce((sum: number, val: number) => sum + val, 0) / squareDiffs.length;
-  const stdDev = Math.sqrt(avgSquareDiff);
-  
-  // If standard deviation is too small (near-constant data), return original GeoJSON
+  // If standard deviation is too small, no anomalies
   if (stdDev < 0.0001) return geoJSON;
   
-  // Calculate z-scores and flag anomalies
-  const modifiedFeatures = geoJSON.features.map((feature: any) => {
-    const value = feature.properties && feature.properties[propertyName];
+  // Calculate z-scores and mark anomalies
+  const processedFeatures = geoJSON.features.map((feature: any) => {
+    const newFeature = { ...feature };
     
-    if (typeof value !== 'number') {
-      return feature;
+    // Make sure properties exists
+    if (!newFeature.properties) {
+      newFeature.properties = {};
     }
     
-    const zScore = Math.abs((value - mean) / stdDev);
-    const isAnomaly = zScore > threshold;
+    // Calculate z-score if the property exists and is a number
+    if (typeof newFeature.properties[propertyName] === 'number') {
+      const value = newFeature.properties[propertyName];
+      const zScore = (value - mean) / stdDev;
+      const isAnomaly = Math.abs(zScore) > threshold;
+      
+      newFeature.properties.zScore = zScore;
+      newFeature.properties.isAnomaly = isAnomaly;
+    }
     
-    // Add anomaly information to properties
-    return {
-      ...feature,
-      properties: {
-        ...feature.properties,
-        isAnomaly,
-        zScore
-      }
-    };
+    return newFeature;
   });
   
   return {
     ...geoJSON,
-    features: modifiedFeatures
+    features: processedFeatures
   };
-}
+};
