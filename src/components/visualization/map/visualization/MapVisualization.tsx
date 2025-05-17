@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
@@ -21,6 +20,17 @@ import { useMapData } from './useMapData';
 import { MapVisualizationProps } from './types';
 import MapContainerComponent from '../MapContainer';
 import { detectAnomalies } from '../utils/anomalyDetection';
+import SpatialFilterPanel from '../SpatialFilterPanel';
+
+// Define Insight interface to match InsightSuggestionPanel component
+interface Insight {
+  id: string;
+  title: string;
+  description: string;
+  type: 'spatial' | 'temporal' | 'correlation' | 'anomaly';
+  confidence: number;
+  applied: boolean;
+}
 
 export const MapVisualization: React.FC<MapVisualizationProps> = ({
   data = [],
@@ -55,8 +65,8 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
     { id: 'co2', name: 'CO2 Emissions', category: 'Environment' }
   ];
   
-  // Sample insights for insight panel
-  const sampleInsights = [
+  // Sample insights for insight panel with properly typed 'type' property
+  const sampleInsights: Insight[] = [
     {
       id: '1',
       title: 'Temperature anomaly cluster',
@@ -81,6 +91,15 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
       confidence: 0.62,
       applied: false
     }
+  ];
+  
+  // Define sample regions for spatial filtering
+  const sampleRegions = [
+    { id: 'north', name: 'Northern Region' },
+    { id: 'south', name: 'Southern Region' },
+    { id: 'east', name: 'Eastern Region' },
+    { id: 'west', name: 'Western Region' },
+    { id: 'central', name: 'Central Area' }
   ];
   
   const mapData = useMapData(data, geoJSON, isLoading);
@@ -120,6 +139,12 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
       setCorrelationValue(parseFloat(correlation));
       setIsAnalyzingCorrelation(false);
     }, 1500);
+  };
+  
+  // Handle spatial filtering
+  const handleSpatialFilterChange = (filter: any) => {
+    console.log("Applied spatial filter:", filter);
+    // In a real app, this would filter the data based on spatial parameters
   };
   
   // Handle insight application
@@ -233,6 +258,12 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
               onCorrelationAnalyze={handleCorrelationAnalyze}
               correlationValue={correlationValue}
               isAnalyzing={isAnalyzingCorrelation}
+            />
+            
+            <SpatialFilterPanel
+              onFilterChange={handleSpatialFilterChange}
+              regions={sampleRegions}
+              isFiltering={false}
             />
             
             <LayerBlendingControls 

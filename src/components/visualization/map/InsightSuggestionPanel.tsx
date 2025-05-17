@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -123,5 +122,4 @@ const InsightSuggestionPanel: React.FC<InsightSuggestionPanelProps> = ({
   );
 };
 
-// Remove the import for missing icons
 export default InsightSuggestionPanel;
