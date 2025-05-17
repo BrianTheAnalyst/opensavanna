@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Lightbulb, ArrowRight, Map, BarChart2, RefreshCw } from 'lucide-react';
+import { Lightbulb, ArrowRight, Map, BarChart2, RefreshCw, Clock, AlertCircle } from 'lucide-react';
 
 interface Insight {
   id: string;
@@ -30,8 +30,8 @@ const InsightSuggestionPanel: React.FC<InsightSuggestionPanelProps> = ({
   const getInsightIcon = (type: string) => {
     switch (type) {
       case 'spatial': return <Map className="h-4 w-4" />;
-      case 'temporal': return <Timeline className="h-4 w-4" />;
-      case 'correlation': return <Workflow className="h-4 w-4" />;
+      case 'temporal': return <Clock className="h-4 w-4" />;
+      case 'correlation': return <BarChart2 className="h-4 w-4" />;
       case 'anomaly': return <AlertCircle className="h-4 w-4" />;
       default: return <Lightbulb className="h-4 w-4" />;
     }
@@ -123,7 +123,5 @@ const InsightSuggestionPanel: React.FC<InsightSuggestionPanelProps> = ({
   );
 };
 
-// Import the missing icon components
-import { Timeline, AlertCircle, Workflow } from 'lucide-react';
-
+// Remove the import for missing icons
 export default InsightSuggestionPanel;

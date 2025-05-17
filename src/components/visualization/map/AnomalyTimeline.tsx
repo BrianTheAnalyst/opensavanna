@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Timeline, Circle, AlertCircle } from 'lucide-react';
+import { Clock, Circle, AlertCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MapPoint } from './types';
@@ -59,7 +59,7 @@ const AnomalyTimeline: React.FC<AnomalyTimelineProps> = ({
     <Card className="mb-4 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm">
       <CardContent className="py-4">
         <div className="flex items-center mb-2 gap-2">
-          <Timeline className="h-4 w-4 text-primary" />
+          <Clock className="h-4 w-4 text-primary" />
           <h3 className="text-sm font-medium">Anomaly Timeline</h3>
           <div className="ml-auto text-xs text-muted-foreground">
             {timelineItems[currentIndex]?.anomalyCount || 0} anomalies detected

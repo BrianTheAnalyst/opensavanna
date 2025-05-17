@@ -32,10 +32,14 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
   return (
     <div style={{ height: '100%', width: '100%', borderRadius: '0.375rem' }}>
       <LeafletMapContainer
+        // Use 'defaultCenter' prop as the center
         center={defaultCenter}
+        // Use 'defaultZoom' prop as the zoom level
         zoom={defaultZoom}
         style={{ height: '100%', width: '100%' }}
         zoomControl={false}
+        // Key attribute to force remount when center changes
+        key={`${defaultCenter[0]}-${defaultCenter[1]}-${defaultZoom}`}
       >
         {activeLayers.includes('base') && (
           <TileLayer 
