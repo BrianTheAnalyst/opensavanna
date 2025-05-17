@@ -36,10 +36,12 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
         and not our custom named props
       */}
       <LeafletMapContainer
+        // The MapContainer component from react-leaflet expects center and zoom, not defaultCenter and defaultZoom
         center={defaultCenter}
         zoom={defaultZoom}
         style={{ height: '100%', width: '100%' }}
         zoomControl={false}
+        // Add a key to force re-render when center or zoom changes
         key={`${defaultCenter[0]}-${defaultCenter[1]}-${defaultZoom}`}
       >
         {activeLayers.includes('base') && (

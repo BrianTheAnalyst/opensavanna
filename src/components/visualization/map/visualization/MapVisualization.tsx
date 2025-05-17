@@ -245,8 +245,8 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
                     <div className="absolute bottom-0 left-0 right-0 p-2 bg-background/95 backdrop-blur-sm rounded-t-md border-t">
                       <TimeControls 
                         currentIndex={timeIndex}
-                        maxIndex={10} 
-                        onChange={handleTimeIndexChange}
+                        setCurrentIndex={handleTimeIndexChange}
+                        maxIndex={10}
                       />
                     </div>
                   </div>
@@ -266,7 +266,7 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
           />
           
           <CorrelationPanel
-            availableVariables={availableLayers}
+            variables={availableLayers}
             onAnalyze={handleAnalyzeCorrelation}
             correlationValue={correlationValue}
             isAnalyzing={isAnalyzingCorrelation}

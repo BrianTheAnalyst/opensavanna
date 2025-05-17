@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 interface TimeControlsProps {
   currentIndex: number;
   setCurrentIndex: (index: number) => void;
+  maxIndex?: number; // Add maxIndex as an optional prop
   labels?: string[];
   interval?: number;
 }
@@ -15,11 +16,13 @@ interface TimeControlsProps {
 const TimeControls: React.FC<TimeControlsProps> = ({
   currentIndex,
   setCurrentIndex,
+  maxIndex: propMaxIndex, // Rename to avoid conflict with local max
   labels = [],
   interval = 1500
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
-  const max = Math.max(labels.length - 1, 0);
+  // Use the provided maxIndex or calculate from labels length, defaulting to 0
+  const max = propMaxIndex !== undefined ? propMaxIndex : Math.max(labels.length - 1, 0);
   
   // Auto-play functionality
   useEffect(() => {

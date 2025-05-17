@@ -40,8 +40,9 @@ export interface LayerControlsProps {
 
 export interface TimeControlsProps {
   currentIndex: number;
-  maxIndex: number; // Added maxIndex property
-  onChange: (index: number) => void;
+  maxIndex?: number; // Added maxIndex property as optional
+  onChange?: (index: number) => void;
+  setCurrentIndex?: (index: number) => void; // Added to support both prop styles
   labels?: string[]; // Made labels optional
 }
 
