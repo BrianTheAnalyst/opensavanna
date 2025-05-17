@@ -14,7 +14,9 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
   visualizationType = 'standard',
   category,
   currentTimeIndex = 0,
-  activeLayers = ['base', 'data']
+  activeLayers = ['base', 'data'],
+  anomalyDetection = false,
+  anomalyThreshold = 2.0
 }) => {
   // Filter points by time index if available
   const filteredPoints = points.filter(point => 
@@ -49,6 +51,8 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
           category={category}
           currentTimeIndex={currentTimeIndex}
           isActive={isDataLayerActive}
+          anomalyDetection={anomalyDetection}
+          anomalyThreshold={anomalyThreshold}
         />
         
         {/* Optional Layer Controls using Leaflet's built-in control */}

@@ -5,6 +5,7 @@ import PointMarkers from './PointMarkers';
 import HeatmapLayer from './HeatmapLayer';
 import ClusterMarkers from './ClusterMarkers';
 import { MapPoint } from './types';
+import { detectAnomalies } from './utils/anomalyDetection';
 
 interface VisualizationLayerRendererProps {
   visualizationType: 'standard' | 'choropleth' | 'heatmap' | 'cluster';
@@ -13,6 +14,8 @@ interface VisualizationLayerRendererProps {
   category?: string;
   currentTimeIndex: number;
   isActive: boolean;
+  anomalyDetection?: boolean;
+  anomalyThreshold?: number;
 }
 
 const VisualizationLayerRenderer: React.FC<VisualizationLayerRendererProps> = ({
@@ -21,9 +24,19 @@ const VisualizationLayerRenderer: React.FC<VisualizationLayerRendererProps> = ({
   points,
   category,
   currentTimeIndex,
-  isActive
+  isActive,
+  anomalyDetection = false,
+  anomalyThreshold = 2.0
 }) => {
   if (!isActive) return null;
+
+  // Process anomaly detection if enabled
+  const processedPoints = React.useMemo(() => {
+    if (anomalyDetection && points.length > 0) {
+      return detectAnomalies(points, anomalyThreshold);
+    }
+    return points;
+  }, [points, anomalyDetection, anomalyThreshold]);
 
   switch (visualizationType) {
     case 'choropleth':
@@ -34,16 +47,18 @@ const VisualizationLayerRenderer: React.FC<VisualizationLayerRendererProps> = ({
           visualizationType="choropleth" 
           category={category}
           timeIndex={currentTimeIndex}
+          anomalyDetection={anomalyDetection}
+          anomalyThreshold={anomalyThreshold}
         />
       ) : null;
     
     case 'heatmap':
       // Show heatmap layer if we have points
-      return points.length > 0 ? <HeatmapLayer points={points} /> : null;
+      return processedPoints.length > 0 ? <HeatmapLayer points={processedPoints} /> : null;
     
     case 'cluster':
       // Show cluster markers if we have points
-      return points.length > 0 ? <ClusterMarkers points={points} /> : null;
+      return processedPoints.length > 0 ? <ClusterMarkers points={processedPoints} /> : null;
     
     case 'standard':
     default:
@@ -55,10 +70,12 @@ const VisualizationLayerRenderer: React.FC<VisualizationLayerRendererProps> = ({
             visualizationType="standard" 
             category={category}
             timeIndex={currentTimeIndex}
+            anomalyDetection={anomalyDetection}
+            anomalyThreshold={anomalyThreshold}
           />
         );
-      } else if (points.length > 0) {
-        return <PointMarkers points={points} />;
+      } else if (processedPoints.length > 0) {
+        return <PointMarkers points={processedPoints} highlightAnomalies={anomalyDetection} />;
       }
       return null;
   }

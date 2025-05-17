@@ -7,6 +7,8 @@ export interface MapPoint {
   name?: string;
   value?: number;
   timeIndex?: number;
+  isAnomaly?: boolean;
+  zScore?: number;
 }
 
 export interface MapContainerProps {
@@ -19,10 +21,19 @@ export interface MapContainerProps {
   category?: string;
   currentTimeIndex?: number;
   activeLayers?: string[];
+  anomalyDetection?: boolean;
+  anomalyThreshold?: number;
 }
 
 export interface TileLayerConfig {
   url: string;
   attributionControl: boolean;
   attribution: string;
+}
+
+export interface AnomalyControlsProps {
+  anomalyDetection: boolean;
+  onAnomalyToggle: (enabled: boolean) => void;
+  anomalyThreshold: number;
+  onThresholdChange: (value: number) => void;
 }

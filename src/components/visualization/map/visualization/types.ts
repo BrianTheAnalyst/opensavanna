@@ -56,3 +56,8 @@ export interface MapLegendProps {
   geoJSON?: any;
   category?: string;
 }
+
+export interface AnomalyDetectionProps {
+  anomalyDetection: boolean;
+  anomalyThreshold: number;
+}
