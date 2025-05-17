@@ -31,13 +31,16 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
 
   return (
     <div style={{ height: '100%', width: '100%', borderRadius: '0.375rem' }}>
+      {/* 
+        We need to specify props that LeafletMapContainer accepts
+        The issue is with typing - we need to use specific props that the underlying 
+        Leaflet component expects
+      */}
       <LeafletMapContainer
-        // Use attributes that React-Leaflet's MapContainer expects
         center={defaultCenter}
         zoom={defaultZoom}
         style={{ height: '100%', width: '100%' }}
         zoomControl={false}
-        // Use key to force remount when center or zoom changes
         key={`${defaultCenter[0]}-${defaultCenter[1]}-${defaultZoom}`}
       >
         {activeLayers.includes('base') && (
@@ -58,7 +61,6 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
           anomalyThreshold={anomalyThreshold}
         />
         
-        {/* Optional Layer Controls using Leaflet's built-in control */}
         {activeLayers.includes('labels') && (
           <TileLayer 
             url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png"

@@ -17,7 +17,6 @@ export interface MapPoint {
 }
 
 export interface MapContainerProps {
-  // Renamed props to avoid conflict with react-leaflet's props
   defaultCenter: LatLngExpression;
   defaultZoom: number;
   geoJSON?: any;

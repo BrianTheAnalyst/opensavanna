@@ -1,26 +1,34 @@
+
 import React, { useEffect, useState } from 'react';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
-import { useLeafletIconFix } from '../useLeafletIconFix';
-import { getTileLayer } from '../utils/tileLayerUtils';
-import { MapPoint } from '../types';
-import MapEmptyState from './MapEmptyState';
-import MapLoadingState from './MapLoadingState';
-import LayerControls from '../LayerControls';
-import MapControls from '../MapControls';
+import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import {
+  BarChart3,
+  Layers,
+  Map as MapIcon,
+  AlertCircle,
+  Crosshair,
+  Thermometer
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
+import { AnomalyControls } from '../AnomalyControls';
 import TimeControls from '../TimeControls';
-import MapLegend from '../MapLegend';
-import AnomalyControls from '../AnomalyControls';
-import AnomalyTimeline from '../AnomalyTimeline';
-import CorrelationPanel from '../CorrelationPanel';
-import LayerBlendingControls from '../LayerBlendingControls';
-import InsightSuggestionPanel from '../InsightSuggestionPanel';
-import { useMapData } from './useMapData';
+import MapLoadingState from './MapLoadingState';
+import MapEmptyState from './MapEmptyState';
+import useMapData from './useMapData';
 import { MapVisualizationProps } from './types';
 import MapContainerComponent from '../MapContainer';
 import { detectAnomalies } from '../utils/anomalyDetection';
 import SpatialFilterPanel from '../SpatialFilterPanel';
+import CorrelationPanel from '../CorrelationPanel';
+import LayerBlendingControls from '../LayerBlendingControls';
+import InsightSuggestionPanel from '../InsightSuggestionPanel';
 
 // Define Insight interface to match InsightSuggestionPanel component
 interface Insight {
@@ -29,39 +37,43 @@ interface Insight {
   description: string;
   type: 'spatial' | 'temporal' | 'correlation' | 'anomaly';
   confidence: number;
-  applied: boolean;
+  applied?: boolean;
 }
 
 export const MapVisualization: React.FC<MapVisualizationProps> = ({
   data = [],
-  geoJSON,
-  category = 'General',
+  geoJSON = null,
+  title = 'Map Visualization',
+  description = 'Explore geographic data visually',
   isLoading = false,
-  title,
-  description
+  category = 'general'
 }) => {
-  useLeafletIconFix();
+  // State for visualization settings
   const [visualizationType, setVisualizationType] = useState<'standard' | 'choropleth' | 'heatmap' | 'cluster'>('standard');
-  const [currentTimeIndex, setCurrentTimeIndex] = useState(0);
-  const [showTimeControls, setShowTimeControls] = useState(false);
-  const [tileLayer, setTileLayer] = useState(getTileLayer('standard'));
   const [anomalyDetection, setAnomalyDetection] = useState(false);
-  const [anomalyThreshold, setAnomalyThreshold] = useState(2.0);
-  const [activeLayers, setActiveLayers] = useState(['base', 'data']);
-  const [showSidePanels, setShowSidePanels] = useState(true);
-  const [correlationValue, setCorrelationValue] = useState<number | null>(null);
-  const [isAnalyzingCorrelation, setIsAnalyzingCorrelation] = useState(false);
-  const [primaryLayer, setPrimaryLayer] = useState('base');
-  const [secondaryLayer, setSecondaryLayer] = useState('data');
-  const [blendMode, setBlendMode] = useState('normal');
-  const [blendOpacity, setBlendOpacity] = useState(0.7);
+  const [anomalyThreshold, setAnomalyThreshold] = useState(2);
+  const [timeIndex, setTimeIndex] = useState(0);
+  const [activeLayers, setActiveLayers] = useState<string[]>(['base', 'data']);
   
-  // Sample variables for correlation panel
-  const variables = [
+  // State for correlation analysis
+  const [isAnalyzingCorrelation, setIsAnalyzingCorrelation] = useState(false);
+  const [correlationValue, setCorrelationValue] = useState<number | null>(null);
+  
+  // State for layer blending
+  const [primaryLayer, setPrimaryLayer] = useState('temperature');
+  const [secondaryLayer, setSecondaryLayer] = useState('precipitation');
+  const [blendMode, setBlendMode] = useState('normal');
+  const [opacity, setOpacity] = useState(0.7);
+  
+  // Define available layers for selection
+  const availableLayers = [
     { id: 'temperature', name: 'Temperature', category: 'Climate' },
     { id: 'precipitation', name: 'Precipitation', category: 'Climate' },
-    { id: 'population', name: 'Population', category: 'Demographics' },
-    { id: 'gdp', name: 'GDP', category: 'Economics' },
+    { id: 'wind', name: 'Wind Speed', category: 'Climate' },
+    { id: 'humidity', name: 'Humidity', category: 'Climate' },
+    { id: 'population', name: 'Population Density', category: 'Demographics' },
+    { id: 'income', name: 'Per Capita Income', category: 'Economics' },
+    { id: 'land_cover', name: 'Land Cover', category: 'Environment' },
     { id: 'co2', name: 'CO2 Emissions', category: 'Environment' }
   ];
   
@@ -70,25 +82,25 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
     {
       id: '1',
       title: 'Temperature anomaly cluster',
-      description: 'There appears to be a cluster of temperature anomalies in the northern region during summer months.',
+      description: 'Detected unusual temperature pattern in the northwest region during summer months.',
       type: 'anomaly',
-      confidence: 0.85,
+      confidence: 0.89,
       applied: false
     },
     {
       id: '2',
-      title: 'Population correlates with CO2',
-      description: 'Strong positive correlation (0.78) between population density and CO2 emissions across urban areas.',
+      title: 'Strong correlation detected',
+      description: 'Air pollution levels show significant correlation with traffic density patterns across urban centers.',
       type: 'correlation',
-      confidence: 0.75,
-      applied: true
+      confidence: 0.76,
+      applied: false
     },
     {
       id: '3',
-      title: 'Seasonal precipitation pattern',
-      description: 'Temporal analysis shows a significant shift in precipitation patterns during El Niño years.',
+      title: 'Seasonal precipitation trend',
+      description: 'Eastern regions show consistent seasonal precipitation patterns with 15% variation from historical averages.',
       type: 'temporal',
-      confidence: 0.62,
+      confidence: 0.94,
       applied: false
     }
   ];
@@ -105,37 +117,39 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
   const mapData = useMapData(data, geoJSON, isLoading);
   const points = mapData.pointsData?.validPoints || [];
   
-  // Process anomalies for points
-  const processedPoints = React.useMemo(() => {
-    if (anomalyDetection && points.length > 0) {
-      return detectAnomalies(points, anomalyThreshold);
-    }
-    return points;
-  }, [points, anomalyDetection, anomalyThreshold]);
+  // Default center and zoom level
+  const defaultCenter = mapData.mapConfig.center || [20, 0];
+  const defaultZoom = mapData.mapConfig.zoom || 2;
   
-  // Show time controls if time series data is detected
-  useEffect(() => {
-    setShowTimeControls(mapData.hasTimeSeriesData);
-  }, [mapData.hasTimeSeriesData]);
+  // Handle visualization type change
+  const handleVisualizationTypeChange = (type: 'standard' | 'choropleth' | 'heatmap' | 'cluster') => {
+    setVisualizationType(type);
+  };
   
-  // Reset time index when data changes
-  useEffect(() => {
-    setCurrentTimeIndex(0);
-  }, [data, geoJSON]);
-  
-  // Handle anomaly toggle
+  // Handle anomaly detection toggle
   const handleAnomalyToggle = (enabled: boolean) => {
     setAnomalyDetection(enabled);
   };
   
+  // Handle anomaly threshold change
+  const handleThresholdChange = (value: number) => {
+    setAnomalyThreshold(value);
+  };
+  
+  // Handle time index change
+  const handleTimeIndexChange = (index: number) => {
+    setTimeIndex(index);
+  };
+  
   // Handle correlation analysis
-  const handleCorrelationAnalyze = (var1: string, var2: string) => {
+  const handleAnalyzeCorrelation = (variable1: string, variable2: string) => {
     setIsAnalyzingCorrelation(true);
-    // Simulate API call with timeout
+    setCorrelationValue(null);
+    
+    // Simulate correlation analysis with a timeout
     setTimeout(() => {
-      // Generate a random correlation between -1 and 1
-      // In a real app, this would call an actual correlation calculation service
-      const correlation = (Math.random() * 2 - 1).toFixed(2);
+      // In a real application, this would be calculated from actual data
+      const correlation = (Math.random() * 1.4 - 0.2).toFixed(2);
       setCorrelationValue(parseFloat(correlation));
       setIsAnalyzingCorrelation(false);
     }, 1500);
@@ -148,155 +162,169 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
   };
   
   // Handle insight application
-  const handleInsightApply = (insightId: string) => {
-    // In a real app, this would apply the insight to the visualization
-    console.log(`Applying insight: ${insightId}`);
+  const handleApplyInsight = (insightId: string) => {
+    // Implement insight application logic
+    console.log(`Applying insight ${insightId}`);
+    
+    // Update insights list to mark as applied
+    const updatedInsights = sampleInsights.map(insight => 
+      insight.id === insightId 
+        ? { ...insight, applied: !insight.applied }
+        : insight
+    );
+    
+    // In a real app, we would modify the state based on the insight type
+    const insight = sampleInsights.find(item => item.id === insightId);
+    if (insight) {
+      switch (insight.type) {
+        case 'anomaly':
+          setAnomalyDetection(true);
+          break;
+        case 'correlation':
+          // Would implement correlation visualization
+          break;
+        case 'temporal':
+          // Would implement time series visualization
+          break;
+        case 'spatial':
+          // Would implement spatial highlight
+          break;
+      }
+    }
   };
-  
-  // Handle insight refresh
+
+  // Function to refresh insights (placeholder)
   const handleRefreshInsights = () => {
-    // In a real app, this would refresh insights based on current data
-    console.log("Refreshing insights");
+    console.log("Refreshing insights...");
+    // Would fetch new insights in a real application
   };
-  
-  // Available layers for blending
-  const availableLayers = [
-    { id: 'base', name: 'Base Map' },
-    { id: 'data', name: 'Data Layer' },
-    { id: 'temperature', name: 'Temperature' },
-    { id: 'precipitation', name: 'Precipitation' },
-    { id: 'population', name: 'Population' }
-  ];
-  
-  // Show loading state
+
   if (isLoading) {
-    return <MapLoadingState 
-      title={title || "Loading Map Data"} 
-      description={description || "Please wait while we prepare your visualization..."} 
-    />;
+    return <MapLoadingState title={title} />;
   }
-  
-  // Show empty state if no data
-  if ((points.length === 0 && !geoJSON) || (!data || data.length === 0)) {
-    return <MapEmptyState 
-      title={title || "No Map Data Available"} 
-      description={description || "There is no geographic data available for this dataset."} 
-    />;
+
+  if ((!points || points.length === 0) && !geoJSON) {
+    return <MapEmptyState title={title} description="No geographic data available for visualization." />;
   }
-  
+
   return (
-    <div className="relative w-full h-[500px] bg-slate-50 dark:bg-slate-900 rounded-lg overflow-hidden">
-      <div className="flex h-full">
-        {/* Main map container */}
-        <div className={`relative ${showSidePanels ? 'w-3/4' : 'w-full'} h-full transition-all duration-300`}>
-          <MapContainerComponent
-            defaultCenter={mapData.mapCenter}
-            defaultZoom={mapData.mapZoom}
-            geoJSON={geoJSON}
-            points={processedPoints as MapPoint[]}
-            visualizationType={visualizationType}
-            category={category}
-            currentTimeIndex={currentTimeIndex}
-            activeLayers={activeLayers}
-            anomalyDetection={anomalyDetection}
-            anomalyThreshold={anomalyThreshold}
-          />
-          
-          <div className="absolute bottom-3 left-3 right-3 z-10 bg-white/80 dark:bg-gray-800/80 p-2 rounded-md">
-            {showTimeControls && (
-              <TimeControls
-                currentIndex={currentTimeIndex}
-                setCurrentIndex={setCurrentTimeIndex}
-                labels={mapData.timeLabels}
-              />
-            )}
-            
-            {anomalyDetection && showTimeControls && (
-              <AnomalyTimeline 
-                points={processedPoints}
-                labels={mapData.timeLabels}
-                currentIndex={currentTimeIndex}
-                onIndexChange={setCurrentTimeIndex}
-              />
-            )}
-          </div>
-          
-          <div className="absolute top-3 right-3 z-10 space-y-2">
-            <LayerControls
-              onTileLayerChange={setTileLayer}
-            />
-            
-            <AnomalyControls 
-              anomalyDetection={anomalyDetection}
-              onAnomalyToggle={handleAnomalyToggle}
-              anomalyThreshold={anomalyThreshold}
-              onThresholdChange={setAnomalyThreshold}
-            />
-          </div>
-          
-          <div className="absolute top-3 left-3 z-10">
-            <MapControls
-              currentType={visualizationType}
-              setType={setVisualizationType}
-              hasGeoJSON={!!geoJSON}
-              hasPoints={points.length > 0}
-            />
-          </div>
-          
-          <MapLegend
-            visualizationType={visualizationType}
-            geoJSON={geoJSON}
-            category={category}
-          />
-        </div>
-        
-        {/* Side panels for advanced analysis */}
-        {showSidePanels && (
-          <div className="w-1/4 h-full bg-white/90 dark:bg-gray-900/90 p-3 overflow-y-auto space-y-4">
-            <CorrelationPanel 
-              variables={variables}
-              onCorrelationAnalyze={handleCorrelationAnalyze}
-              correlationValue={correlationValue}
-              isAnalyzing={isAnalyzingCorrelation}
-            />
-            
-            <SpatialFilterPanel
-              onFilterChange={handleSpatialFilterChange}
-              regions={sampleRegions}
-              isFiltering={false}
-            />
-            
-            <LayerBlendingControls 
-              primaryLayer={primaryLayer}
-              secondaryLayer={secondaryLayer}
-              blendMode={blendMode}
-              blendOpacity={blendOpacity}
-              availableLayers={availableLayers}
-              onPrimaryLayerChange={setPrimaryLayer}
-              onSecondaryLayerChange={setSecondaryLayer}
-              onBlendModeChange={setBlendMode}
-              onBlendOpacityChange={setBlendOpacity}
-            />
-            
-            <InsightSuggestionPanel 
-              insights={sampleInsights}
-              loading={false}
-              onInsightApply={handleInsightApply}
-              onRefreshInsights={handleRefreshInsights}
-            />
-          </div>
-        )}
+    <div className="space-y-4">
+      <div>
+        <h2 className="text-xl font-medium">{title}</h2>
+        <p className="text-sm text-muted-foreground">{description}</p>
       </div>
       
-      {/* Toggle side panels button */}
-      <button 
-        className="absolute top-1/2 right-0 transform -translate-y-1/2 bg-primary text-primary-foreground p-1 px-2 rounded-l-md z-20"
-        onClick={() => setShowSidePanels(!showSidePanels)}
-      >
-        {showSidePanels ? '»' : '«'}
-      </button>
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+        {/* Main Map Area */}
+        <div className="lg:col-span-3 rounded-xl overflow-hidden">
+          <Card className="h-[600px]">
+            <CardContent className="p-0 h-full">
+              {/* Visualization Type Tabs */}
+              <Tabs defaultValue={visualizationType} className="h-full flex flex-col">
+                <TabsList className="mx-4 mt-4 bg-muted/60 grid w-full grid-cols-4">
+                  <TabsTrigger value="standard" onClick={() => handleVisualizationTypeChange('standard')}>
+                    <MapIcon className="h-4 w-4 mr-2" /> Standard
+                  </TabsTrigger>
+                  <TabsTrigger value="choropleth" onClick={() => handleVisualizationTypeChange('choropleth')}>
+                    <Layers className="h-4 w-4 mr-2" /> Choropleth
+                  </TabsTrigger>
+                  <TabsTrigger value="heatmap" onClick={() => handleVisualizationTypeChange('heatmap')}>
+                    <Thermometer className="h-4 w-4 mr-2" /> Heatmap
+                  </TabsTrigger>
+                  <TabsTrigger value="cluster" onClick={() => handleVisualizationTypeChange('cluster')}>
+                    <Crosshair className="h-4 w-4 mr-2" /> Clusters
+                  </TabsTrigger>
+                </TabsList>
+                
+                {/* Map Visualization Area */}
+                <TabsContent value={visualizationType} className="flex-1 m-0 p-4">
+                  <div className="h-full relative">
+                    <MapContainerComponent 
+                      defaultCenter={defaultCenter}
+                      defaultZoom={defaultZoom}
+                      geoJSON={geoJSON}
+                      points={points}
+                      visualizationType={visualizationType}
+                      category={category}
+                      currentTimeIndex={timeIndex}
+                      activeLayers={activeLayers}
+                      anomalyDetection={anomalyDetection}
+                      anomalyThreshold={anomalyThreshold}
+                    />
+                    
+                    <div className="absolute bottom-0 left-0 right-0 p-2 bg-background/95 backdrop-blur-sm rounded-t-md border-t">
+                      <TimeControls 
+                        currentIndex={timeIndex}
+                        maxIndex={10} // This should be determined from the actual data
+                        onChange={handleTimeIndexChange}
+                      />
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+        </div>
+        
+        {/* Sidebar Controls */}
+        <div className="space-y-4">
+          <AnomalyControls 
+            anomalyDetection={anomalyDetection} 
+            onAnomalyToggle={handleAnomalyToggle} 
+            anomalyThreshold={anomalyThreshold}
+            onThresholdChange={handleThresholdChange}
+          />
+          
+          <CorrelationPanel
+            availableVariables={availableLayers}
+            onAnalyze={handleAnalyzeCorrelation}
+            correlationValue={correlationValue}
+            isAnalyzing={isAnalyzingCorrelation}
+          />
+          
+          <SpatialFilterPanel
+            onFilterChange={handleSpatialFilterChange}
+            regions={sampleRegions}
+            isFiltering={false}
+          />
+          
+          <LayerBlendingControls 
+            primaryLayer={primaryLayer}
+            secondaryLayer={secondaryLayer}
+            availableLayers={availableLayers}
+            blendMode={blendMode}
+            opacity={opacity}
+            onPrimaryLayerChange={setPrimaryLayer}
+            onSecondaryLayerChange={setSecondaryLayer}
+            onBlendModeChange={setBlendMode}
+            onOpacityChange={setOpacity}
+          />
+          
+          <InsightSuggestionPanel
+            insights={sampleInsights}
+            loading={false}
+            onInsightApply={handleApplyInsight}
+            onRefreshInsights={handleRefreshInsights}
+          />
+        </div>
+      </div>
+      
+      <div>
+        <div className="flex gap-2 items-center">
+          <Switch
+            id="show-labels"
+            checked={activeLayers.includes('labels')}
+            onCheckedChange={(checked) => {
+              if (checked) {
+                setActiveLayers([...activeLayers, 'labels']);
+              } else {
+                setActiveLayers(activeLayers.filter(layer => layer !== 'labels'));
+              }
+            }}
+          />
+          <Label htmlFor="show-labels">Show Map Labels</Label>
+        </div>
+      </div>
     </div>
   );
 };
-
-export default MapVisualization;
