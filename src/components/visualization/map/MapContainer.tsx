@@ -32,9 +32,9 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
   return (
     <div style={{ height: '100%', width: '100%', borderRadius: '0.375rem' }}>
       <LeafletMapContainer
-        // Use 'defaultCenter' prop as the center
+        // The React-Leaflet component expects 'center' and 'zoom' directly
+        // Not using our prop names
         center={defaultCenter}
-        // Use 'defaultZoom' prop as the zoom level
         zoom={defaultZoom}
         style={{ height: '100%', width: '100%' }}
         zoomControl={false}

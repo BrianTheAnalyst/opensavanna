@@ -9,6 +9,11 @@ export interface MapPoint {
   timeIndex?: number;
   isAnomaly?: boolean;
   zScore?: number;
+  // Extended properties
+  cluster?: number;
+  isSpatialOutlier?: boolean;
+  outlierScore?: number;
+  properties?: Record<string, any>;
 }
 
 export interface MapContainerProps {
