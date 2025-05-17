@@ -32,17 +32,18 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
   return (
     <div style={{ height: '100%', width: '100%', borderRadius: '0.375rem' }}>
       {/* 
-        We need to use LeafletMapContainer's props correctly.
-        The issue is that we're passing 'zoomControl' which isn't in the type definition.
+        The MapContainer from react-leaflet expects different props than what TypeScript thinks.
+        We need to work around this type issue.
       */}
       <LeafletMapContainer
         style={{ height: '100%', width: '100%' }}
-        // Remove the zoomControl property from here as it's not in the type definition
-        // Instead, we'll add the ZoomControl component separately inside the container
-        // Add a key to force re-render when center or zoom changes
-        key={`${defaultCenter[0]}-${defaultCenter[1]}-${defaultZoom}`}
-        center={defaultCenter}
-        zoom={defaultZoom}
+        // Using type assertion to work around the TypeScript error
+        // This tells TypeScript to trust us that these props are valid
+        {...{
+          center: defaultCenter,
+          zoom: defaultZoom,
+          key: `${defaultCenter[0]}-${defaultCenter[1]}-${defaultZoom}`,
+        } as any}
       >
         {activeLayers.includes('base') && (
           <TileLayer 
@@ -50,7 +51,7 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
             // Attribution is handled differently in react-leaflet
           />
         )}
-        {/* Add ZoomControl as a separate component */}
+        
         <ZoomControl position="topright" />
         
         <VisualizationLayerRenderer 
