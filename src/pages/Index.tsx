@@ -11,7 +11,7 @@ import DataQuerySection from '@/components/dataQuery/DataQuerySection';
 import ExampleQueriesSection from '@/components/dataQuery/ExampleQueriesSection';
 import { toast } from 'sonner';
 
-// Import the new components
+// Import the components
 import FeaturedDatasetsSection from '@/components/home/FeaturedDatasetsSection';
 import CategoriesSection from '@/components/home/CategoriesSection';
 import DataVisualizationSection from '@/components/home/DataVisualizationSection';
@@ -122,34 +122,34 @@ const Index = () => {
       <Navbar />
       
       <main className="flex-grow">
-        {/* Hero Section */}
+        {/* Hero Section with Search Feature */}
         <Hero />
-
-        {/* Data Query Section */}
+        
+        {/* Example Queries Section - Moved up for better context */}
+        <ExampleQueriesSection onQuerySelect={handleQuerySelect} />
+        
+        {/* Data Query Section - Results area */}
         <section id="search-section" className="py-12 bg-gradient-to-b from-muted/50 to-background">
           <DataQuerySection />
         </section>
         
-        {/* Example Queries Section */}
-        <ExampleQueriesSection onQuerySelect={handleQuerySelect} />
-        
-        {/* Featured Datasets */}
+        {/* Featured Datasets - Show what's available */}
         <FeaturedDatasetsSection 
           datasets={featuredDatasets} 
           isLoaded={isLoaded} 
           onDataChange={handleDatasetUpdate}
         />
         
-        {/* Data Categories */}
-        <CategoriesSection 
-          isLoaded={isLoaded} 
-          categories={categories} 
-        />
-        
-        {/* Data Visualization */}
+        {/* Data Visualization - Show capabilities */}
         <DataVisualizationSection 
           isLoaded={isLoaded} 
           visData={visData} 
+        />
+        
+        {/* Data Categories - Browse options */}
+        <CategoriesSection 
+          isLoaded={isLoaded} 
+          categories={categories} 
         />
         
         {/* API & Developer Tools */}
