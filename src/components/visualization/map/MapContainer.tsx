@@ -1,9 +1,31 @@
 
-import React from 'react';
-import { MapContainer as LeafletMapContainer, TileLayer, ZoomControl } from 'react-leaflet';
+import React, { useCallback } from 'react';
+import { MapContainer as LeafletMapContainer, TileLayer, ZoomControl, useMap } from 'react-leaflet';
 import VisualizationLayerRenderer from './VisualizationLayerRenderer';
 import { MapContainerProps } from './types';
 import { getTileLayer } from './utils/tileLayerUtils';
+
+// MapEvents component to handle map events that need map context
+const MapEvents: React.FC<{ onMoveEnd?: (center: [number, number], zoom: number) => void }> = ({ onMoveEnd }) => {
+  const map = useMap();
+  
+  React.useEffect(() => {
+    if (onMoveEnd) {
+      const handleMoveEnd = () => {
+        const center = map.getCenter();
+        const zoom = map.getZoom();
+        onMoveEnd([center.lat, center.lng], zoom);
+      };
+      
+      map.on('moveend', handleMoveEnd);
+      return () => {
+        map.off('moveend', handleMoveEnd);
+      };
+    }
+  }, [map, onMoveEnd]);
+  
+  return null;
+};
 
 // Renamed component to avoid confusion with React-Leaflet's MapContainer
 const MapContainerComponent: React.FC<MapContainerProps> = ({
@@ -16,7 +38,8 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
   currentTimeIndex = 0,
   activeLayers = ['base', 'data'],
   anomalyDetection = false,
-  anomalyThreshold = 2.0
+  anomalyThreshold = 2.0,
+  onMapMove
 }) => {
   // Filter points by time index if available
   const filteredPoints = points.filter(point => 
@@ -28,6 +51,13 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
 
   // Check if data layer is active
   const isDataLayerActive = activeLayers.includes('data');
+  
+  // Callback for map movement
+  const handleMapMove = useCallback((center: [number, number], zoom: number) => {
+    if (onMapMove) {
+      onMapMove(center, zoom);
+    }
+  }, [onMapMove]);
 
   return (
     <div style={{ height: '100%', width: '100%', borderRadius: '0.375rem' }}>
@@ -43,12 +73,20 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
           center: defaultCenter,
           zoom: defaultZoom,
           key: `${defaultCenter[0]}-${defaultCenter[1]}-${defaultZoom}`,
+          minZoom: 2,
+          maxZoom: 18,
+          scrollWheelZoom: true,
+          doubleClickZoom: true,
+          attributionControl: false, // We'll add our own attribution if needed
         } as any}
       >
+        {/* Map Events handler */}
+        <MapEvents onMoveEnd={handleMapMove} />
+      
         {activeLayers.includes('base') && (
           <TileLayer 
             url={tileLayerProps.url}
-            // Attribution is handled differently in react-leaflet
+            attribution={tileLayerProps.attribution}
           />
         )}
         
@@ -68,7 +106,7 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
         {activeLayers.includes('labels') && (
           <TileLayer 
             url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png"
-            // Attribution is handled differently in react-leaflet
+            attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
           />
         )}
       </LeafletMapContainer>

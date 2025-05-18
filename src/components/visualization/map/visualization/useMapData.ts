@@ -1,5 +1,5 @@
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { LatLngExpression } from 'leaflet';
 import { GeoDataInfo } from './types';
 import { useGeoJsonProcessing } from '../hooks/useGeoJsonProcessing';
@@ -47,12 +47,17 @@ export function useMapData(data: any, geoJSON: any, isLoading: boolean): GeoData
   const hasGeoData = useMemo(() => {
     return !!processedGeoJSON || !!simplifiedGeoJSON || pointsData.validPoints.length > 0;
   }, [processedGeoJSON, simplifiedGeoJSON, pointsData.validPoints.length]);
+  
+  // Add caching for improved performance when dealing with large datasets
+  const cachedGeoJSON = useMemo(() => {
+    return simplifiedGeoJSON || processedGeoJSON;
+  }, [simplifiedGeoJSON, processedGeoJSON]);
 
   return {
     hasGeoData,
     mapCenter,
     mapZoom,
-    processedGeoJSON: simplifiedGeoJSON || processedGeoJSON, // Prefer simplified version
+    processedGeoJSON: cachedGeoJSON, // Use memoized version for better performance
     pointsData,
     simplifiedGeoJSON,
     isSimplifying,

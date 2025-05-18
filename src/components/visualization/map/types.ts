@@ -27,6 +27,7 @@ export interface MapContainerProps {
   activeLayers?: string[];
   anomalyDetection?: boolean;
   anomalyThreshold?: number;
+  onMapMove?: (center: [number, number], zoom: number) => void;
 }
 
 export interface TileLayerConfig {
@@ -40,4 +41,10 @@ export interface AnomalyControlsProps {
   onAnomalyToggle: (enabled: boolean) => void;
   anomalyThreshold: number;
   onThresholdChange: (value: number) => void;
+}
+
+export interface MapViewState {
+  center: LatLngExpression;
+  zoom: number;
+  bounds?: [[number, number], [number, number]];
 }
