@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Play, Pause } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
-import { TimeControlsProps } from '../map/visualization/types';
+import { TimeControlsProps } from './visualization/types';
 
 const TimeControls: React.FC<TimeControlsProps> = ({ 
   currentIndex, 
@@ -18,9 +18,8 @@ const TimeControls: React.FC<TimeControlsProps> = ({
   React.useEffect(() => {
     if (isPlaying) {
       playIntervalRef.current = setInterval(() => {
-        setCurrentIndex((prev: number) => {
-          const nextIndex = prev >= maxIndex ? 0 : prev + 1;
-          return nextIndex;
+        setCurrentIndex(prev => {
+          return prev >= maxIndex ? 0 : prev + 1;
         });
       }, 1500);
     } else if (playIntervalRef.current) {
