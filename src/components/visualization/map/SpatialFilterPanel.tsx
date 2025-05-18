@@ -5,7 +5,9 @@ import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Map, Filter } from 'lucide-react';
+import { Filter } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface SpatialFilterPanelProps {
   onFilterChange: (filters: SpatialFilter) => void;
@@ -48,18 +50,19 @@ const SpatialFilterPanel: React.FC<SpatialFilterPanelProps> = ({
   };
   
   return (
-    <Card>
-      <CardHeader className="pb-3">
+    <Card className="shadow-sm transition-all hover:shadow-md">
+      <CardHeader className="pb-2">
         <CardTitle className="text-md flex items-center">
-          <Filter className="h-4 w-4 mr-2" />
+          <Filter className="h-4 w-4 mr-2 text-primary" />
           Spatial Filtering
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <Separator />
+      <CardContent className="pt-4 space-y-4">
         <div className="space-y-2">
           <Label htmlFor="region" className="text-sm">Region</Label>
           <Select value={region || ''} onValueChange={setRegion}>
-            <SelectTrigger id="region">
+            <SelectTrigger id="region" className="w-full">
               <SelectValue placeholder="Select a region" />
             </SelectTrigger>
             <SelectContent>
@@ -74,8 +77,10 @@ const SpatialFilterPanel: React.FC<SpatialFilterPanelProps> = ({
         
         <div className="space-y-2">
           <div className="flex justify-between">
-            <Label htmlFor="radius" className="text-sm">Filter Radius (km)</Label>
-            <span className="text-xs text-muted-foreground">{radius} km</span>
+            <Label htmlFor="radius" className="text-sm">Filter Radius</Label>
+            <span className="text-xs font-medium bg-primary/10 text-primary px-2 py-1 rounded-full">
+              {radius} km
+            </span>
           </div>
           <Slider
             id="radius"
@@ -84,16 +89,15 @@ const SpatialFilterPanel: React.FC<SpatialFilterPanelProps> = ({
             step={5}
             value={[radius]}
             onValueChange={values => setRadius(values[0])}
+            className="mt-2"
           />
         </div>
         
         <div className="flex items-center space-x-2">
-          <input
-            type="checkbox"
+          <Checkbox
             id="include-outliers"
-            className="rounded border-gray-300"
             checked={includeOutliers}
-            onChange={(e) => setIncludeOutliers(e.target.checked)}
+            onCheckedChange={(checked) => setIncludeOutliers(checked === true)}
           />
           <Label htmlFor="include-outliers" className="text-sm">Include outliers</Label>
         </div>
@@ -114,7 +118,7 @@ const SpatialFilterPanel: React.FC<SpatialFilterPanelProps> = ({
           </Button>
         </div>
         
-        <div className="text-xs text-muted-foreground mt-2 p-2 bg-muted/50 rounded-md">
+        <div className="text-xs text-muted-foreground p-2 bg-muted/50 rounded-md border border-border/40">
           <p>Spatial filtering allows you to focus on specific geographic areas and their surrounding regions.</p>
         </div>
       </CardContent>

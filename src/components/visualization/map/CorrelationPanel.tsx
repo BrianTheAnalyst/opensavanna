@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { BadgeCheck, ArrowRightLeft, Loader2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
 
 interface CorrelationPanelProps {
   variables: Array<{ id: string; name: string; category?: string }>;
@@ -47,28 +48,31 @@ const CorrelationPanel: React.FC<CorrelationPanelProps> = ({
   };
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
+    <Card className="shadow-sm transition-all hover:shadow-md">
+      <CardHeader className="pb-2">
         <CardTitle className="text-md flex items-center">
-          <ArrowRightLeft className="h-4 w-4 mr-2" />
+          <ArrowRightLeft className="h-4 w-4 mr-2 text-primary" />
           Correlation Analysis
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <Separator />
+      <CardContent className="pt-4 space-y-4">
         <div className="space-y-2">
           <label className="text-sm font-medium" htmlFor="variable1">
             First Variable
           </label>
           <Select value={variable1} onValueChange={setVariable1}>
-            <SelectTrigger id="variable1">
+            <SelectTrigger id="variable1" className="w-full">
               <SelectValue placeholder="Select a variable" />
             </SelectTrigger>
             <SelectContent>
-              {variables.map(v => (
-                <SelectItem key={v.id} value={v.id}>
-                  {v.name}
-                </SelectItem>
-              ))}
+              <div className="max-h-[200px] overflow-auto">
+                {variables.map(v => (
+                  <SelectItem key={v.id} value={v.id}>
+                    {v.name}
+                  </SelectItem>
+                ))}
+              </div>
             </SelectContent>
           </Select>
         </div>
@@ -78,15 +82,17 @@ const CorrelationPanel: React.FC<CorrelationPanelProps> = ({
             Second Variable
           </label>
           <Select value={variable2} onValueChange={setVariable2}>
-            <SelectTrigger id="variable2">
+            <SelectTrigger id="variable2" className="w-full">
               <SelectValue placeholder="Select a variable" />
             </SelectTrigger>
             <SelectContent>
-              {variables.map(v => (
-                <SelectItem key={v.id} value={v.id}>
-                  {v.name}
-                </SelectItem>
-              ))}
+              <div className="max-h-[200px] overflow-auto">
+                {variables.map(v => (
+                  <SelectItem key={v.id} value={v.id}>
+                    {v.name}
+                  </SelectItem>
+                ))}
+              </div>
             </SelectContent>
           </Select>
         </div>
@@ -107,7 +113,7 @@ const CorrelationPanel: React.FC<CorrelationPanelProps> = ({
         </Button>
 
         {correlationValue !== null && !isAnalyzing && (
-          <div className="mt-4 space-y-2">
+          <div className="mt-4 space-y-2 animate-fade-in border border-border/40 rounded-md p-3 bg-card/50">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">Correlation Coefficient</span>
               <span className="text-sm font-bold">{correlationValue.toFixed(2)}</span>
@@ -122,7 +128,7 @@ const CorrelationPanel: React.FC<CorrelationPanelProps> = ({
           </div>
         )}
 
-        <div className="text-xs text-muted-foreground mt-2 p-2 bg-muted/50 rounded-md">
+        <div className="text-xs text-muted-foreground p-2 bg-muted/50 rounded-md border border-border/40">
           <p>Correlation analysis helps identify relationships between different variables in your data.</p>
         </div>
       </CardContent>

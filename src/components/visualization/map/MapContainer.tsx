@@ -60,7 +60,7 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
   }, [onMapMove]);
 
   return (
-    <div style={{ height: '100%', width: '100%', borderRadius: '0.375rem' }}>
+    <div className="h-full w-full rounded-md overflow-hidden shadow-sm border border-border/30 transition-all duration-200 hover:shadow-md">
       {/* 
         The MapContainer from react-leaflet expects different props than what TypeScript thinks.
         We need to work around this type issue.
@@ -77,7 +77,9 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
           maxZoom: 18,
           scrollWheelZoom: true,
           doubleClickZoom: true,
-          attributionControl: false, // We'll add our own attribution if needed
+          attributionControl: true, // Enable attribution control for proper credits
+          zoomControl: false, // We'll add our own zoom control
+          className: "z-10"
         } as any}
       >
         {/* Map Events handler */}

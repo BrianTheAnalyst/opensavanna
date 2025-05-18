@@ -6,17 +6,18 @@ import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
-  BarChart3,
   Layers,
-  Map as MapIcon,
+  MapIcon,
   AlertCircle,
   Crosshair,
-  Thermometer
+  Thermometer,
+  ChevronRight,
+  ChevronLeft
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
 import AnomalyControls from '../AnomalyControls';
 import TimeControls from '../TimeControls';
 import MapLoadingState from './MapLoadingState';
@@ -24,7 +25,6 @@ import MapEmptyState from './MapEmptyState';
 import { useMapData } from './useMapData';
 import { MapVisualizationProps, Insight } from './types';
 import MapContainerComponent from '../MapContainer';
-import { detectAnomalies } from '../utils/anomalyDetection';
 import SpatialFilterPanel from '../SpatialFilterPanel';
 import CorrelationPanel from '../CorrelationPanel';
 import LayerBlendingControls from '../LayerBlendingControls';
@@ -54,6 +54,9 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
   const [secondaryLayer, setSecondaryLayer] = useState('precipitation');
   const [blendMode, setBlendMode] = useState('normal');
   const [opacity, setOpacity] = useState(0.7);
+
+  // State for sidebar collapse
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   
   // Define available layers for selection
   const availableLayers = [
@@ -189,6 +192,11 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
     // Would fetch new insights in a real application
   };
 
+  // Toggle sidebar collapse
+  const toggleSidebar = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
+  };
+
   if (isLoading) {
     return <MapLoadingState title={title} description={description} />;
   }
@@ -199,36 +207,57 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
 
   return (
     <div className="space-y-4">
-      <div>
-        <h2 className="text-xl font-medium">{title}</h2>
-        <p className="text-sm text-muted-foreground">{description}</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-medium">{title}</h2>
+          <p className="text-sm text-muted-foreground">{description}</p>
+        </div>
+        <Badge variant="outline" className="bg-primary/10">
+          {anomalyDetection ? 'Anomaly Detection: On' : 'Standard View'}
+        </Badge>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+      <div className="relative flex">
         {/* Main Map Area */}
-        <div className="lg:col-span-3 rounded-xl overflow-hidden">
-          <Card className="h-[600px]">
+        <div className={`transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'w-full' : 'w-full lg:w-3/4 xl:w-4/5'}`}>
+          <Card className="h-[600px] shadow-md">
             <CardContent className="p-0 h-full">
               {/* Visualization Type Tabs */}
               <Tabs defaultValue={visualizationType} className="h-full flex flex-col">
                 <TabsList className="mx-4 mt-4 bg-muted/60 grid w-full grid-cols-4">
-                  <TabsTrigger value="standard" onClick={() => handleVisualizationTypeChange('standard')}>
+                  <TabsTrigger 
+                    value="standard" 
+                    onClick={() => handleVisualizationTypeChange('standard')}
+                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200"
+                  >
                     <MapIcon className="h-4 w-4 mr-2" /> Standard
                   </TabsTrigger>
-                  <TabsTrigger value="choropleth" onClick={() => handleVisualizationTypeChange('choropleth')}>
+                  <TabsTrigger 
+                    value="choropleth" 
+                    onClick={() => handleVisualizationTypeChange('choropleth')}
+                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200"
+                  >
                     <Layers className="h-4 w-4 mr-2" /> Choropleth
                   </TabsTrigger>
-                  <TabsTrigger value="heatmap" onClick={() => handleVisualizationTypeChange('heatmap')}>
+                  <TabsTrigger 
+                    value="heatmap" 
+                    onClick={() => handleVisualizationTypeChange('heatmap')}
+                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200"
+                  >
                     <Thermometer className="h-4 w-4 mr-2" /> Heatmap
                   </TabsTrigger>
-                  <TabsTrigger value="cluster" onClick={() => handleVisualizationTypeChange('cluster')}>
+                  <TabsTrigger 
+                    value="cluster" 
+                    onClick={() => handleVisualizationTypeChange('cluster')}
+                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200"
+                  >
                     <Crosshair className="h-4 w-4 mr-2" /> Clusters
                   </TabsTrigger>
                 </TabsList>
                 
                 {/* Map Visualization Area */}
                 <TabsContent value={visualizationType} className="flex-1 m-0 p-4">
-                  <div className="h-full relative">
+                  <div className="h-full relative rounded-md overflow-hidden">
                     <MapContainerComponent 
                       defaultCenter={defaultCenter}
                       defaultZoom={defaultZoom}
@@ -242,7 +271,7 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
                       anomalyThreshold={anomalyThreshold}
                     />
                     
-                    <div className="absolute bottom-0 left-0 right-0 p-2 bg-background/95 backdrop-blur-sm rounded-t-md border-t">
+                    <div className="absolute bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur-sm rounded-t-md border-t">
                       <TimeControls 
                         currentIndex={timeIndex}
                         setCurrentIndex={handleTimeIndexChange}
@@ -254,66 +283,124 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
               </Tabs>
             </CardContent>
           </Card>
+
+          {/* Layer Controls */}
+          <div className="mt-4 flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2">
+              <Switch
+                id="show-labels"
+                checked={activeLayers.includes('labels')}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setActiveLayers([...activeLayers, 'labels']);
+                  } else {
+                    setActiveLayers(activeLayers.filter(layer => layer !== 'labels'));
+                  }
+                }}
+                className="data-[state=checked]:bg-primary"
+              />
+              <Label htmlFor="show-labels" className="text-sm">Show Map Labels</Label>
+            </div>
+            
+            <div className="ml-auto">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={toggleSidebar}
+                className="border border-border/40 hover:bg-muted transition-colors"
+              >
+                {sidebarCollapsed ? (
+                  <>
+                    <ChevronLeft className="mr-1 h-4 w-4" /> Show Controls
+                  </>
+                ) : (
+                  <>
+                    Hide Controls <ChevronRight className="ml-1 h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
         </div>
         
         {/* Sidebar Controls */}
-        <div className="space-y-4">
-          <AnomalyControls 
-            anomalyDetection={anomalyDetection} 
-            onAnomalyToggle={handleAnomalyToggle} 
-            anomalyThreshold={anomalyThreshold}
-            onThresholdChange={handleThresholdChange}
-          />
-          
-          <CorrelationPanel
-            variables={availableLayers}
-            onAnalyze={handleAnalyzeCorrelation}
-            correlationValue={correlationValue}
-            isAnalyzing={isAnalyzingCorrelation}
-          />
-          
-          <SpatialFilterPanel
-            onFilterChange={handleSpatialFilterChange}
-            regions={sampleRegions}
-            isFiltering={false}
-          />
-          
-          <LayerBlendingControls 
-            primaryLayer={primaryLayer}
-            secondaryLayer={secondaryLayer}
-            availableLayers={availableLayers}
-            blendMode={blendMode}
-            blendOpacity={opacity}
-            onPrimaryLayerChange={setPrimaryLayer}
-            onSecondaryLayerChange={setSecondaryLayer}
-            onBlendModeChange={setBlendMode}
-            onBlendOpacityChange={setOpacity}
-          />
-          
-          <InsightSuggestionPanel
-            insights={sampleInsights}
-            loading={false}
-            onInsightApply={handleApplyInsight}
-            onRefreshInsights={handleRefreshInsights}
-          />
-        </div>
+        {!sidebarCollapsed && (
+          <div className={`w-1/4 xl:w-1/5 ml-4 space-y-4 transition-all duration-300 hidden lg:block animate-fade-in`}>
+            <div className="space-y-4 sticky top-4">
+              <AnomalyControls 
+                anomalyDetection={anomalyDetection} 
+                onAnomalyToggle={handleAnomalyToggle} 
+                anomalyThreshold={anomalyThreshold}
+                onThresholdChange={handleThresholdChange}
+              />
+              
+              <CorrelationPanel
+                variables={availableLayers}
+                onAnalyze={handleAnalyzeCorrelation}
+                correlationValue={correlationValue}
+                isAnalyzing={isAnalyzingCorrelation}
+              />
+              
+              <SpatialFilterPanel
+                onFilterChange={handleSpatialFilterChange}
+                regions={sampleRegions}
+                isFiltering={false}
+              />
+              
+              <LayerBlendingControls 
+                primaryLayer={primaryLayer}
+                secondaryLayer={secondaryLayer}
+                availableLayers={availableLayers}
+                blendMode={blendMode}
+                blendOpacity={opacity}
+                onPrimaryLayerChange={setPrimaryLayer}
+                onSecondaryLayerChange={setSecondaryLayer}
+                onBlendModeChange={setBlendMode}
+                onBlendOpacityChange={setOpacity}
+              />
+              
+              <InsightSuggestionPanel
+                insights={sampleInsights}
+                loading={false}
+                onInsightApply={handleApplyInsight}
+                onRefreshInsights={handleRefreshInsights}
+              />
+            </div>
+          </div>
+        )}
       </div>
       
-      <div>
-        <div className="flex gap-2 items-center">
-          <Switch
-            id="show-labels"
-            checked={activeLayers.includes('labels')}
-            onCheckedChange={(checked) => {
-              if (checked) {
-                setActiveLayers([...activeLayers, 'labels']);
-              } else {
-                setActiveLayers(activeLayers.filter(layer => layer !== 'labels'));
-              }
-            }}
-          />
-          <Label htmlFor="show-labels">Show Map Labels</Label>
+      {/* Mobile Controls (shown when sidebar is collapsed on mobile) */}
+      {sidebarCollapsed && (
+        <div className="lg:hidden">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 animate-fade-in">
+            <AnomalyControls 
+              anomalyDetection={anomalyDetection} 
+              onAnomalyToggle={handleAnomalyToggle} 
+              anomalyThreshold={anomalyThreshold}
+              onThresholdChange={handleThresholdChange}
+            />
+            
+            <CorrelationPanel
+              variables={availableLayers}
+              onAnalyze={handleAnalyzeCorrelation}
+              correlationValue={correlationValue}
+              isAnalyzing={isAnalyzingCorrelation}
+            />
+          </div>
         </div>
+      )}
+      
+      {/* Mobile Controls Button */}
+      <div className="lg:hidden">
+        <Button 
+          variant="outline" 
+          className="w-full mt-4"
+          onClick={toggleSidebar}
+        >
+          {sidebarCollapsed ? 'Show All Controls' : 'Hide Controls'}
+          {sidebarCollapsed ? <ChevronLeft className="ml-1 h-4 w-4" /> : <ChevronRight className="ml-1 h-4 w-4" />}
+        </Button>
       </div>
     </div>
   );
