@@ -42,7 +42,7 @@ export interface TimeControlsProps {
   currentIndex: number;
   maxIndex?: number; 
   onChange?: (index: number) => void;
-  setCurrentIndex: (index: number) => void;
+  setCurrentIndex: ((index: number) => void) | ((updater: (prevIndex: number) => number) => void);
   labels?: string[];
 }
 
