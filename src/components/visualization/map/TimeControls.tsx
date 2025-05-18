@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Play, Pause } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
-import { TimeControlsProps } from './types';
+import { TimeControlsProps } from '../map/visualization/types';
 
 const TimeControls: React.FC<TimeControlsProps> = ({ 
   currentIndex, 

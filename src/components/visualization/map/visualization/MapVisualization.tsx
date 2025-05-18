@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import MapLoadingState from './MapLoadingState';
 import MapEmptyState from './MapEmptyState';
 import { useMapData } from './useMapData';
@@ -15,6 +15,10 @@ import MapHeader from './MapHeader';
 import MapVisualizationTabs from './MapVisualizationTabs';
 import MapLayerControls from './MapLayerControls';
 import MapSidebar from './MapSidebar';
+
+// Import the components that were missing
+import AnomalyControls from '../AnomalyControls';
+import CorrelationPanel from '../CorrelationPanel';
 
 export const MapVisualization: React.FC<MapVisualizationProps> = ({
   data = [],
