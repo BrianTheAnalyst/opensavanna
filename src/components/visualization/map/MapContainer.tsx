@@ -86,7 +86,8 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
         {activeLayers.includes('base') && (
           <TileLayer 
             url={tileLayerProps.url}
-            attribution={tileLayerProps.attribution}
+            // Remove the attribution prop as it's not recognized by TileLayerProps
+            // Instead, we'll use attributionControl in the container config
           />
         )}
         
@@ -106,7 +107,7 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
         {activeLayers.includes('labels') && (
           <TileLayer 
             url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png"
-            attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
+            // Remove the attribution prop here too
           />
         )}
       </LeafletMapContainer>
