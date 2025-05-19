@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { PieChart, Map, FileText, Database } from 'lucide-react';
@@ -125,13 +124,11 @@ const Index = () => {
         {/* Hero Section with Search Feature */}
         <Hero />
         
-        {/* Example Queries Section - Moved up for better context */}
+        {/* Example Queries Section - Shows options for exploration */}
         <ExampleQueriesSection onQuerySelect={handleQuerySelect} />
         
         {/* Data Query Section - Results area */}
-        <section id="search-section" className="py-12 bg-gradient-to-b from-muted/50 to-background">
-          <DataQuerySection />
-        </section>
+        <DataQuerySection />
         
         {/* Featured Datasets - Show what's available */}
         <FeaturedDatasetsSection 

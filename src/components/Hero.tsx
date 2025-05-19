@@ -56,7 +56,7 @@ const Hero = () => {
           </p>
           
           <div className={`transition-all duration-700 delay-200 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-            <Card className="bg-card/95 backdrop-blur border-border/50 shadow-lg">
+            <Card className="bg-card/95 backdrop-blur border-border/50 shadow-lg hover:shadow-xl transition-shadow duration-300">
               <div className="p-6">
                 <QuerySearchBar
                   onSearch={handleSearch}

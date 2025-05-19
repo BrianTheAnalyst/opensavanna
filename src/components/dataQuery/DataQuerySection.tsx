@@ -47,16 +47,10 @@ const DataQuerySection = () => {
   };
 
   return (
-    <section className="py-12 px-4">
+    <section id="search-section" className="py-12 px-4">
       <div className="container mx-auto">
         <div className="text-center mb-8">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Ask Questions, Get Data-Driven Answers
-          </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-6">
-            Use natural language to explore our datasets. Ask questions about economics, health, 
-            education and more to get visualized insights and comparisons.
-          </p>
+          {/* Removed duplicate heading and description */}
           <QuerySearchBar
             onSearch={handleSearch}
             isSearching={isSearching}
