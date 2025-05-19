@@ -1,64 +1,23 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { Card, CardContent } from '@/components/ui/card';
-import QuerySearchBar from './QuerySearchBar';
-import DataInsightsResult from './DataInsightsResult';
-import { DataInsightResult, getSuggestedQuestions, processDataQuery } from '@/services/dataInsightsService';
+import { DataInsightResult, processDataQuery } from '@/services/dataInsightsService';
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import DataInsightsResult from './DataInsightsResult';
 
 const DataQuerySection = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<DataInsightResult | null>(null);
-  const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([]);
 
-  useEffect(() => {
-    // Load suggested questions when the component mounts
-    const loadSuggestions = async () => {
-      try {
-        const questions = await getSuggestedQuestions();
-        setSuggestedQuestions(questions);
-      } catch (error) {
-        console.error('Error loading suggested questions:', error);
-      }
-    };
-
-    loadSuggestions();
-  }, []);
-
-  const handleSearch = async (query: string) => {
-    setIsSearching(true);
-    setError(null);
-    try {
-      const data = await processDataQuery(query);
-      setResult(data);
-      // Update the URL to include the query parameter
-      const url = new URL(window.location.href);
-      url.searchParams.set('query', query);
-      window.history.pushState({}, '', url);
-    } catch (err: any) {
-      setError(err.message || 'Failed to process your question');
-      toast.error('Failed to process your question');
-    } finally {
-      setIsSearching(false);
-    }
-  };
-
+  // This section will no longer handle the search input
+  // but will only display search results and errors
+  
   return (
     <section id="search-section" className="py-12 px-4 border-t border-border/40">
       <div className="container mx-auto">
-        <div className="text-center mb-8">
-          {/* Removed heading and only kept the search bar */}
-          <QuerySearchBar
-            onSearch={handleSearch}
-            isSearching={isSearching}
-            suggestedQuestions={suggestedQuestions}
-            className="max-w-2xl mx-auto"
-          />
-        </div>
-
         {isSearching && (
           <Card className="max-w-4xl mx-auto animate-pulse">
             <CardContent className="pt-6">

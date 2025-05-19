@@ -41,7 +41,7 @@ const Hero = () => {
   };
 
   return (
-    <section className="relative min-h-[85vh] flex items-center overflow-hidden pt-16">
+    <section className="relative min-h-[80vh] flex items-center overflow-hidden pt-16">
       {/* Background decorative elements */}
       <BackgroundElements />
       

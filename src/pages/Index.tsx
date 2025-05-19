@@ -10,6 +10,7 @@ import { Dataset } from '@/types/dataset';
 import DataQuerySection from '@/components/dataQuery/DataQuerySection';
 import ExampleQueriesSection from '@/components/dataQuery/ExampleQueriesSection';
 import { toast } from 'sonner';
+import { processDataQuery } from '@/services/dataInsightsService';
 
 // Import the components
 import FeaturedDatasetsSection from '@/components/home/FeaturedDatasetsSection';
@@ -31,6 +32,9 @@ const Index = () => {
   
   const location = useLocation();
   const [activeQuery, setActiveQuery] = useState<string | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<any | null>(null);
   
   const fetchData = useCallback(async () => {
     try {
@@ -91,10 +95,37 @@ const Index = () => {
     // Check for query parameter in URL
     const searchParams = new URLSearchParams(location.search);
     const query = searchParams.get('query');
-    setActiveQuery(query);
+    if (query) {
+      setActiveQuery(query);
+      handleSearch(query);
+    }
     
     fetchData();
   }, [location, fetchData]);
+
+  const handleSearch = async (query: string) => {
+    setIsSearching(true);
+    setError(null);
+    try {
+      const data = await processDataQuery(query);
+      setResult(data);
+      // Update the URL to include the query parameter
+      const url = new URL(window.location.href);
+      url.searchParams.set('query', query);
+      window.history.pushState({}, '', url);
+
+      // Scroll to the search section
+      const searchElement = document.getElementById('search-section');
+      if (searchElement) {
+        searchElement.scrollIntoView({ behavior: 'smooth' });
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to process your question');
+      toast.error('Failed to process your question');
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   const handleQuerySelect = (query: string) => {
     // Scroll to the search section
@@ -111,6 +142,9 @@ const Index = () => {
     
     // Show a toast notification
     toast.info('Loading query results...');
+    
+    // Process the query
+    handleSearch(query);
   };
 
   const handleDatasetUpdate = () => {

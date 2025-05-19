@@ -118,8 +118,12 @@ const ExampleQueriesSection: React.FC<ExampleQueriesSectionProps> = ({ onQuerySe
                       <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
                       
                       {/* Pulsing highlight for the dropdown button */}
-                      {!isOpen && !openItems.length && (
-                        <span className="absolute inset-0 bg-primary/5 animate-pulse rounded-b-lg pointer-events-none"></span>
+                      {!isOpen && (
+                        <motion.span 
+                          className="absolute inset-0 bg-primary/5 rounded-b-lg pointer-events-none"
+                          animate={{ opacity: [0.2, 0.5, 0.2] }}
+                          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                        />
                       )}
                     </Button>
                   </CollapsibleTrigger>
