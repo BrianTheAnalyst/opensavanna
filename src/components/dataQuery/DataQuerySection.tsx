@@ -47,10 +47,10 @@ const DataQuerySection = () => {
   };
 
   return (
-    <section id="search-section" className="py-12 px-4">
+    <section id="search-section" className="py-12 px-4 border-t border-border/40">
       <div className="container mx-auto">
         <div className="text-center mb-8">
-          {/* Removed duplicate heading and description */}
+          {/* Removed heading and only kept the search bar */}
           <QuerySearchBar
             onSearch={handleSearch}
             isSearching={isSearching}

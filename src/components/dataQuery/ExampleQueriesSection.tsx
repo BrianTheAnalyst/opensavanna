@@ -112,10 +112,15 @@ const ExampleQueriesSection: React.FC<ExampleQueriesSectionProps> = ({ onQuerySe
                   <CollapsibleTrigger asChild>
                     <Button 
                       variant="ghost" 
-                      className="w-full justify-between text-sm text-muted-foreground hover:text-foreground px-6 py-2 border-t group"
+                      className="w-full justify-between text-sm text-muted-foreground hover:text-foreground px-6 py-2 border-t group relative"
                     >
                       <span>{isOpen ? "Show less" : "Learn more"}</span>
                       <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                      
+                      {/* Pulsing highlight for the dropdown button */}
+                      {!isOpen && !openItems.length && (
+                        <span className="absolute inset-0 bg-primary/5 animate-pulse rounded-b-lg pointer-events-none"></span>
+                      )}
                     </Button>
                   </CollapsibleTrigger>
                   
