@@ -130,11 +130,11 @@ const QuerySearchBar = ({ onSearch, isSearching, suggestedQuestions = [], classN
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="absolute z-10 mt-2 w-full bg-background rounded-lg shadow-lg border border-border/50"
+              className="absolute z-50 mt-2 w-full bg-background rounded-lg shadow-lg border border-border/50"
             >
               <div className="py-2">
-                <p className="px-4 py-1 text-sm text-muted-foreground">Suggested questions:</p>
-                <ul ref={suggestionsRef}>
+                <p className="px-4 py-1 text-sm font-medium text-primary">Suggested questions:</p>
+                <ul ref={suggestionsRef} className="max-h-64 overflow-y-auto">
                   {suggestedQuestions.map((suggestion, index) => (
                     <li key={index}>
                       <button

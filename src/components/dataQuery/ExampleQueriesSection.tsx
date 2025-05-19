@@ -67,10 +67,10 @@ const ExampleQueriesSection: React.FC<ExampleQueriesSectionProps> = ({ onQuerySe
   };
   
   return (
-    <section className="py-12 bg-muted/30">
+    <section className="py-16 bg-muted/30" id="example-queries">
       <div className="container mx-auto">
-        <div className="text-center mb-8">
-          <h2 className="text-2xl md:text-3xl font-semibold mb-3">Example Questions to Explore</h2>
+        <div className="text-center mb-10">
+          <h2 className="text-2xl md:text-3xl font-semibold mb-4">Example Questions to Explore</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto mb-6">
             Try these sample questions or create your own to discover insights from our datasets
           </p>
@@ -117,12 +117,19 @@ const ExampleQueriesSection: React.FC<ExampleQueriesSectionProps> = ({ onQuerySe
                       <span>{isOpen ? "Show less" : "Learn more"}</span>
                       <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
                       
-                      {/* Pulsing highlight for the dropdown button */}
+                      {/* Enhanced pulsing highlight for the dropdown button */}
                       {!isOpen && (
                         <motion.span 
-                          className="absolute inset-0 bg-primary/5 rounded-b-lg pointer-events-none"
-                          animate={{ opacity: [0.2, 0.5, 0.2] }}
-                          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                          className="absolute inset-0 bg-primary/10 rounded-b-lg pointer-events-none"
+                          animate={{ 
+                            opacity: [0.3, 0.7, 0.3],
+                            scale: [1, 1.02, 1]
+                          }}
+                          transition={{ 
+                            duration: 2.5, 
+                            repeat: Infinity, 
+                            ease: "easeInOut"
+                          }}
                         />
                       )}
                     </Button>

@@ -1,8 +1,7 @@
 
 import { useState } from 'react';
-import { toast } from 'sonner';
 import { Card, CardContent } from '@/components/ui/card';
-import { DataInsightResult, processDataQuery } from '@/services/dataInsightsService';
+import { DataInsightResult } from '@/services/dataInsightsService';
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import DataInsightsResult from './DataInsightsResult';
@@ -12,8 +11,8 @@ const DataQuerySection = () => {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<DataInsightResult | null>(null);
 
-  // This section will no longer handle the search input
-  // but will only display search results and errors
+  // This section will only display search results and errors
+  // The search input has been moved to the Hero section
   
   return (
     <section id="search-section" className="py-12 px-4 border-t border-border/40">

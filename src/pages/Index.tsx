@@ -128,12 +128,6 @@ const Index = () => {
   };
 
   const handleQuerySelect = (query: string) => {
-    // Scroll to the search section
-    const searchElement = document.getElementById('search-section');
-    if (searchElement) {
-      searchElement.scrollIntoView({ behavior: 'smooth' });
-    }
-    
     // Set the query in URL to trigger search
     const url = new URL(window.location.href);
     url.searchParams.set('query', query);
@@ -145,6 +139,12 @@ const Index = () => {
     
     // Process the query
     handleSearch(query);
+    
+    // Scroll to the search section
+    const searchElement = document.getElementById('search-section');
+    if (searchElement) {
+      searchElement.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   const handleDatasetUpdate = () => {

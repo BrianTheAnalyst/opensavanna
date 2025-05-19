@@ -41,12 +41,12 @@ const Hero = () => {
   };
 
   return (
-    <section className="relative min-h-[80vh] flex items-center overflow-hidden pt-16">
+    <section className="relative min-h-[70vh] flex items-center overflow-hidden pt-16 pb-8">
       {/* Background decorative elements */}
       <BackgroundElements />
       
       <div className="container px-4 mx-auto">
-        <div className="max-w-4xl mx-auto text-center mb-10">
+        <div className="max-w-4xl mx-auto text-center mb-8">
           <h1 className={`text-4xl sm:text-5xl md:text-6xl font-semibold tracking-tight mb-6 transition-all duration-700 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
             Ask Questions, Get <span className="text-primary">Data-Driven</span> Answers
           </h1>
@@ -56,7 +56,7 @@ const Hero = () => {
           </p>
           
           <div className={`transition-all duration-700 delay-200 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-            <Card className="bg-card/95 backdrop-blur border-border/50 shadow-lg hover:shadow-xl transition-shadow duration-300">
+            <Card className="bg-card/95 backdrop-blur border-border/50 shadow-lg hover:shadow-xl transition-shadow duration-300 mb-2">
               <div className="p-6">
                 <QuerySearchBar
                   onSearch={handleSearch}
@@ -66,11 +66,14 @@ const Hero = () => {
                 />
               </div>
             </Card>
+            
+            {/* Added space between search bar and stats */}
+            <div className="h-4"></div>
           </div>
         </div>
         
-        {/* Stats section below the search */}
-        <div className="mt-20">
+        {/* Stats section with additional spacing */}
+        <div className="mt-16">
           <HeroStats isLoaded={isLoaded} />
         </div>
       </div>
