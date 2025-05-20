@@ -1,12 +1,19 @@
+
 // This file is assumed to exist based on the previous implementation
 // Adding visual history tracking to the existing conversation context
 
-interface ConversationItem {
+export interface ConversationItem {
   question: string;
   answer: string;
   timestamp: number;
   insights: string[];
   visualizations: any[];
+  datasetIds?: string[]; // IDs of datasets used in this conversation
+}
+
+export interface ConversationContext {
+  history: ConversationItem[];
+  currentDatasets?: string[]; // Current active dataset IDs
 }
 
 // In-memory store for conversation history
@@ -21,7 +28,8 @@ export const addToConversationHistory = (question: string, result: any) => {
     answer: result.answer,
     timestamp: Date.now(),
     insights: result.insights || [],
-    visualizations: result.visualizations || []
+    visualizations: result.visualizations || [],
+    datasetIds: result.datasets ? result.datasets.map((d: any) => d.id) : []
   };
   
   // Add to history and keep limited length
@@ -41,7 +49,7 @@ export const addToConversationHistory = (question: string, result: any) => {
 };
 
 // Get recent conversation history
-export const getConversationContext = () => {
+export const getConversationContext = (): ConversationContext => {
   // Try to load from localStorage first if available
   if (conversationHistory.length === 0 && typeof localStorage !== 'undefined') {
     try {
@@ -57,7 +65,10 @@ export const getConversationContext = () => {
     }
   }
   
-  return conversationHistory;
+  return {
+    history: conversationHistory,
+    currentDatasets: conversationHistory[0]?.datasetIds
+  };
 };
 
 // Get related questions based on conversation history
