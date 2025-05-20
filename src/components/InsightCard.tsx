@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { 
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, 
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  Legend
+  Legend, ReferenceLine
 } from 'recharts';
 
 interface InsightCardProps {
@@ -18,6 +18,8 @@ interface InsightCardProps {
   colors?: string[];
   className?: string;
   tooltipFormatter?: (value: any, name: any) => React.ReactNode;
+  xAxisLabel?: string;
+  yAxisLabel?: string;
 }
 
 const COLORS = [
@@ -34,7 +36,9 @@ const InsightCard = ({
   nameKey = 'name',
   colors = COLORS,
   className,
-  tooltipFormatter
+  tooltipFormatter,
+  xAxisLabel,
+  yAxisLabel
 }: InsightCardProps) => {
   if (!data || data.length === 0) {
     return (
@@ -52,6 +56,20 @@ const InsightCard = ({
     );
   }
 
+  // Calculate statistics for reference lines when using line charts
+  const calculateStats = () => {
+    if (type !== 'line' || !data.length) return {};
+    
+    const values = data.map(item => item[dataKey]);
+    return {
+      min: Math.min(...values),
+      max: Math.max(...values),
+      avg: values.reduce((sum, val) => sum + val, 0) / values.length
+    };
+  };
+  
+  const stats = calculateStats();
+
   const renderChart = () => {
     switch (type) {
       case 'bar':
@@ -65,11 +83,13 @@ const InsightCard = ({
                 tickLine={false}
                 angle={-45}
                 textAnchor="end"
+                label={xAxisLabel ? { value: xAxisLabel, position: 'insideBottom', offset: -10 } : undefined}
               />
               <YAxis 
                 tick={{ fontSize: 12 }} 
                 tickLine={false}
                 axisLine={false}
+                label={yAxisLabel ? { value: yAxisLabel, angle: -90, position: 'insideLeft', offset: -5 } : undefined}
               />
               <Tooltip 
                 formatter={tooltipFormatter}
@@ -100,11 +120,13 @@ const InsightCard = ({
                 tickLine={false}
                 angle={-45}
                 textAnchor="end"
+                label={xAxisLabel ? { value: xAxisLabel, position: 'insideBottom', offset: -10 } : undefined}
               />
               <YAxis 
                 tick={{ fontSize: 12 }} 
                 tickLine={false}
                 axisLine={false}
+                label={yAxisLabel ? { value: yAxisLabel, angle: -90, position: 'insideLeft', offset: -5 } : undefined}
               />
               <Tooltip 
                 formatter={tooltipFormatter}
@@ -115,6 +137,14 @@ const InsightCard = ({
                 }} 
               />
               <Legend />
+              {type === 'line' && stats.avg !== undefined && (
+                <ReferenceLine 
+                  y={stats.avg} 
+                  label="Average" 
+                  stroke="#888" 
+                  strokeDasharray="3 3" 
+                />
+              )}
               <Line 
                 type="monotone" 
                 dataKey={dataKey} 

@@ -41,8 +41,32 @@ const VisualizationsSection: React.FC<VisualizationsSectionProps> = ({ visualiza
           );
         }
         
+        // Determine appropriate axis labels based on visualization type and category
+        const getAxisLabels = () => {
+          let xAxisLabel = 'Category';
+          let yAxisLabel = 'Value';
+          
+          if (viz.type === 'line') {
+            xAxisLabel = viz.timeAxis || 'Time Period';
+            yAxisLabel = viz.valueLabel || 'Value';
+          } else if (viz.category?.toLowerCase().includes('economic')) {
+            xAxisLabel = 'Economic Indicator';
+            yAxisLabel = 'Economic Value';
+          } else if (viz.category?.toLowerCase().includes('health')) {
+            xAxisLabel = 'Health Metric';
+            yAxisLabel = 'Health Value';
+          } else if (viz.category?.toLowerCase().includes('education')) {
+            xAxisLabel = 'Education Metric';
+            yAxisLabel = 'Education Value';
+          }
+          
+          return { xAxisLabel, yAxisLabel };
+        };
+        
+        const { xAxisLabel, yAxisLabel } = getAxisLabels();
+        
         return (
-          <Card key={index}>
+          <Card key={index} className={viz.type === 'line' ? "md:col-span-2" : ""}>
             <CardHeader>
               <CardTitle>{viz.title}</CardTitle>
               <CardDescription>
@@ -56,6 +80,9 @@ const VisualizationsSection: React.FC<VisualizationsSectionProps> = ({ visualiza
                 type={viz.type}
                 dataKey="value"
                 nameKey="name"
+                xAxisLabel={xAxisLabel}
+                yAxisLabel={yAxisLabel}
+                tooltipFormatter={(value, name) => [`${value}`, viz.valueLabel || 'Value']}
               />
             </CardContent>
           </Card>
