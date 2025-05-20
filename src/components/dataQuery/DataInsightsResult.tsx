@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { DataInsightResult } from '@/services/dataInsights/types';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { MessageSquareText } from 'lucide-react';
 import HeaderSection from './sections/HeaderSection';
 import VisualizationsSection from './sections/VisualizationsSection';
@@ -17,6 +16,9 @@ interface DataInsightsResultProps {
 }
 
 const DataInsightsResult = ({ result, onFollowUpClick }: DataInsightsResultProps) => {
+  // States for insights visibility
+  const [expandedInsights, setExpandedInsights] = useState(false);
+  
   const handleFollowUpClick = (question: string) => {
     if (onFollowUpClick) {
       onFollowUpClick(question);
@@ -55,7 +57,11 @@ const DataInsightsResult = ({ result, onFollowUpClick }: DataInsightsResultProps
       )}
       
       {/* Insights - Now using the dedicated InsightsSection component */}
-      <InsightsSection insights={result.insights} />
+      <InsightsSection 
+        insights={result.insights} 
+        expanded={expandedInsights}
+        onToggleExpanded={() => setExpandedInsights(!expandedInsights)}
+      />
       
       {/* Main visualizations */}
       <VisualizationsSection visualizations={result.visualizations} />

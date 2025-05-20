@@ -1,6 +1,5 @@
 
-// This file is assumed to exist based on the previous implementation
-// Adding visual history tracking to the existing conversation context
+// This file manages the conversation context and visual history tracking
 
 export interface ConversationItem {
   question: string;
@@ -18,7 +17,7 @@ export interface ConversationContext {
 
 // In-memory store for conversation history
 const conversationHistory: ConversationItem[] = [];
-const MAX_HISTORY_LENGTH = 5;
+const MAX_HISTORY_LENGTH = 20; // Increased from 5 to store more history items
 
 // Add an item to the conversation history
 export const addToConversationHistory = (question: string, result: any) => {
@@ -69,6 +68,19 @@ export const getConversationContext = (): ConversationContext => {
     history: conversationHistory,
     currentDatasets: conversationHistory[0]?.datasetIds
   };
+};
+
+// Clear conversation history
+export const clearConversationHistory = (): void => {
+  // Clear in-memory history
+  conversationHistory.length = 0;
+  
+  // Clear from local storage
+  try {
+    localStorage.removeItem('data_query_history');
+  } catch (error) {
+    console.error("Failed to clear conversation history from local storage:", error);
+  }
 };
 
 // Get related questions based on conversation history
@@ -159,6 +171,18 @@ const generateQuestionsFromTopics = (topics: string[], history: ConversationItem
   
   // Generate prediction questions
   questions.push(`What are the projected ${topics[0] || ''} trends for next year?`);
+  
+  // Add questions based on history analysis
+  if (history.length >= 2) {
+    // Look for topics mentioned across multiple questions
+    const repeatedTopics = topics.filter(topic => 
+      history.filter(item => item.question.toLowerCase().includes(topic)).length >= 2
+    );
+    
+    if (repeatedTopics.length > 0) {
+      questions.push(`What deeper insights can we find about ${repeatedTopics[0]}?`);
+    }
+  }
   
   // Return unique questions, limit to 5
   return [...new Set(questions)].slice(0, 5);

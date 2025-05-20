@@ -2,8 +2,10 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Clock, ChevronLeft, ChevronRight } from 'lucide-react';
-import { getConversationContext } from '@/services/dataInsights/conversationContext';
+import { Clock, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
+import { getConversationContext, clearConversationHistory } from '@/services/dataInsights/conversationContext';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { toast } from 'sonner';
 
 interface VisualHistoryProps {
   onHistoryItemClick?: (question: string) => void;
@@ -13,7 +15,7 @@ const VisualHistory: React.FC<VisualHistoryProps> = ({ onHistoryItemClick }) => 
   const [currentPage, setCurrentPage] = useState(0);
   const conversationContext = getConversationContext();
   const history = conversationContext.history;
-  const itemsPerPage = 1;
+  const itemsPerPage = 3; // Increased from 1 to show more items per page
   const totalPages = Math.ceil(history.length / itemsPerPage);
   
   // Skip rendering if no history
@@ -24,6 +26,7 @@ const VisualHistory: React.FC<VisualHistoryProps> = ({ onHistoryItemClick }) => 
   const handleItemClick = (question: string) => {
     if (onHistoryItemClick) {
       onHistoryItemClick(question);
+      toast.success("Replaying previous search");
     }
   };
   
@@ -33,6 +36,13 @@ const VisualHistory: React.FC<VisualHistoryProps> = ({ onHistoryItemClick }) => 
   
   const handlePrevPage = () => {
     setCurrentPage(prev => Math.max(prev - 1, 0));
+  };
+
+  const handleClearHistory = () => {
+    clearConversationHistory();
+    toast.success("Search history cleared");
+    // Force a refresh of the component by causing a re-render
+    window.location.reload();
   };
   
   // Get current page items
@@ -44,43 +54,109 @@ const VisualHistory: React.FC<VisualHistoryProps> = ({ onHistoryItemClick }) => 
     const date = new Date(timestamp);
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
+
+  // Format date for grouping
+  const formatDate = (timestamp: number) => {
+    const date = new Date(timestamp);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    if (date.toDateString() === today.toDateString()) {
+      return "Today";
+    } else if (date.toDateString() === yesterday.toDateString()) {
+      return "Yesterday";
+    } else {
+      return date.toLocaleDateString(undefined, { 
+        weekday: 'long',
+        month: 'short', 
+        day: 'numeric'
+      });
+    }
+  };
   
   return (
     <div className="mt-8">
-      <div className="flex items-center gap-2 mb-4">
-        <Clock className="w-4 h-4 text-muted-foreground" />
-        <h3 className="text-lg font-medium">Recent Searches</h3>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <Clock className="w-4 h-4 text-muted-foreground" />
+          <h3 className="text-lg font-medium">Recent Searches</h3>
+        </div>
+        
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={handleClearHistory}
+                className="text-muted-foreground hover:text-destructive"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Clear search history</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
       
-      {displayedItems.map((item, index) => (
-        <Card key={index} className="mb-4 border border-border/50">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-medium">
-              {item.question}
-            </CardTitle>
-            <CardDescription className="text-xs">
-              {formatTime(item.timestamp)}
-            </CardDescription>
-          </CardHeader>
-          
-          <CardContent className="pb-3">
-            <p className="text-sm text-muted-foreground line-clamp-2">
-              {item.answer}
-            </p>
-          </CardContent>
-          
-          <CardFooter className="pt-0">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="w-full"
-              onClick={() => handleItemClick(item.question)}
-            >
-              View Results Again
-            </Button>
-          </CardFooter>
-        </Card>
-      ))}
+      {/* Group items by date */}
+      {(() => {
+        const groupedItems = new Map();
+        
+        displayedItems.forEach(item => {
+          const dateString = formatDate(item.timestamp);
+          if (!groupedItems.has(dateString)) {
+            groupedItems.set(dateString, []);
+          }
+          groupedItems.get(dateString).push(item);
+        });
+        
+        return Array.from(groupedItems.entries()).map(([date, items]) => (
+          <div key={date} className="mb-6">
+            <div className="text-sm font-medium text-muted-foreground mb-2">{date}</div>
+            <div className="space-y-3">
+              {(items as any[]).map((item, index) => (
+                <Card key={index} className="border border-border/50 hover:border-border transition-colors duration-200">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base font-medium">
+                      {item.question}
+                    </CardTitle>
+                    <CardDescription className="text-xs">
+                      {formatTime(item.timestamp)}
+                    </CardDescription>
+                  </CardHeader>
+                  
+                  <CardContent className="pb-3">
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {item.answer}
+                    </p>
+                  </CardContent>
+                  
+                  <CardFooter className="pt-0 flex justify-between items-center">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="text-xs"
+                      onClick={() => handleItemClick(item.question)}
+                    >
+                      View Results Again
+                    </Button>
+                    
+                    <div className="flex items-center gap-1">
+                      <div className="text-xs text-muted-foreground">
+                        {item.visualizations?.length || 0} charts
+                      </div>
+                    </div>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          </div>
+        ));
+      })()}
       
       {totalPages > 1 && (
         <div className="flex justify-between items-center mt-4">
@@ -94,7 +170,7 @@ const VisualHistory: React.FC<VisualHistoryProps> = ({ onHistoryItemClick }) => 
             Previous
           </Button>
           <span className="text-sm text-muted-foreground">
-            {currentPage + 1} / {totalPages}
+            Page {currentPage + 1} of {totalPages}
           </span>
           <Button
             variant="ghost"
