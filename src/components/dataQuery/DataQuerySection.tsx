@@ -5,6 +5,7 @@ import { DataInsightResult, processDataQuery } from '@/services/dataInsightsServ
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import DataInsightsResult from './DataInsightsResult';
+import VisualHistory from './VisualHistory';
 import { toast } from 'sonner';
 
 interface DataQuerySectionProps {
@@ -15,6 +16,7 @@ const DataQuerySection = ({ initialQuery }: DataQuerySectionProps) => {
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<DataInsightResult | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
 
   useEffect(() => {
     if (initialQuery) {
@@ -25,6 +27,7 @@ const DataQuerySection = ({ initialQuery }: DataQuerySectionProps) => {
   const handleSearch = async (query: string) => {
     setIsSearching(true);
     setError(null);
+    setShowHistory(false);
     
     try {
       const data = await processDataQuery(query);
@@ -55,9 +58,29 @@ const DataQuerySection = ({ initialQuery }: DataQuerySectionProps) => {
     toast.info('Exploring: ' + question);
   };
   
+  const handleToggleHistory = () => {
+    setShowHistory(prev => !prev);
+  };
+  
   return (
     <section id="search-section" className="py-12 px-4 border-t border-border/40">
       <div className="container mx-auto">
+        <div className="flex justify-between items-center mb-8">
+          <h2 className="text-2xl font-bold">Data Analysis</h2>
+          <button 
+            onClick={handleToggleHistory}
+            className="text-sm text-primary hover:underline flex items-center gap-1"
+          >
+            {showHistory ? "Hide History" : "View Search History"}
+          </button>
+        </div>
+        
+        {showHistory && (
+          <div className="mb-8">
+            <VisualHistory onHistoryItemClick={handleSearch} />
+          </div>
+        )}
+        
         {isSearching && (
           <Card className="max-w-4xl mx-auto animate-pulse">
             <CardContent className="pt-6">

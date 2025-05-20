@@ -1,6 +1,7 @@
 
 import { extractKeywords } from './datasetFinder';
 import { generateInsights } from '@/utils/datasetVisualizationUtils';
+import { detectPatterns } from './patternDetection';
 
 // Generate insights based on the visualizations
 export const generateInsightsForQuery = (query: string, datasets: any[], visualizations: any[]): string[] => {
@@ -22,6 +23,12 @@ export const generateInsightsForQuery = (query: string, datasets: any[], visuali
         if (datasetInsights && datasetInsights.length > 0) {
           // Take top 2 insights from each dataset
           allInsights.push(...datasetInsights.slice(0, 2));
+        }
+        
+        // Add automatically detected patterns as insights
+        const patternInsights = detectPatterns(visualization.data, dataset.category);
+        if (patternInsights.length > 0) {
+          allInsights.push(...patternInsights.slice(0, 2));
         }
       } catch (error) {
         console.error(`Error generating insights for ${dataset.title}:`, error);

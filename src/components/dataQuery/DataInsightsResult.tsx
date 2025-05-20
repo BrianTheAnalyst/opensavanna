@@ -9,6 +9,7 @@ import HeaderSection from './sections/HeaderSection';
 import VisualizationsSection from './sections/VisualizationsSection';
 import ComparisonSection from './sections/ComparisonSection';
 import DatasetsSection from './sections/DatasetsSection';
+import InsightsSection from './sections/InsightsSection';
 
 interface DataInsightsResultProps {
   result: DataInsightResult;
@@ -16,12 +17,6 @@ interface DataInsightsResultProps {
 }
 
 const DataInsightsResult = ({ result, onFollowUpClick }: DataInsightsResultProps) => {
-  const [expandedInsights, setExpandedInsights] = useState(false);
-  
-  const toggleInsights = () => {
-    setExpandedInsights(!expandedInsights);
-  };
-  
   const handleFollowUpClick = (question: string) => {
     if (onFollowUpClick) {
       onFollowUpClick(question);
@@ -59,6 +54,9 @@ const DataInsightsResult = ({ result, onFollowUpClick }: DataInsightsResultProps
         </Card>
       )}
       
+      {/* Insights - Now using the dedicated InsightsSection component */}
+      <InsightsSection insights={result.insights} />
+      
       {/* Main visualizations */}
       <VisualizationsSection visualizations={result.visualizations} />
       
@@ -66,34 +64,6 @@ const DataInsightsResult = ({ result, onFollowUpClick }: DataInsightsResultProps
       {result.comparisonResult && (
         <ComparisonSection comparison={result.comparisonResult} />
       )}
-      
-      {/* Insights */}
-      <Card className="border border-border/50 shadow-sm">
-        <CardContent className="pt-6">
-          <h3 className="text-lg font-medium mb-3">Key Insights</h3>
-          <div className="space-y-3">
-            {(expandedInsights ? result.insights : result.insights.slice(0, 3)).map((insight, index) => (
-              <div 
-                key={index} 
-                className="p-3 bg-muted/40 rounded-lg border border-border/30"
-              >
-                {insight}
-              </div>
-            ))}
-            
-            {result.insights.length > 3 && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="mt-2" 
-                onClick={toggleInsights}
-              >
-                {expandedInsights ? 'Show Less' : `Show ${result.insights.length - 3} More Insights`}
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
       
       {/* Dataset information */}
       <DatasetsSection 
