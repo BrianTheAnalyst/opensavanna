@@ -9,8 +9,8 @@ export interface DataInsightResult {
     datasetId: string;
     title: string;
     type: 'bar' | 'line' | 'pie' | 'area' | 'radar' | 'map';
+    category: string;
     data: any[];
-    category?: string;
     geoJSON?: any;
   }[];
   insights: string[];
@@ -19,4 +19,5 @@ export interface DataInsightResult {
     description: string;
     data: any[];
   };
+  followUpQuestions?: string[]; // New field for follow-up questions
 }

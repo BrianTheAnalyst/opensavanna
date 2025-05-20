@@ -6,7 +6,11 @@ import { getSuggestedQuestions } from '@/services/dataInsightsService';
 import BackgroundElements from './hero/BackgroundElements';
 import HeroStats from './hero/HeroStats';
 
-const Hero = () => {
+interface HeroProps {
+  onSearch: (query: string) => void;
+}
+
+const Hero = ({ onSearch }: HeroProps) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -28,16 +32,8 @@ const Hero = () => {
   }, []);
 
   const handleSearch = (query: string) => {
-    // Update the URL to include the query parameter and scroll to search section
-    const url = new URL(window.location.href);
-    url.searchParams.set('query', query);
-    window.history.pushState({}, '', url);
-    
-    // Scroll to search results section
-    const searchElement = document.getElementById('search-section');
-    if (searchElement) {
-      searchElement.scrollIntoView({ behavior: 'smooth' });
-    }
+    // Call the parent search handler
+    onSearch(query);
   };
 
   return (

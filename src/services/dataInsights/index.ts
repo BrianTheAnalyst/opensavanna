@@ -9,12 +9,20 @@ import { findRelevantDatasets } from "./datasetFinder";
 import { determineVisualizationType, generateComparison } from "./visualizationUtils";
 import { generateInsightsForQuery, generateAnswerFromData } from "./insightGenerator";
 import { getSuggestedQuestions, DEFAULT_QUESTIONS } from "./suggestedQueries";
+import { 
+  addToConversationHistory, 
+  getConversationContext,
+  getRelatedQuestions
+} from "./conversationContext";
 
 // Main function to process a user question and generate insights
 export const processDataQuery = async (query: string): Promise<DataInsightResult> => {
   try {
+    // Get conversation context to enhance the search
+    const context = getConversationContext();
+    
     // 1. Analyze the question to determine relevant datasets
-    const relevantDatasets = await findRelevantDatasets(query);
+    const relevantDatasets = await findRelevantDatasets(query, context);
     if (!relevantDatasets.length) {
       throw new Error("No relevant datasets found for your question.");
     }
@@ -76,14 +84,23 @@ export const processDataQuery = async (query: string): Promise<DataInsightResult
     // 5. Generate an answer to the question
     const answer = generateAnswerFromData(query, relevantDatasets, visualizations, allInsights);
 
-    return {
+    // 6. Generate follow-up questions based on this result
+    const followUpQuestions = await getRelatedQuestions(query);
+
+    // Store this interaction in conversation history
+    const result = {
       question: query,
       answer,
       datasets: relevantDatasets,
       visualizations,
       insights: allInsights,
-      comparisonResult
+      comparisonResult,
+      followUpQuestions
     };
+    
+    addToConversationHistory(query, result);
+    
+    return result;
   } catch (error) {
     console.error("Error processing question:", error);
     toast.error("Failed to process your question");
@@ -92,5 +109,10 @@ export const processDataQuery = async (query: string): Promise<DataInsightResult
 };
 
 // Re-export other functions
-export { getSuggestedQuestions, DEFAULT_QUESTIONS };
+export { 
+  getSuggestedQuestions, 
+  DEFAULT_QUESTIONS,
+  getConversationContext,
+  getRelatedQuestions
+};
 export type { DataInsightResult };

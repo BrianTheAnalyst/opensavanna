@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { PieChart, Map, FileText, Database } from 'lucide-react';
@@ -97,54 +96,33 @@ const Index = () => {
     const query = searchParams.get('query');
     if (query) {
       setActiveQuery(query);
-      handleSearch(query);
     }
     
     fetchData();
   }, [location, fetchData]);
 
   const handleSearch = async (query: string) => {
-    setIsSearching(true);
-    setError(null);
-    try {
-      const data = await processDataQuery(query);
-      setResult(data);
-      // Update the URL to include the query parameter
-      const url = new URL(window.location.href);
-      url.searchParams.set('query', query);
-      window.history.pushState({}, '', url);
-
-      // Scroll to the search section
-      const searchElement = document.getElementById('search-section');
-      if (searchElement) {
-        searchElement.scrollIntoView({ behavior: 'smooth' });
-      }
-    } catch (err: any) {
-      setError(err.message || 'Failed to process your question');
-      toast.error('Failed to process your question');
-    } finally {
-      setIsSearching(false);
-    }
-  };
-
-  const handleQuerySelect = (query: string) => {
-    // Set the query in URL to trigger search
+    setActiveQuery(query);
+    
+    // Update the URL to include the query parameter
     const url = new URL(window.location.href);
     url.searchParams.set('query', query);
     window.history.pushState({}, '', url);
-    setActiveQuery(query);
-    
-    // Show a toast notification
-    toast.info('Loading query results...');
-    
-    // Process the query
-    handleSearch(query);
-    
+
     // Scroll to the search section
     const searchElement = document.getElementById('search-section');
     if (searchElement) {
       searchElement.scrollIntoView({ behavior: 'smooth' });
     }
+  };
+
+  const handleQuerySelect = (query: string) => {
+    // Set the query in URL to trigger search
+    setActiveQuery(query);
+    handleSearch(query);
+    
+    // Show a toast notification
+    toast.info('Loading query results...');
   };
 
   const handleDatasetUpdate = () => {
@@ -157,13 +135,13 @@ const Index = () => {
       
       <main className="flex-grow">
         {/* Hero Section with Search Feature */}
-        <Hero />
+        <Hero onSearch={handleSearch} />
         
         {/* Example Queries Section - Shows options for exploration */}
         <ExampleQueriesSection onQuerySelect={handleQuerySelect} />
         
         {/* Data Query Section - Results area */}
-        <DataQuerySection />
+        <DataQuerySection initialQuery={activeQuery} />
         
         {/* Featured Datasets - Show what's available */}
         <FeaturedDatasetsSection 

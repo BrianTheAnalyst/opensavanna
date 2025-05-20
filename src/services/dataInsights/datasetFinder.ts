@@ -1,6 +1,7 @@
 
 import { Dataset } from "@/types/dataset";
 import { getDatasets } from "@/services";
+import { ConversationContext } from "./conversationContext";
 
 // Extract keywords from a query
 export const extractKeywords = (query: string): string[] => {
@@ -41,7 +42,10 @@ export const extractKeywords = (query: string): string[] => {
 };
 
 // Find datasets relevant to the user's question
-export const findRelevantDatasets = async (query: string): Promise<Dataset[]> => {
+export const findRelevantDatasets = async (
+  query: string, 
+  context?: ConversationContext
+): Promise<Dataset[]> => {
   // Get all datasets
   const allDatasets = await getDatasets();
   
@@ -66,7 +70,22 @@ export const findRelevantDatasets = async (query: string): Promise<Dataset[]> =>
       return dataset.category.toLowerCase().includes(keyword.toLowerCase()) ? score + 4 : score;
     }, 0);
     
-    const totalScore = titleScore + descriptionScore + categoryScore;
+    // Add context scoring - prioritize datasets from conversation history
+    let contextScore = 0;
+    if (context?.currentDatasets?.includes(dataset.id)) {
+      // Heavily boost datasets that are part of the current conversation
+      contextScore += 5;
+    } else if (context?.history) {
+      // Give some weight to datasets that were part of recent conversation history
+      context.history.forEach((historyItem, index) => {
+        const recencyWeight = (context.history.length - index) / context.history.length;
+        if (historyItem.datasetIds.includes(dataset.id)) {
+          contextScore += 2 * recencyWeight;
+        }
+      });
+    }
+    
+    const totalScore = titleScore + descriptionScore + categoryScore + contextScore;
     
     return {
       dataset,

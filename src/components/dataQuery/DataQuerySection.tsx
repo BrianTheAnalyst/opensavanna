@@ -1,18 +1,59 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { DataInsightResult } from '@/services/dataInsightsService';
+import { DataInsightResult, processDataQuery } from '@/services/dataInsightsService';
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import DataInsightsResult from './DataInsightsResult';
+import { toast } from 'sonner';
 
-const DataQuerySection = () => {
+interface DataQuerySectionProps {
+  initialQuery?: string;
+}
+
+const DataQuerySection = ({ initialQuery }: DataQuerySectionProps) => {
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<DataInsightResult | null>(null);
 
-  // This section will only display search results and errors
-  // The search input has been moved to the Hero section
+  useEffect(() => {
+    if (initialQuery) {
+      handleSearch(initialQuery);
+    }
+  }, [initialQuery]);
+
+  const handleSearch = async (query: string) => {
+    setIsSearching(true);
+    setError(null);
+    
+    try {
+      const data = await processDataQuery(query);
+      setResult(data);
+      
+      // Update the URL to include the query parameter
+      const url = new URL(window.location.href);
+      url.searchParams.set('query', query);
+      window.history.pushState({}, '', url);
+    } catch (err: any) {
+      setError(err.message || 'Failed to process your question');
+      toast.error('Failed to process your question');
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleFollowUpClick = (question: string) => {
+    // When a follow-up question is clicked, run the search with that question
+    handleSearch(question);
+    
+    // Scroll to search section
+    const searchElement = document.getElementById('search-section');
+    if (searchElement) {
+      searchElement.scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    toast.info('Exploring: ' + question);
+  };
   
   return (
     <section id="search-section" className="py-12 px-4 border-t border-border/40">
@@ -43,7 +84,12 @@ const DataQuerySection = () => {
           </Alert>
         )}
 
-        {result && !isSearching && <DataInsightsResult result={result} />}
+        {result && !isSearching && (
+          <DataInsightsResult 
+            result={result} 
+            onFollowUpClick={handleFollowUpClick} 
+          />
+        )}
       </div>
     </section>
   );
