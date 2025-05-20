@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { DataInsightResult } from '@/services/dataInsightsService';
+import { DataInsightResult } from '@/services/dataInsights/types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MessageSquareText } from 'lucide-react';
@@ -60,15 +60,11 @@ const DataInsightsResult = ({ result, onFollowUpClick }: DataInsightsResultProps
       )}
       
       {/* Main visualizations */}
-      <VisualizationsSection 
-        visualizations={result.visualizations}
-      />
+      <VisualizationsSection visualizations={result.visualizations} />
       
       {/* Comparison if available */}
       {result.comparisonResult && (
-        <ComparisonSection 
-          comparison={result.comparisonResult}
-        />
+        <ComparisonSection comparison={result.comparisonResult} />
       )}
       
       {/* Insights */}

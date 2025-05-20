@@ -4,16 +4,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import InsightCard from '@/components/InsightCard';
 import MapVisualization from '@/components/visualization/MapVisualization';
 import { prepareGeoJSONForMap } from '../utils/geoJsonUtils';
-import { DataInsightResult } from '@/services/dataInsightsService';
+import { DataInsightResult } from '@/services/dataInsights/types';
 
 interface VisualizationsSectionProps {
-  result: DataInsightResult;
+  visualizations: DataInsightResult['visualizations'];
 }
 
-const VisualizationsSection: React.FC<VisualizationsSectionProps> = ({ result }) => {
+const VisualizationsSection: React.FC<VisualizationsSectionProps> = ({ visualizations }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {result.visualizations.map((viz, index) => {
+      {visualizations.map((viz, index) => {
         if (viz.type === 'map') {
           // Create GeoJSON from points if not provided
           const geoJSON = viz.geoJSON || prepareGeoJSONForMap(viz);

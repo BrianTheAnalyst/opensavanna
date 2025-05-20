@@ -2,25 +2,25 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import InsightCard from '@/components/InsightCard';
-import { DataInsightResult } from '@/services/dataInsightsService';
+import { DataInsightResult } from '@/services/dataInsights/types';
 
 interface ComparisonSectionProps {
-  comparisonResult: DataInsightResult['comparisonResult'];
+  comparison: DataInsightResult['comparisonResult'];
 }
 
-const ComparisonSection: React.FC<ComparisonSectionProps> = ({ comparisonResult }) => {
-  if (!comparisonResult) return null;
+const ComparisonSection: React.FC<ComparisonSectionProps> = ({ comparison }) => {
+  if (!comparison) return null;
   
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{comparisonResult.title}</CardTitle>
-        <CardDescription>{comparisonResult.description}</CardDescription>
+        <CardTitle>{comparison.title}</CardTitle>
+        <CardDescription>{comparison.description}</CardDescription>
       </CardHeader>
       <CardContent>
         <InsightCard
           title=""
-          data={comparisonResult.data}
+          data={comparison.data}
           type="bar"
           dataKey="value"
           nameKey="name"
