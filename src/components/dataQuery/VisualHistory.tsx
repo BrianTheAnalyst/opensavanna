@@ -11,7 +11,8 @@ interface VisualHistoryProps {
 
 const VisualHistory: React.FC<VisualHistoryProps> = ({ onHistoryItemClick }) => {
   const [currentPage, setCurrentPage] = useState(0);
-  const history = getConversationContext();
+  const conversationContext = getConversationContext();
+  const history = conversationContext.history;
   const itemsPerPage = 1;
   const totalPages = Math.ceil(history.length / itemsPerPage);
   
