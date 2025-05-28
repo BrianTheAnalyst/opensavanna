@@ -13,6 +13,10 @@ export {
   generateDataRecommendations 
 } from './dataSummaryService';
 
+// Import the functions we need for the main service function
+import { generateInsights, detectPatterns } from './insightGenerator';
+import { generateVisualizationSummary, generateDataRecommendations } from './dataSummaryService';
+
 // Main service function that orchestrates all insights
 export const generateCompleteDataInsights = async (
   data: any[], 
