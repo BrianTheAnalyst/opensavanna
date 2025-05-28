@@ -21,6 +21,15 @@ export interface DataInsightResult {
   insights: string[];
   summary: string;
   recommendations: string[];
+  question?: string;
+  answer?: string;
+  followUpQuestions?: string[];
+  comparisonResult?: {
+    title: string;
+    description: string;
+    data: any[];
+  };
+  datasets?: any[];
 }
 
 export interface GenerateInsightsOptions {
