@@ -38,14 +38,3 @@ export const processDataQuery = async (
     };
   }
 };
-
-// Suggested questions for the hero section
-export const getSuggestedQuestions = (): string[] => {
-  return [
-    "Show me climate data trends",
-    "Analyze population demographics", 
-    "Compare economic indicators",
-    "Visualize transportation patterns",
-    "Display environmental metrics"
-  ];
-};

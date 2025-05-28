@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import QuerySearchBar from './dataQuery/QuerySearchBar';
-import { getSuggestedQuestions } from '@/services/dataInsightsService';
+import { getSuggestedQuestions } from '@/services/dataInsights/suggestedQueries';
 import BackgroundElements from './hero/BackgroundElements';
 import HeroStats from './hero/HeroStats';
 
