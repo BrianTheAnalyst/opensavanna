@@ -5,6 +5,11 @@ import InsightCard from '@/components/InsightCard';
 import MapVisualization from '@/components/visualization/MapVisualization';
 import { prepareGeoJSONForMap } from '../utils/geoJsonUtils';
 import { DataInsightResult } from '@/services/dataInsights/types';
+import { 
+  transformDataForVisualization, 
+  generateAxisLabels,
+  determineVisualizationType 
+} from '@/services/dataInsights/visualizationUtils';
 
 interface VisualizationsSectionProps {
   visualizations: DataInsightResult['visualizations'];
@@ -14,12 +19,15 @@ const VisualizationsSection: React.FC<VisualizationsSectionProps> = ({ visualiza
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {visualizations.map((viz, index) => {
+        // Transform and enhance the data
+        const transformedData = transformDataForVisualization(viz.data || [], viz.category, '');
+        
         if (viz.type === 'map') {
           // Create GeoJSON from points if not provided
           const geoJSON = viz.geoJSON || prepareGeoJSONForMap(viz);
           
           // Skip if no geoJSON and no data with coordinates
-          if (!geoJSON && (!viz.data || !Array.isArray(viz.data))) return null;
+          if (!geoJSON && (!transformedData || !Array.isArray(transformedData))) return null;
           
           return (
             <Card key={index} className="md:col-span-2">
@@ -30,7 +38,7 @@ const VisualizationsSection: React.FC<VisualizationsSectionProps> = ({ visualiza
               <CardContent>
                 <div className="h-[400px]">
                   <MapVisualization
-                    data={viz.data || []}
+                    data={transformedData || []}
                     isLoading={false}
                     category={viz.category || ""}
                     geoJSON={geoJSON}
@@ -41,48 +49,40 @@ const VisualizationsSection: React.FC<VisualizationsSectionProps> = ({ visualiza
           );
         }
         
-        // Determine appropriate axis labels based on visualization type and category
-        const getAxisLabels = () => {
-          let xAxisLabel = 'Category';
-          let yAxisLabel = 'Value';
-          
-          if (viz.type === 'line') {
-            xAxisLabel = viz.timeAxis || 'Time Period';
-            yAxisLabel = viz.valueLabel || 'Value';
-          } else if (viz.category?.toLowerCase().includes('economic')) {
-            xAxisLabel = 'Economic Indicator';
-            yAxisLabel = 'Economic Value';
-          } else if (viz.category?.toLowerCase().includes('health')) {
-            xAxisLabel = 'Health Metric';
-            yAxisLabel = 'Health Value';
-          } else if (viz.category?.toLowerCase().includes('education')) {
-            xAxisLabel = 'Education Metric';
-            yAxisLabel = 'Education Value';
-          }
-          
-          return { xAxisLabel, yAxisLabel };
-        };
+        // Generate intelligent axis labels
+        const { xAxisLabel, yAxisLabel } = generateAxisLabels(
+          transformedData, 
+          viz.category, 
+          viz.title, 
+          viz.type
+        );
         
-        const { xAxisLabel, yAxisLabel } = getAxisLabels();
+        // Determine appropriate tooltip formatter
+        const tooltipFormatter = (value: any, name: any) => {
+          const item = transformedData.find(d => d.value === value);
+          const formattedValue = item?.formattedValue || value;
+          return [formattedValue, yAxisLabel];
+        };
         
         return (
           <Card key={index} className={viz.type === 'line' ? "md:col-span-2" : ""}>
             <CardHeader>
               <CardTitle>{viz.title}</CardTitle>
               <CardDescription>
-                Visualization based on {viz.data?.length || 0} data points
+                Analysis of {transformedData?.length || 0} data points
+                {transformedData?.length > 0 && ` • Showing ${viz.type} visualization`}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <InsightCard
                 title=""
-                data={viz.data || []}
+                data={transformedData || []}
                 type={viz.type}
                 dataKey="value"
                 nameKey="name"
                 xAxisLabel={xAxisLabel}
                 yAxisLabel={yAxisLabel}
-                tooltipFormatter={(value, name) => [`${value}`, viz.valueLabel || 'Value']}
+                tooltipFormatter={tooltipFormatter}
               />
             </CardContent>
           </Card>

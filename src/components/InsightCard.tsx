@@ -1,12 +1,12 @@
 
-import React from 'react';
-import { ChartContainer, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
+import React, { useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
-  BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, 
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  Legend, ReferenceLine
-} from 'recharts';
+  BarChartContent, 
+  LineChartContent, 
+  PieChartContent, 
+  AreaChartContent 
+} from '@/components/visualization/chart/ChartTypes';
 
 interface InsightCardProps {
   title: string;
@@ -40,7 +40,18 @@ const InsightCard = ({
   xAxisLabel,
   yAxisLabel
 }: InsightCardProps) => {
-  if (!data || data.length === 0) {
+  // Ensure data is properly formatted
+  const processedData = useMemo(() => {
+    if (!data || data.length === 0) return [];
+    
+    return data.map(item => ({
+      name: item[nameKey] || 'Unknown',
+      value: typeof item[dataKey] === 'number' ? item[dataKey] : 0,
+      ...item // Keep other properties
+    }));
+  }, [data, dataKey, nameKey]);
+  
+  if (processedData.length === 0) {
     return (
       <Card className={className}>
         <CardHeader>
@@ -56,139 +67,24 @@ const InsightCard = ({
     );
   }
 
-  // Calculate statistics for reference lines when using line charts
-  const calculateStats = () => {
-    if (type !== 'line' || !data.length) return {};
-    
-    const values = data.map(item => item[dataKey]);
-    return {
-      min: Math.min(...values),
-      max: Math.max(...values),
-      avg: values.reduce((sum, val) => sum + val, 0) / values.length
-    };
-  };
-  
-  const stats = calculateStats();
-
   const renderChart = () => {
+    const chartProps = {
+      data: processedData,
+      colors,
+      tooltipFormatter,
+      xAxisLabel,
+      yAxisLabel
+    };
+    
     switch (type) {
       case 'bar':
-        return (
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 40 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
-              <XAxis 
-                dataKey={nameKey} 
-                tick={{ fontSize: 12 }} 
-                tickLine={false}
-                angle={-45}
-                textAnchor="end"
-                label={xAxisLabel ? { value: xAxisLabel, position: 'insideBottom', offset: -10 } : undefined}
-              />
-              <YAxis 
-                tick={{ fontSize: 12 }} 
-                tickLine={false}
-                axisLine={false}
-                label={yAxisLabel ? { value: yAxisLabel, angle: -90, position: 'insideLeft', offset: -5 } : undefined}
-              />
-              <Tooltip 
-                formatter={tooltipFormatter}
-                contentStyle={{ 
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                  border: 'none'
-                }} 
-              />
-              <Legend />
-              <Bar 
-                dataKey={dataKey} 
-                fill={colors[0]}
-                radius={[4, 4, 0, 0]}
-                animationDuration={1000}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        );
+        return <BarChartContent {...chartProps} />;
       case 'line':
-        return (
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 40 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
-              <XAxis 
-                dataKey={nameKey} 
-                tick={{ fontSize: 12 }} 
-                tickLine={false}
-                angle={-45}
-                textAnchor="end"
-                label={xAxisLabel ? { value: xAxisLabel, position: 'insideBottom', offset: -10 } : undefined}
-              />
-              <YAxis 
-                tick={{ fontSize: 12 }} 
-                tickLine={false}
-                axisLine={false}
-                label={yAxisLabel ? { value: yAxisLabel, angle: -90, position: 'insideLeft', offset: -5 } : undefined}
-              />
-              <Tooltip 
-                formatter={tooltipFormatter}
-                contentStyle={{ 
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                  border: 'none'
-                }} 
-              />
-              <Legend />
-              {type === 'line' && stats.avg !== undefined && (
-                <ReferenceLine 
-                  y={stats.avg} 
-                  label="Average" 
-                  stroke="#888" 
-                  strokeDasharray="3 3" 
-                />
-              )}
-              <Line 
-                type="monotone" 
-                dataKey={dataKey} 
-                stroke={colors[0]}
-                strokeWidth={2}
-                dot={{ r: 4 }}
-                activeDot={{ r: 6 }}
-                animationDuration={1000}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        );
+        return <LineChartContent {...chartProps} />;
       case 'pie':
-        return (
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={data}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                outerRadius={100}
-                fill="#8884d8"
-                dataKey={dataKey}
-                nameKey={nameKey}
-                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                animationDuration={1000}
-              >
-                {data.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
-                ))}
-              </Pie>
-              <Tooltip 
-                formatter={tooltipFormatter}
-                contentStyle={{ 
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                  border: 'none'
-                }} 
-              />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        );
+        return <PieChartContent {...chartProps} />;
+      case 'area':
+        return <AreaChartContent {...chartProps} />;
       default:
         return (
           <div className="flex h-40 items-center justify-center">

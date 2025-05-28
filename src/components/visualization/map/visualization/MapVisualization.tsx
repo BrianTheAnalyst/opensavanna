@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
@@ -48,54 +48,137 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
   // State for sidebar collapse
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   
-  // Define available layers for selection
-  const availableLayers = [
-    { id: 'temperature', name: 'Temperature', category: 'Climate' },
-    { id: 'precipitation', name: 'Precipitation', category: 'Climate' },
-    { id: 'wind', name: 'Wind Speed', category: 'Climate' },
-    { id: 'humidity', name: 'Humidity', category: 'Climate' },
-    { id: 'population', name: 'Population Density', category: 'Demographics' },
-    { id: 'income', name: 'Per Capita Income', category: 'Economics' },
-    { id: 'land_cover', name: 'Land Cover', category: 'Environment' },
-    { id: 'co2', name: 'CO2 Emissions', category: 'Environment' }
-  ];
+  // Define available layers for selection based on category
+  const availableLayers = useMemo(() => {
+    const commonLayers = [
+      { id: 'population', name: 'Population Density', category: 'Demographics' }
+    ];
+    
+    // Add category-specific layers
+    if (category.toLowerCase().includes('climate') || category.toLowerCase().includes('environment')) {
+      return [
+        ...commonLayers,
+        { id: 'temperature', name: 'Temperature', category: 'Climate' },
+        { id: 'precipitation', name: 'Precipitation', category: 'Climate' },
+        { id: 'wind', name: 'Wind Speed', category: 'Climate' },
+        { id: 'humidity', name: 'Humidity', category: 'Climate' },
+        { id: 'land_cover', name: 'Land Cover', category: 'Environment' },
+        { id: 'co2', name: 'CO2 Emissions', category: 'Environment' }
+      ];
+    } 
+    else if (category.toLowerCase().includes('economic') || category.toLowerCase().includes('finance')) {
+      return [
+        ...commonLayers,
+        { id: 'gdp', name: 'GDP', category: 'Economics' },
+        { id: 'income', name: 'Income Level', category: 'Economics' },
+        { id: 'poverty', name: 'Poverty Rate', category: 'Economics' },
+        { id: 'unemployment', name: 'Unemployment', category: 'Economics' },
+        { id: 'infrastructure', name: 'Infrastructure', category: 'Economics' }
+      ];
+    }
+    else if (category.toLowerCase().includes('health')) {
+      return [
+        ...commonLayers,
+        { id: 'healthcare_access', name: 'Healthcare Access', category: 'Health' },
+        { id: 'disease', name: 'Disease Prevalence', category: 'Health' },
+        { id: 'vaccination', name: 'Vaccination Rate', category: 'Health' },
+        { id: 'mortality', name: 'Mortality Rate', category: 'Health' },
+        { id: 'life_expectancy', name: 'Life Expectancy', category: 'Health' }
+      ];
+    }
+    else {
+      return [
+        ...commonLayers,
+        { id: 'temperature', name: 'Temperature', category: 'Climate' },
+        { id: 'income', name: 'Income Level', category: 'Economics' },
+        { id: 'healthcare_access', name: 'Healthcare Access', category: 'Health' },
+        { id: 'education', name: 'Education Level', category: 'Education' }
+      ];
+    }
+  }, [category]);
   
-  // Sample insights for insight panel with properly typed 'type' property
-  const sampleInsights: Insight[] = [
-    {
-      id: '1',
-      title: 'Temperature anomaly cluster',
-      description: 'Detected unusual temperature pattern in the northwest region during summer months.',
-      type: 'anomaly',
-      confidence: 0.89,
-      applied: false
-    },
-    {
+  // Generate category-aware insights
+  const sampleInsights = useMemo(() => {
+    const insights: Insight[] = [];
+    const categoryLower = category.toLowerCase();
+    
+    if (categoryLower.includes('climate') || categoryLower.includes('environment')) {
+      insights.push({
+        id: '1',
+        title: 'Temperature anomaly cluster',
+        description: 'Detected unusual temperature pattern in the northwest region during summer months.',
+        type: 'anomaly',
+        confidence: 0.89,
+        applied: false
+      });
+    }
+    else if (categoryLower.includes('economic')) {
+      insights.push({
+        id: '1',
+        title: 'Economic disparity cluster',
+        description: 'Significant economic disparities detected between neighboring regions with similar resources.',
+        type: 'anomaly',
+        confidence: 0.78,
+        applied: false
+      });
+    }
+    else if (categoryLower.includes('health')) {
+      insights.push({
+        id: '1',
+        title: 'Healthcare access gap',
+        description: 'Substantial healthcare access disparities identified in adjacent administrative regions.',
+        type: 'anomaly',
+        confidence: 0.83,
+        applied: false
+      });
+    }
+    
+    // Add generic insights
+    insights.push({
       id: '2',
       title: 'Strong correlation detected',
-      description: 'Air pollution levels show significant correlation with traffic density patterns across urban centers.',
+      description: `${category} metrics show significant correlation with population density patterns across regions.`,
       type: 'correlation',
       confidence: 0.76,
       applied: false
-    },
-    {
+    });
+    
+    insights.push({
       id: '3',
-      title: 'Seasonal precipitation trend',
-      description: 'Eastern regions show consistent seasonal precipitation patterns with 15% variation from historical averages.',
+      title: 'Seasonal variation pattern',
+      description: `Eastern regions show consistent seasonal ${category.toLowerCase()} patterns with 15% variation from historical averages.`,
       type: 'temporal',
       confidence: 0.94,
       applied: false
-    }
-  ];
+    });
+    
+    return insights;
+  }, [category]);
   
-  // Define sample regions for spatial filtering
-  const sampleRegions = [
-    { id: 'north', name: 'Northern Region' },
-    { id: 'south', name: 'Southern Region' },
-    { id: 'east', name: 'Eastern Region' },
-    { id: 'west', name: 'Western Region' },
-    { id: 'central', name: 'Central Area' }
-  ];
+  // Define sample regions for spatial filtering - use data regions if available
+  const sampleRegions = useMemo(() => {
+    // First check if we can extract regions from data
+    const regions = new Set<string>();
+    data.forEach(item => {
+      if (item.region) regions.add(item.region);
+    });
+    
+    if (regions.size > 0) {
+      return Array.from(regions).map(region => ({ 
+        id: region.toLowerCase().replace(/\s+/g, '_'), 
+        name: region 
+      }));
+    }
+    
+    // Otherwise use generic regions
+    return [
+      { id: 'north', name: 'Northern Region' },
+      { id: 'south', name: 'Southern Region' },
+      { id: 'east', name: 'Eastern Region' },
+      { id: 'west', name: 'Western Region' },
+      { id: 'central', name: 'Central Area' }
+    ];
+  }, [data]);
   
   const mapData = useMapData(data, geoJSON, isLoading);
   const points = mapData.pointsData?.validPoints || [];
@@ -185,6 +268,9 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
+  
+  // Add useMemo to calculate these values
+  const useMemo = React.useMemo;
 
   if (isLoading) {
     return <MapLoadingState title={title} description={description} />;

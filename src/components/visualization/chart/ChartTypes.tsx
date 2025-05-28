@@ -3,50 +3,84 @@ import React from 'react';
 import { 
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, 
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  ReferenceLine
+  ReferenceLine, Area, ComposedChart
 } from 'recharts';
 
 interface ChartContentProps {
   data: any[];
   colors: string[];
+  xAxisLabel?: string;
+  yAxisLabel?: string;
+  tooltipFormatter?: (value: any, name: any) => React.ReactNode;
 }
 
-export const BarChartContent: React.FC<ChartContentProps> = ({ data, colors }) => (
+export const BarChartContent: React.FC<ChartContentProps> = ({ 
+  data, 
+  colors,
+  xAxisLabel = 'Categories',
+  yAxisLabel = 'Value',
+  tooltipFormatter
+}) => (
   <div className="h-80 w-full">
     <ResponsiveContainer width="100%" height="100%">
       <BarChart
         data={data}
-        margin={{ top: 20, right: 20, left: 20, bottom: 20 }}
+        margin={{ top: 20, right: 20, left: 20, bottom: 30 }}
       >
-        <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
+        <CartesianGrid strokeDasharray="3 3" stroke="#eee" opacity={0.6} />
         <XAxis 
           dataKey="name" 
           tick={{ fontSize: 12 }} 
           tickLine={false}
-          label={{ value: 'Categories', position: 'insideBottomRight', offset: -5 }}
+          label={{ 
+            value: xAxisLabel, 
+            position: 'insideBottom', 
+            offset: -5,
+            style: { textAnchor: 'middle', fontSize: '12px', fill: '#888' }
+          }}
+          height={60}
+          tickMargin={8}
+          angle={-30}
+          textAnchor="end"
         />
         <YAxis 
           tick={{ fontSize: 12 }} 
           tickLine={false}
           axisLine={false}
-          label={{ value: 'Value', angle: -90, position: 'insideLeft' }}
+          label={{ 
+            value: yAxisLabel, 
+            angle: -90, 
+            position: 'insideLeft',
+            style: { textAnchor: 'middle', fontSize: '12px', fill: '#888' }
+          }}
+          width={60}
         />
         <Tooltip 
           contentStyle={{ 
             borderRadius: '8px',
             boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
             border: 'none'
-          }} 
+          }}
+          formatter={tooltipFormatter}
         />
-        <Legend />
+        <Legend 
+          verticalAlign="top"
+          wrapperStyle={{ paddingBottom: '10px' }}
+        />
         <Bar 
           dataKey="value" 
-          fill={colors[0]}
+          name="Value"
           radius={[4, 4, 0, 0]}
           animationDuration={1000}
         >
           {data.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+            <Cell 
+              key={`cell-${index}`} 
+              fill={colors[index % colors.length]} 
+              fillOpacity={0.85}
+              stroke={colors[index % colors.length]}
+              strokeWidth={1}
+            />
           ))}
         </Bar>
       </BarChart>
@@ -54,48 +88,178 @@ export const BarChartContent: React.FC<ChartContentProps> = ({ data, colors }) =
   </div>
 );
 
-export const LineChartContent: React.FC<ChartContentProps> = ({ data, colors }) => {
-  // Find min and max for reference lines
+export const LineChartContent: React.FC<ChartContentProps> = ({ 
+  data, 
+  colors,
+  xAxisLabel = 'Time Period',
+  yAxisLabel = 'Value',
+  tooltipFormatter
+}) => {
+  // Check if data has projected values
+  const hasProjections = data.some(item => item.projected);
+  
+  // Find min, max and avg values for reference lines
   const values = data.map(item => item.value);
   const minValue = Math.min(...values);
   const maxValue = Math.max(...values);
   const avgValue = values.reduce((sum, val) => sum + val, 0) / values.length;
+  
+  // If we have projections, create a more sophisticated chart
+  if (hasProjections) {
+    const realData = data.filter(d => !d.projected);
+    const projectedData = data.filter(d => d.projected);
+    const projectionStartIndex = realData.length - 1;
+    
+    return (
+      <div className="h-80 w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <ComposedChart
+            data={data}
+            margin={{ top: 20, right: 20, left: 20, bottom: 30 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" stroke="#eee" opacity={0.6} />
+            <XAxis 
+              dataKey="name" 
+              tick={{ fontSize: 12 }} 
+              tickLine={false}
+              label={{ 
+                value: xAxisLabel, 
+                position: 'insideBottom', 
+                offset: -5,
+                style: { textAnchor: 'middle', fontSize: '12px', fill: '#888' }
+              }}
+              height={60}
+              tickMargin={8}
+              angle={-30}
+              textAnchor="end"
+            />
+            <YAxis 
+              tick={{ fontSize: 12 }} 
+              tickLine={false}
+              axisLine={false}
+              label={{ 
+                value: yAxisLabel, 
+                angle: -90, 
+                position: 'insideLeft',
+                style: { textAnchor: 'middle', fontSize: '12px', fill: '#888' }
+              }}
+              width={60}
+            />
+            <Tooltip 
+              contentStyle={{ 
+                borderRadius: '8px',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                border: 'none'
+              }}
+              formatter={tooltipFormatter}
+              labelFormatter={(label) => `Period: ${label}`}
+            />
+            <Legend />
+            
+            {/* Reference line for average */}
+            <ReferenceLine y={avgValue} stroke="#888" strokeDasharray="3 3" label={{ 
+              value: "Average", 
+              position: 'right',
+              fill: '#888',
+              fontSize: 11
+            }} />
+            
+            {/* Historical data line */}
+            <Line 
+              type="monotone" 
+              dataKey="value"
+              name="Historical"
+              stroke={colors[1]}
+              strokeWidth={2}
+              dot={{ r: 3, fill: colors[1], stroke: colors[1], strokeWidth: 1 }}
+              activeDot={{ r: 6, stroke: colors[0], strokeWidth: 1 }}
+              animationDuration={1000}
+              connectNulls={true}
+            />
+            
+            {/* Project data with area and different style */}
+            <Area
+              type="monotone"
+              dataKey="value"
+              name="Projected"
+              stroke={colors[2]}
+              fill={colors[2]}
+              fillOpacity={0.2}
+              strokeWidth={1.5}
+              strokeDasharray="5 5"
+              activeDot={{ r: 5 }}
+              dot={{ r: 3 }}
+              connectNulls={true}
+              animationDuration={1500}
+              // Only show this for projected data points
+              isAnimationActive={true}
+              hide={data.map((_, i) => i < projectionStartIndex)}
+            />
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
+    );
+  }
 
+  // Standard line chart for regular time series
   return (
     <div className="h-80 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart
           data={data}
-          margin={{ top: 20, right: 20, left: 20, bottom: 20 }}
+          margin={{ top: 20, right: 20, left: 20, bottom: 30 }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#eee" opacity={0.6} />
           <XAxis 
             dataKey="name" 
             tick={{ fontSize: 12 }} 
             tickLine={false}
-            label={{ value: 'Time Period', position: 'insideBottomRight', offset: -5 }}
+            label={{ 
+              value: xAxisLabel, 
+              position: 'insideBottom', 
+              offset: -5,
+              style: { textAnchor: 'middle', fontSize: '12px', fill: '#888' }
+            }}
+            height={60}
+            tickMargin={8}
+            angle={-30}
+            textAnchor="end"
           />
           <YAxis 
             tick={{ fontSize: 12 }} 
             tickLine={false}
             axisLine={false}
-            label={{ value: 'Value', angle: -90, position: 'insideLeft' }}
+            label={{ 
+              value: yAxisLabel, 
+              angle: -90, 
+              position: 'insideLeft',
+              style: { textAnchor: 'middle', fontSize: '12px', fill: '#888' }
+            }}
+            width={60}
           />
           <Tooltip 
             contentStyle={{ 
               borderRadius: '8px',
               boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
               border: 'none'
-            }} 
-            formatter={(value, name) => [`${value}`, 'Value']}
+            }}
+            formatter={tooltipFormatter}
             labelFormatter={(label) => `Period: ${label}`}
           />
           <Legend />
-          <ReferenceLine y={avgValue} stroke="#888" strokeDasharray="3 3" label="Average" />
-          <ReferenceLine y={maxValue} stroke="#82ca9d" strokeDasharray="3 3" label="Maximum" />
+          
+          {/* Reference lines for statistics */}
+          <ReferenceLine y={avgValue} stroke="#888" strokeDasharray="3 3" label={{ 
+            value: "Average", 
+            position: 'right',
+            fill: '#888',
+            fontSize: 11
+          }} />
+          
           <Line 
             type="monotone" 
             dataKey="value" 
+            name={yAxisLabel}
             stroke={colors[1]}
             strokeWidth={2}
             dot={{ r: 4 }}
@@ -108,7 +272,11 @@ export const LineChartContent: React.FC<ChartContentProps> = ({ data, colors }) 
   );
 };
 
-export const PieChartContent: React.FC<ChartContentProps> = ({ data, colors }) => (
+export const PieChartContent: React.FC<ChartContentProps> = ({ 
+  data, 
+  colors,
+  tooltipFormatter
+}) => (
   <div className="h-80 w-full">
     <ResponsiveContainer width="100%" height="100%">
       <PieChart>
@@ -121,11 +289,19 @@ export const PieChartContent: React.FC<ChartContentProps> = ({ data, colors }) =
           fill="#8884d8"
           dataKey="value"
           nameKey="name"
-          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+          label={({ name, percent }) => 
+            `${name}: ${(percent * 100).toFixed(1)}%`
+          }
           animationDuration={1000}
+          paddingAngle={2}
         >
           {data.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+            <Cell 
+              key={`cell-${index}`} 
+              fill={colors[index % colors.length]}
+              stroke="#fff" 
+              strokeWidth={1}
+            />
           ))}
         </Pie>
         <Tooltip 
@@ -133,10 +309,91 @@ export const PieChartContent: React.FC<ChartContentProps> = ({ data, colors }) =
             borderRadius: '8px',
             boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
             border: 'none'
-          }} 
+          }}
+          formatter={tooltipFormatter}
+        />
+        <Legend
+          layout="horizontal"
+          verticalAlign="bottom"
+          align="center"
+          wrapperStyle={{ paddingTop: '15px' }}
+        />
+      </PieChart>
+    </ResponsiveContainer>
+  </div>
+);
+
+export const AreaChartContent: React.FC<ChartContentProps> = ({ 
+  data, 
+  colors,
+  xAxisLabel = 'Time Period',
+  yAxisLabel = 'Value',
+  tooltipFormatter
+}) => (
+  <div className="h-80 w-full">
+    <ResponsiveContainer width="100%" height="100%">
+      <ComposedChart
+        data={data}
+        margin={{ top: 20, right: 20, left: 20, bottom: 30 }}
+      >
+        <CartesianGrid strokeDasharray="3 3" stroke="#eee" opacity={0.6} />
+        <XAxis 
+          dataKey="name" 
+          tick={{ fontSize: 12 }} 
+          tickLine={false}
+          label={{ 
+            value: xAxisLabel, 
+            position: 'insideBottom', 
+            offset: -5,
+            style: { textAnchor: 'middle', fontSize: '12px', fill: '#888' }
+          }}
+          height={60}
+          tickMargin={8}
+          angle={-30}
+          textAnchor="end"
+        />
+        <YAxis 
+          tick={{ fontSize: 12 }} 
+          tickLine={false}
+          axisLine={false}
+          label={{ 
+            value: yAxisLabel, 
+            angle: -90, 
+            position: 'insideLeft',
+            style: { textAnchor: 'middle', fontSize: '12px', fill: '#888' }
+          }}
+          width={60}
+        />
+        <Tooltip 
+          contentStyle={{ 
+            borderRadius: '8px',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+            border: 'none'
+          }}
+          formatter={tooltipFormatter}
         />
         <Legend />
-      </PieChart>
+        
+        <Area 
+          type="monotone" 
+          dataKey="value" 
+          name={yAxisLabel}
+          stroke={colors[0]}
+          fill={colors[0]}
+          fillOpacity={0.3}
+          activeDot={{ r: 5 }}
+        />
+        
+        <Line 
+          type="monotone" 
+          dataKey="value" 
+          stroke={colors[0]}
+          dot={{ r: 3 }}
+          activeDot={{ r: 6 }}
+          strokeWidth={2}
+          hide={true}
+        />
+      </ComposedChart>
     </ResponsiveContainer>
   </div>
 );
