@@ -3,7 +3,7 @@ import React from 'react';
 import { 
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, 
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  ReferenceLine, Area, ComposedChart
+  ReferenceLine, Area, AreaChart
 } from 'recharts';
 
 interface ChartContentProps {
@@ -100,108 +100,8 @@ export const LineChartContent: React.FC<ChartContentProps> = ({
   
   // Find min, max and avg values for reference lines
   const values = data.map(item => item.value);
-  const minValue = Math.min(...values);
-  const maxValue = Math.max(...values);
   const avgValue = values.reduce((sum, val) => sum + val, 0) / values.length;
   
-  // If we have projections, create a more sophisticated chart
-  if (hasProjections) {
-    const realData = data.filter(d => !d.projected);
-    const projectedData = data.filter(d => d.projected);
-    const projectionStartIndex = realData.length - 1;
-    
-    return (
-      <div className="h-80 w-full">
-        <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart
-            data={data}
-            margin={{ top: 20, right: 20, left: 20, bottom: 30 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" stroke="#eee" opacity={0.6} />
-            <XAxis 
-              dataKey="name" 
-              tick={{ fontSize: 12 }} 
-              tickLine={false}
-              label={{ 
-                value: xAxisLabel, 
-                position: 'insideBottom', 
-                offset: -5,
-                style: { textAnchor: 'middle', fontSize: '12px', fill: '#888' }
-              }}
-              height={60}
-              tickMargin={8}
-              angle={-30}
-              textAnchor="end"
-            />
-            <YAxis 
-              tick={{ fontSize: 12 }} 
-              tickLine={false}
-              axisLine={false}
-              label={{ 
-                value: yAxisLabel, 
-                angle: -90, 
-                position: 'insideLeft',
-                style: { textAnchor: 'middle', fontSize: '12px', fill: '#888' }
-              }}
-              width={60}
-            />
-            <Tooltip 
-              contentStyle={{ 
-                borderRadius: '8px',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                border: 'none'
-              }}
-              formatter={tooltipFormatter}
-              labelFormatter={(label) => `Period: ${label}`}
-            />
-            <Legend />
-            
-            {/* Reference line for average */}
-            <ReferenceLine y={avgValue} stroke="#888" strokeDasharray="3 3" label={{ 
-              value: "Average", 
-              position: 'right',
-              fill: '#888',
-              fontSize: 11
-            }} />
-            
-            {/* Historical data line */}
-            <Line 
-              type="monotone" 
-              dataKey="value"
-              name="Historical"
-              stroke={colors[1]}
-              strokeWidth={2}
-              dot={{ r: 3, fill: colors[1], stroke: colors[1], strokeWidth: 1 }}
-              activeDot={{ r: 6, stroke: colors[0], strokeWidth: 1 }}
-              animationDuration={1000}
-              connectNulls={true}
-            />
-            
-            {/* Project data with area and different style */}
-            <Area
-              type="monotone"
-              dataKey="value"
-              name="Projected"
-              stroke={colors[2]}
-              fill={colors[2]}
-              fillOpacity={0.2}
-              strokeWidth={1.5}
-              strokeDasharray="5 5"
-              activeDot={{ r: 5 }}
-              dot={{ r: 3 }}
-              connectNulls={true}
-              animationDuration={1500}
-              // Only show this for projected data points
-              isAnimationActive={true}
-              hide={data.map((_, i) => i < projectionStartIndex)}
-            />
-          </ComposedChart>
-        </ResponsiveContainer>
-      </div>
-    );
-  }
-
-  // Standard line chart for regular time series
   return (
     <div className="h-80 w-full">
       <ResponsiveContainer width="100%" height="100%">
@@ -266,6 +166,19 @@ export const LineChartContent: React.FC<ChartContentProps> = ({
             activeDot={{ r: 6, stroke: colors[0], strokeWidth: 1 }}
             animationDuration={1000}
           />
+          
+          {hasProjections && (
+            <Line 
+              type="monotone" 
+              dataKey="value" 
+              name="Projected"
+              stroke={colors[2]}
+              strokeWidth={1.5}
+              strokeDasharray="5 5"
+              dot={{ r: 3 }}
+              activeDot={{ r: 5 }}
+            />
+          )}
         </LineChart>
       </ResponsiveContainer>
     </div>
@@ -332,7 +245,7 @@ export const AreaChartContent: React.FC<ChartContentProps> = ({
 }) => (
   <div className="h-80 w-full">
     <ResponsiveContainer width="100%" height="100%">
-      <ComposedChart
+      <AreaChart
         data={data}
         margin={{ top: 20, right: 20, left: 20, bottom: 30 }}
       >
@@ -383,17 +296,7 @@ export const AreaChartContent: React.FC<ChartContentProps> = ({
           fillOpacity={0.3}
           activeDot={{ r: 5 }}
         />
-        
-        <Line 
-          type="monotone" 
-          dataKey="value" 
-          stroke={colors[0]}
-          dot={{ r: 3 }}
-          activeDot={{ r: 6 }}
-          strokeWidth={2}
-          hide={true}
-        />
-      </ComposedChart>
+      </AreaChart>
     </ResponsiveContainer>
   </div>
 );

@@ -1,4 +1,3 @@
-
 import { format } from 'date-fns';
 
 // Enhanced data transformation for better visualizations
@@ -404,4 +403,30 @@ const getMonthlySeasonalMultiplier = (monthIndex: number, category: string): num
   }
   
   return 0.9 + Math.random() * 0.2; // Default seasonal variation
+};
+
+// Add the missing generateComparison function
+export const generateComparison = (
+  data1: any[], 
+  data2: any[], 
+  category: string
+): string => {
+  if (!data1 || !data2 || data1.length === 0 || data2.length === 0) {
+    return 'Insufficient data for comparison.';
+  }
+  
+  try {
+    const avg1 = data1.reduce((sum, item) => sum + (item.value || 0), 0) / data1.length;
+    const avg2 = data2.reduce((sum, item) => sum + (item.value || 0), 0) / data2.length;
+    
+    const difference = Math.abs(avg1 - avg2);
+    const percentDiff = ((difference / Math.min(avg1, avg2)) * 100).toFixed(1);
+    
+    const higher = avg1 > avg2 ? 'first dataset' : 'second dataset';
+    
+    return `Comparison shows the ${higher} has ${percentDiff}% higher average values in ${category} metrics.`;
+  } catch (error) {
+    console.error('Error generating comparison:', error);
+    return 'Unable to generate comparison.';
+  }
 };
