@@ -30,8 +30,8 @@ const VisualizationContainer: React.FC<VisualizationContainerProps> = ({
   geoJSON
 }) => {
   return (
-    <div className="glass border border-border/50 rounded-xl overflow-hidden">
-      <div className="p-6">
+    <div className="glass border border-border/50 rounded-xl overflow-hidden mb-8">
+      <div className="p-8">
         <VisualizationHeader 
           dataset={dataset} 
           analysisMode={analysisMode} 
@@ -39,10 +39,10 @@ const VisualizationContainer: React.FC<VisualizationContainerProps> = ({
           error={error} 
         />
         
-        <Separator className="mb-6" />
+        <Separator className="my-8" />
         
         {error && (
-          <Alert variant="destructive" className="mb-6">
+          <Alert variant="destructive" className="mb-8">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Visualization Error</AlertTitle>
             <AlertDescription>
@@ -51,15 +51,17 @@ const VisualizationContainer: React.FC<VisualizationContainerProps> = ({
           </Alert>
         )}
         
-        <VisualizationTabs 
-          dataset={dataset}
-          visualizationData={visualizationData}
-          insights={insights}
-          analysisMode={analysisMode}
-          setAnalysisMode={setAnalysisMode}
-          isLoading={isLoading}
-          geoJSON={geoJSON}
-        />
+        <div className="min-h-[400px]">
+          <VisualizationTabs 
+            dataset={dataset}
+            visualizationData={visualizationData}
+            insights={insights}
+            analysisMode={analysisMode}
+            setAnalysisMode={setAnalysisMode}
+            isLoading={isLoading}
+            geoJSON={geoJSON}
+          />
+        </div>
       </div>
       
       <VisualizationFooter dataset={dataset} />

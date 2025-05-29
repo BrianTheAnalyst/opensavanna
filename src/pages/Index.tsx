@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { PieChart, Map, FileText, Database } from 'lucide-react';
@@ -9,7 +10,6 @@ import { Dataset } from '@/types/dataset';
 import DataQuerySection from '@/components/dataQuery/DataQuerySection';
 import ExampleQueriesSection from '@/components/dataQuery/ExampleQueriesSection';
 import { toast } from 'sonner';
-import { processDataQuery } from '@/services/dataInsightsService';
 
 // Import the components
 import FeaturedDatasetsSection from '@/components/home/FeaturedDatasetsSection';
@@ -31,9 +31,6 @@ const Index = () => {
   
   const location = useLocation();
   const [activeQuery, setActiveQuery] = useState<string | null>(null);
-  const [isSearching, setIsSearching] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<any | null>(null);
   
   const fetchData = useCallback(async () => {
     try {
@@ -109,19 +106,25 @@ const Index = () => {
     url.searchParams.set('query', query);
     window.history.pushState({}, '', url);
 
-    // Scroll to the search section
-    const searchElement = document.getElementById('search-section');
-    if (searchElement) {
-      searchElement.scrollIntoView({ behavior: 'smooth' });
-    }
+    // Scroll to the search section with proper offset for navbar
+    setTimeout(() => {
+      const searchElement = document.getElementById('search-section');
+      if (searchElement) {
+        const offset = 100; // Account for fixed navbar
+        const elementPosition = searchElement.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - offset;
+        
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
+      }
+    }, 100);
   };
 
   const handleQuerySelect = (query: string) => {
-    // Set the query in URL to trigger search
     setActiveQuery(query);
     handleSearch(query);
-    
-    // Show a toast notification
     toast.info('Loading query results...');
   };
 
@@ -130,43 +133,59 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       
       <main className="flex-grow">
         {/* Hero Section with Search Feature */}
-        <Hero onSearch={handleSearch} />
+        <section className="relative">
+          <Hero onSearch={handleSearch} />
+        </section>
         
         {/* Example Queries Section - Shows options for exploration */}
-        <ExampleQueriesSection onQuerySelect={handleQuerySelect} />
+        <section className="py-12 bg-muted/30">
+          <ExampleQueriesSection onQuerySelect={handleQuerySelect} />
+        </section>
         
         {/* Data Query Section - Results area */}
-        <DataQuerySection initialQuery={activeQuery} />
+        {activeQuery && (
+          <DataQuerySection initialQuery={activeQuery} />
+        )}
         
         {/* Featured Datasets - Show what's available */}
-        <FeaturedDatasetsSection 
-          datasets={featuredDatasets} 
-          isLoaded={isLoaded} 
-          onDataChange={handleDatasetUpdate}
-        />
+        <section className="py-16 bg-background">
+          <FeaturedDatasetsSection 
+            datasets={featuredDatasets} 
+            isLoaded={isLoaded} 
+            onDataChange={handleDatasetUpdate}
+          />
+        </section>
         
         {/* Data Visualization - Show capabilities */}
-        <DataVisualizationSection 
-          isLoaded={isLoaded} 
-          visData={visData} 
-        />
+        <section className="py-16 bg-muted/20">
+          <DataVisualizationSection 
+            isLoaded={isLoaded} 
+            visData={visData} 
+          />
+        </section>
         
         {/* Data Categories - Browse options */}
-        <CategoriesSection 
-          isLoaded={isLoaded} 
-          categories={categories} 
-        />
+        <section className="py-16 bg-background">
+          <CategoriesSection 
+            isLoaded={isLoaded} 
+            categories={categories} 
+          />
+        </section>
         
         {/* API & Developer Tools */}
-        <ApiDeveloperSection isLoaded={isLoaded} />
+        <section className="py-16 bg-muted/20">
+          <ApiDeveloperSection isLoaded={isLoaded} />
+        </section>
         
         {/* Call to Action */}
-        <CallToActionSection />
+        <section className="py-16 bg-background">
+          <CallToActionSection />
+        </section>
       </main>
       
       <Footer />
