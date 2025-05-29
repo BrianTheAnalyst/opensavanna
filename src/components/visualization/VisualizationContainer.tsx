@@ -30,41 +30,43 @@ const VisualizationContainer: React.FC<VisualizationContainerProps> = ({
   geoJSON
 }) => {
   return (
-    <div className="glass border border-border/50 rounded-xl overflow-hidden mb-8">
-      <div className="p-8">
-        <VisualizationHeader 
-          dataset={dataset} 
-          analysisMode={analysisMode} 
-          isLoading={isLoading} 
-          error={error} 
-        />
-        
-        <Separator className="my-8" />
-        
-        {error && (
-          <Alert variant="destructive" className="mb-8">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Visualization Error</AlertTitle>
-            <AlertDescription>
-              {error}
-            </AlertDescription>
-          </Alert>
-        )}
-        
-        <div className="min-h-[400px]">
-          <VisualizationTabs 
-            dataset={dataset}
-            visualizationData={visualizationData}
-            insights={insights}
-            analysisMode={analysisMode}
-            setAnalysisMode={setAnalysisMode}
-            isLoading={isLoading}
-            geoJSON={geoJSON}
+    <div className="w-full max-w-7xl mx-auto">
+      <div className="glass border border-border/50 rounded-xl overflow-hidden shadow-xl">
+        <div className="p-8">
+          <VisualizationHeader 
+            dataset={dataset} 
+            analysisMode={analysisMode} 
+            isLoading={isLoading} 
+            error={error} 
           />
+          
+          <Separator className="my-8" />
+          
+          {error && (
+            <Alert variant="destructive" className="mb-8">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Visualization Error</AlertTitle>
+              <AlertDescription>
+                {error}
+              </AlertDescription>
+            </Alert>
+          )}
+          
+          <div className="min-h-[600px] w-full">
+            <VisualizationTabs 
+              dataset={dataset}
+              visualizationData={visualizationData}
+              insights={insights}
+              analysisMode={analysisMode}
+              setAnalysisMode={setAnalysisMode}
+              isLoading={isLoading}
+              geoJSON={geoJSON}
+            />
+          </div>
         </div>
+        
+        <VisualizationFooter dataset={dataset} />
       </div>
-      
-      <VisualizationFooter dataset={dataset} />
     </div>
   );
 };

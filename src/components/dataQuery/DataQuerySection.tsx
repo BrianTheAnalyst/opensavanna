@@ -2,8 +2,9 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { DataInsightResult, processDataQuery } from '@/services/dataInsightsService';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, ArrowLeft } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import DataInsightsResult from './DataInsightsResult';
 import VisualHistory from './VisualHistory';
 import { toast } from 'sonner';
@@ -33,7 +34,6 @@ const DataQuerySection = ({ initialQuery }: DataQuerySectionProps) => {
       const data = await processDataQuery(query);
       setResult(data);
       
-      // Update the URL to include the query parameter
       const url = new URL(window.location.href);
       url.searchParams.set('query', query);
       window.history.pushState({}, '', url);
@@ -48,7 +48,6 @@ const DataQuerySection = ({ initialQuery }: DataQuerySectionProps) => {
   const handleFollowUpClick = (question: string) => {
     handleSearch(question);
     
-    // Smooth scroll to search section
     const searchElement = document.getElementById('search-section');
     if (searchElement) {
       searchElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -60,59 +59,92 @@ const DataQuerySection = ({ initialQuery }: DataQuerySectionProps) => {
   const handleToggleHistory = () => {
     setShowHistory(prev => !prev);
   };
+
+  const handleBackToHome = () => {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('query');
+    window.history.pushState({}, '', url);
+    window.location.reload();
+  };
   
   return (
-    <section id="search-section" className="py-16 px-6 border-t border-border/40 bg-background">
-      <div className="container mx-auto max-w-7xl">
-        <div className="flex justify-between items-center mb-12">
-          <div>
-            <h2 className="text-3xl font-bold mb-2">Data Analysis</h2>
-            <p className="text-muted-foreground">Ask questions about our datasets and get intelligent insights</p>
+    <section id="search-section" className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      <div className="container mx-auto max-w-7xl px-6 py-16">
+        {/* Header with back button */}
+        <div className="flex items-center justify-between mb-12">
+          <div className="flex items-center gap-4">
+            <Button 
+              variant="ghost" 
+              onClick={handleBackToHome}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Home
+            </Button>
+            <div className="h-6 w-px bg-border" />
+            <div>
+              <h1 className="text-4xl font-bold mb-3">Data Analysis Results</h1>
+              <p className="text-xl text-muted-foreground">Intelligent insights from your data query</p>
+            </div>
           </div>
-          <button 
+          
+          <Button 
             onClick={handleToggleHistory}
-            className="text-sm text-primary hover:underline flex items-center gap-2 px-4 py-2 rounded-lg border border-border/50 hover:bg-muted/50 transition-colors"
+            variant="outline"
+            className="px-6 py-3"
           >
             {showHistory ? "Hide History" : "View Search History"}
-          </button>
+          </Button>
         </div>
         
+        {/* History Section */}
         {showHistory && (
-          <div className="mb-12">
-            <VisualHistory onHistoryItemClick={handleSearch} />
+          <div className="mb-16">
+            <Card className="border-border/50 shadow-lg">
+              <CardContent className="p-8">
+                <VisualHistory onHistoryItemClick={handleSearch} />
+              </CardContent>
+            </Card>
           </div>
         )}
         
+        {/* Loading State */}
         {isSearching && (
-          <Card className="max-w-5xl mx-auto animate-pulse border-border/50">
-            <CardContent className="pt-8 pb-8">
-              <div className="space-y-6">
-                <div className="h-8 bg-muted rounded w-1/3"></div>
-                <div className="h-4 bg-muted rounded w-2/3"></div>
-                <div className="space-y-3">
-                  <div className="h-4 bg-muted rounded w-full"></div>
-                  <div className="h-4 bg-muted rounded w-5/6"></div>
-                  <div className="h-4 bg-muted rounded w-4/6"></div>
+          <Card className="border-border/50 shadow-xl">
+            <CardContent className="py-16 px-8">
+              <div className="space-y-8 animate-pulse">
+                <div className="text-center space-y-4">
+                  <div className="h-8 bg-gradient-to-r from-primary/20 to-primary/40 rounded-lg w-1/2 mx-auto"></div>
+                  <div className="h-4 bg-muted rounded w-3/4 mx-auto"></div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-                  <div className="h-64 bg-muted rounded-lg"></div>
-                  <div className="h-64 bg-muted rounded-lg"></div>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  <div className="space-y-4">
+                    <div className="h-6 bg-muted rounded w-1/3"></div>
+                    <div className="h-64 bg-gradient-to-br from-muted to-muted/60 rounded-xl"></div>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="h-6 bg-muted rounded w-1/3"></div>
+                    <div className="h-64 bg-gradient-to-br from-muted to-muted/60 rounded-xl"></div>
+                  </div>
                 </div>
               </div>
             </CardContent>
           </Card>
         )}
 
+        {/* Error State */}
         {error && !isSearching && (
-          <div className="max-w-2xl mx-auto">
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Error</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
+          <div className="max-w-3xl mx-auto">
+            <Alert variant="destructive" className="border-destructive/50 shadow-lg">
+              <AlertCircle className="h-5 w-5" />
+              <AlertTitle className="text-lg">Analysis Error</AlertTitle>
+              <AlertDescription className="text-base mt-2">{error}</AlertDescription>
             </Alert>
           </div>
         )}
 
+        {/* Results */}
         {result && !isSearching && (
           <div className="animate-fade-in">
             <DataInsightsResult 
