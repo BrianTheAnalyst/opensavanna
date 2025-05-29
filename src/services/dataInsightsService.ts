@@ -89,8 +89,8 @@ export const processDataQuery = async (
         const transformedData = transformDataForVisualization(mockData, dataset.category, query);
         const vizType = determineVisualizationType(transformedData, dataset.category);
         
-        // Generate insights for this dataset - fix: pass the query parameter
-        const datasetInsights = await generateCompleteDataInsights(transformedData, dataset.category, query);
+        // Generate insights for this dataset with all required parameters
+        const datasetInsights = await generateCompleteDataInsights(transformedData, dataset.category, query || '');
         
         visualizations.push({
           datasetId: dataset.id,
