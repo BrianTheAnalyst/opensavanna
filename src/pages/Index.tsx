@@ -9,6 +9,7 @@ import { Dataset } from '@/types/dataset';
 import DataQuerySection from '@/components/dataQuery/DataQuerySection';
 import ExampleQueriesSection from '@/components/dataQuery/ExampleQueriesSection';
 import { toast } from 'sonner';
+import { PieChart, Map, FileText, Database, TrendingUp, Users, Building, Leaf } from 'lucide-react';
 
 // Import the components
 import FeaturedDatasetsSection from '@/components/home/FeaturedDatasetsSection';
@@ -24,12 +25,40 @@ const Index = () => {
   const location = useLocation();
   const [activeQuery, setActiveQuery] = useState<string | null>(null);
   
+  // Define categories with appropriate data
+  const categories = [
+    {
+      title: "Economics",
+      icon: TrendingUp,
+      count: 45,
+      description: "Economic indicators, financial data, and market trends"
+    },
+    {
+      title: "Demographics",
+      icon: Users,
+      count: 32,
+      description: "Population statistics, census data, and social metrics"
+    },
+    {
+      title: "Infrastructure",
+      icon: Building,
+      count: 28,
+      description: "Transportation, utilities, and urban development data"
+    },
+    {
+      title: "Environment",
+      icon: Leaf,
+      count: 38,
+      description: "Climate data, environmental monitoring, and sustainability metrics"
+    }
+  ];
+  
   const fetchData = useCallback(async () => {
     try {
       const datasets = await getDatasets();
       const featured = datasets.filter(d => d.featured).length > 0 
         ? datasets.filter(d => d.featured)
-        : datasets.slice(0, 3); // Reduced to 3 for cleaner layout
+        : datasets.slice(0, 3);
       
       setFeaturedDatasets(featured);
       
@@ -92,13 +121,13 @@ const Index = () => {
       
       <main className="flex-grow">
         {/* Hero Section with Search Feature */}
-        <section className="relative mb-16">
+        <section className="relative mb-20">
           <Hero onSearch={handleSearch} />
         </section>
         
         {/* Example Queries Section - Only show if no active query */}
         {!activeQuery && (
-          <section className="py-16 bg-muted/20">
+          <section className="py-20 bg-muted/20">
             <div className="container mx-auto max-w-7xl px-6">
               <ExampleQueriesSection onQuerySelect={handleQuerySelect} />
             </div>
@@ -107,14 +136,14 @@ const Index = () => {
         
         {/* Data Query Section - Results area */}
         {activeQuery && (
-          <section className="mb-16">
+          <section className="mb-20">
             <DataQuerySection initialQuery={activeQuery} />
           </section>
         )}
         
         {/* Featured Datasets - Show what's available */}
         {!activeQuery && (
-          <section className="py-20 bg-background">
+          <section className="py-24 bg-background">
             <div className="container mx-auto max-w-7xl px-6">
               <FeaturedDatasetsSection 
                 datasets={featuredDatasets} 
@@ -127,7 +156,7 @@ const Index = () => {
         
         {/* Data Visualization Overview - Show capabilities */}
         {!activeQuery && isLoaded && visData.length > 0 && (
-          <section className="py-20 bg-muted/10">
+          <section className="py-24 bg-muted/10">
             <div className="container mx-auto max-w-7xl px-6">
               <DataVisualizationSection 
                 isLoaded={isLoaded} 
@@ -139,16 +168,19 @@ const Index = () => {
         
         {/* Data Categories - Browse options */}
         {!activeQuery && (
-          <section className="py-20 bg-background">
+          <section className="py-24 bg-background">
             <div className="container mx-auto max-w-7xl px-6">
-              <CategoriesSection isLoaded={isLoaded} />
+              <CategoriesSection 
+                isLoaded={isLoaded} 
+                categories={categories}
+              />
             </div>
           </section>
         )}
         
         {/* API & Developer Tools */}
         {!activeQuery && (
-          <section className="py-20 bg-muted/10">
+          <section className="py-24 bg-muted/10">
             <div className="container mx-auto max-w-7xl px-6">
               <ApiDeveloperSection isLoaded={isLoaded} />
             </div>
