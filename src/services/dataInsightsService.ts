@@ -1,3 +1,4 @@
+
 // Re-export everything from the dataInsights module
 export * from './dataInsights';
 export { generateCompleteDataInsights } from './dataInsights';
@@ -79,21 +80,29 @@ export const processDataQuery = async (
         const intelligentVisualizations = analyzer.analyzeData();
         
         // Convert to compatible format and extract insights
-        const convertedVisualizations = intelligentVisualizations.map(viz => ({
-          id: viz.id,
-          datasetId: dataset.id,
-          title: viz.title,
-          type: mapIntelligentTypeToVisualizationType(viz.type), // Map the types properly
-          data: viz.data,
-          category: dataset.category,
-          geoJSON: viz.type === 'map' ? generateGeoJSONForVisualization(viz) : null,
-          insights: viz.insights.map(insight => insight.description),
-          xAxisLabel: viz.xAxis,
-          yAxisLabel: viz.yAxis,
-          description: viz.description,
-          purpose: viz.purpose,
-          intelligentInsights: viz.insights // Keep full insight objects
-        }));
+        const convertedVisualizations = intelligentVisualizations.map(viz => {
+          // Determine if this should be a map visualization based on dataset properties
+          const shouldBeMap = dataset.format?.toLowerCase() === 'geojson' || 
+                             dataset.category?.toLowerCase().includes('geo') ||
+                             dataset.category?.toLowerCase().includes('map') ||
+                             dataset.category?.toLowerCase().includes('location');
+          
+          return {
+            id: viz.id,
+            datasetId: dataset.id,
+            title: viz.title,
+            type: shouldBeMap ? 'map' : mapIntelligentTypeToVisualizationType(viz.type),
+            data: viz.data,
+            category: dataset.category,
+            geoJSON: shouldBeMap ? generateGeoJSONForVisualization(viz) : null,
+            insights: viz.insights.map(insight => insight.description),
+            xAxisLabel: viz.xAxis,
+            yAxisLabel: viz.yAxis,
+            description: viz.description,
+            purpose: viz.purpose,
+            intelligentInsights: viz.insights // Keep full insight objects
+          };
+        });
         
         visualizations.push(...convertedVisualizations);
         
@@ -151,14 +160,14 @@ export const processDataQuery = async (
 };
 
 // Helper function to map intelligent chart types to visualization types
-function mapIntelligentTypeToVisualizationType(intelligentType: string): 'bar' | 'line' | 'pie' | 'area' | 'radar' | 'map' | 'scatter' {
+function mapIntelligentTypeToVisualizationType(intelligentType: string): 'bar' | 'line' | 'pie' | 'area' | 'radar' | 'scatter' {
   switch (intelligentType) {
     case 'line':
       return 'line';
     case 'bar':
       return 'bar';
     case 'scatter':
-      return 'scatter' as any; // Add scatter to the union type
+      return 'scatter';
     case 'heatmap':
       return 'area'; // Map heatmap to area chart
     case 'distribution':
