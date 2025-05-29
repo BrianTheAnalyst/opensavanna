@@ -90,7 +90,11 @@ export const processDataQuery = async (
         const vizType = determineVisualizationType(transformedData, dataset.category);
         
         // Generate insights for this dataset with all required parameters
-        const datasetInsights = await generateCompleteDataInsights(transformedData, dataset.category, query || '');
+        const datasetInsights = await generateCompleteDataInsights(
+          transformedData, 
+          dataset.category, 
+          query
+        );
         
         visualizations.push({
           datasetId: dataset.id,
