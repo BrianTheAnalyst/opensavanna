@@ -81,8 +81,9 @@ export const processDataQuery = async (
         // Convert to compatible format and extract insights
         const convertedVisualizations = intelligentVisualizations.map(viz => ({
           id: viz.id,
+          datasetId: dataset.id,
           title: viz.title,
-          type: viz.type,
+          type: mapIntelligentTypeToVisualizationType(viz.type), // Map the types properly
           data: viz.data,
           category: dataset.category,
           geoJSON: viz.type === 'map' ? generateGeoJSONForVisualization(viz) : null,
@@ -148,6 +149,26 @@ export const processDataQuery = async (
     };
   }
 };
+
+// Helper function to map intelligent chart types to visualization types
+function mapIntelligentTypeToVisualizationType(intelligentType: string): 'bar' | 'line' | 'pie' | 'area' | 'radar' | 'map' | 'scatter' {
+  switch (intelligentType) {
+    case 'line':
+      return 'line';
+    case 'bar':
+      return 'bar';
+    case 'scatter':
+      return 'scatter' as any; // Add scatter to the union type
+    case 'heatmap':
+      return 'area'; // Map heatmap to area chart
+    case 'distribution':
+      return 'bar'; // Map distribution to bar chart
+    case 'correlation_matrix':
+      return 'area'; // Map correlation matrix to area chart
+    default:
+      return 'bar';
+  }
+}
 
 // Helper function to find relevant datasets based on intelligent query analysis
 function findRelevantDatasets(datasets: any[], query: string): any[] {

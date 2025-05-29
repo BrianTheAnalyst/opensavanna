@@ -28,7 +28,7 @@ const VisualizationsSection: React.FC<VisualizationsSectionProps> = ({ visualiza
           // Handle map visualizations separately
           if (viz.type === 'map') {
             return (
-              <Card key={index} className="border-border/50 shadow-xl xl:col-span-2">
+              <Card key={viz.id || index} className="border-border/50 shadow-xl xl:col-span-2">
                 <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b border-border/50">
                   <CardTitle className="text-2xl">{viz.title}</CardTitle>
                   <CardDescription className="text-base">
@@ -51,7 +51,7 @@ const VisualizationsSection: React.FC<VisualizationsSectionProps> = ({ visualiza
             );
           }
           
-          // Convert to intelligent visualization format
+          // Convert to intelligent visualization format - handle missing properties gracefully
           const intelligentViz = {
             id: viz.id || `viz-${index}`,
             title: viz.title,
@@ -65,14 +65,14 @@ const VisualizationsSection: React.FC<VisualizationsSectionProps> = ({ visualiza
               impact: insight.impact || 'medium',
               recommendations: insight.recommendations || []
             })),
-            xAxis: viz.xAxisLabel || 'X Axis',
-            yAxis: viz.yAxisLabel || 'Y Axis', 
+            xAxis: viz.xAxisLabel || viz.timeAxis || 'X Axis',
+            yAxis: viz.yAxisLabel || viz.valueLabel || 'Y Axis', 
             description: viz.description || `Analysis of ${viz.data?.length || 0} data points`,
             purpose: viz.purpose || 'Data pattern analysis'
           };
           
           return (
-            <div key={index} className={intelligentViz.type === 'scatter' ? 'xl:col-span-2' : ''}>
+            <div key={viz.id || index} className={intelligentViz.type === 'scatter' ? 'xl:col-span-2' : ''}>
               <IntelligentChart visualization={intelligentViz} />
             </div>
           );

@@ -9,14 +9,27 @@ export interface DataInsightResult {
   timeAxis?: string;
   valueLabel?: string;
   visualizations: Array<{
+    id?: string;
     datasetId: string;
     title: string;
-    type: 'bar' | 'line' | 'pie' | 'area' | 'radar' | 'map';
+    type: 'bar' | 'line' | 'pie' | 'area' | 'radar' | 'map' | 'scatter';
     category: string;
     data: any[];
     geoJSON?: any;
     timeAxis?: string;
     valueLabel?: string;
+    xAxisLabel?: string;
+    yAxisLabel?: string;
+    description?: string;
+    purpose?: string;
+    intelligentInsights?: Array<{
+      type: string;
+      title: string;
+      description: string;
+      confidence: number;
+      impact: string;
+      recommendations?: string[];
+    }>;
   }>;
   insights: string[];
   summary: string;
