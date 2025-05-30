@@ -35,57 +35,61 @@ const ControlsGrid: React.FC<ControlsGridProps> = ({
   patterns
 }) => {
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div className="w-full space-y-6">
+      {/* Section Header */}
       <div className="space-y-2">
-        <h3 className="text-lg font-semibold">Analysis Controls</h3>
+        <h3 className="text-xl font-semibold">Analysis Controls</h3>
         <p className="text-sm text-muted-foreground">
           Configure visualization settings and explore spatial patterns
         </p>
+        <Separator />
       </div>
 
-      {/* Controls Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Temporal Controls */}
-        {hasTemporalData && (
-          <Card className="shadow-sm border border-border/50">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base font-medium">Temporal Analysis</CardTitle>
-            </CardHeader>
-            <Separator className="mb-4" />
-            <CardContent className="space-y-4">
-              <TemporalControls
-                timeRange={timeRange}
-                currentIndex={currentTimeIndex}
-                onTimeChange={onTimeChange}
-                animationEnabled={config.temporalAnimation}
-                onAnimationToggle={(enabled) => onConfigChange({ ...config, temporalAnimation: enabled })}
-              />
-            </CardContent>
-          </Card>
-        )}
+      {/* Controls Container */}
+      <div className="w-full">
+        {/* First Row - Temporal and Configuration */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {/* Temporal Controls */}
+          {hasTemporalData && (
+            <Card className="shadow-sm border border-border/50">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base font-medium">Temporal Analysis</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <TemporalControls
+                  timeRange={timeRange}
+                  currentIndex={currentTimeIndex}
+                  onTimeChange={onTimeChange}
+                  animationEnabled={config.temporalAnimation}
+                  onAnimationToggle={(enabled) => onConfigChange({ ...config, temporalAnimation: enabled })}
+                />
+              </CardContent>
+            </Card>
+          )}
 
-        {/* Configuration Panel */}
-        <div className={hasTemporalData ? '' : 'lg:col-span-2'}>
-          <ConfigurationPanel config={config} onConfigChange={onConfigChange} />
+          {/* Configuration Panel */}
+          <div className={hasTemporalData ? '' : 'lg:col-span-2'}>
+            <ConfigurationPanel config={config} onConfigChange={onConfigChange} />
+          </div>
         </div>
 
-        {/* Spatial Analysis Panel */}
+        {/* Second Row - Spatial Analysis (Full Width) */}
         {showInsights && (
-          <Card className="shadow-sm border border-border/50">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base font-medium">Spatial Insights</CardTitle>
-            </CardHeader>
-            <Separator className="mb-4" />
-            <CardContent className="space-y-4">
-              <SpatialAnalysisPanel
-                analysis={spatialAnalysis}
-                insights={insights}
-                isAnalyzing={isAnalyzing}
-                patterns={patterns}
-              />
-            </CardContent>
-          </Card>
+          <div className="w-full">
+            <Card className="shadow-sm border border-border/50">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base font-medium">Spatial Insights</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <SpatialAnalysisPanel
+                  analysis={spatialAnalysis}
+                  insights={insights}
+                  isAnalyzing={isAnalyzing}
+                  patterns={patterns}
+                />
+              </CardContent>
+            </Card>
+          </div>
         )}
       </div>
     </div>

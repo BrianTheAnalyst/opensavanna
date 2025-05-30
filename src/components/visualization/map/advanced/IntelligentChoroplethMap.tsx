@@ -105,52 +105,50 @@ const IntelligentChoroplethMap: React.FC<IntelligentChoroplethMapProps> = ({
   };
 
   return (
-    <Card className="shadow-sm border border-border/50">
-      <CardContent className="p-0">
-        <div className="relative h-[500px] w-full rounded-md overflow-hidden">
-          <MapContainer
-            style={{ height: '100%', width: '100%' }}
-            className="rounded-md z-10"
-            {...{
-              center: mapCenter,
-              zoom: 6,
-              key: `choropleth-${mapCenter[0]}-${mapCenter[1]}-6`
-            } as any}
-          >
-            <TileLayer
-              url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-            />
-            
-            {geoJSON && (
-              <GeoJSON
-                data={geoJSON}
-                {...{
-                  pathOptions: getFeatureStyle,
-                  onEachFeature: onEachFeature
-                } as any}
-              />
-            )}
-          </MapContainer>
+    <div className="w-full h-full relative">
+      <div className="absolute inset-0 rounded-lg overflow-hidden border border-border/30">
+        <MapContainer
+          style={{ height: '100%', width: '100%' }}
+          className="z-10"
+          {...{
+            center: mapCenter,
+            zoom: 6,
+            key: `choropleth-${mapCenter[0]}-${mapCenter[1]}-6`
+          } as any}
+        >
+          <TileLayer
+            url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+          />
           
-          {/* Info Panel - Positioned with proper spacing */}
-          <div className="absolute top-4 left-4 z-20 space-y-2">
-            <Card className="shadow-lg border-border/20 bg-background/95 backdrop-blur-sm">
-              <CardContent className="p-3 space-y-2">
-                <div className="flex items-center space-x-2">
-                  <Badge variant="secondary" className="text-xs">
-                    Choropleth Analysis
-                  </Badge>
-                </div>
-                <div className="space-y-1 text-sm">
-                  <p className="font-medium">{timeFilteredPoints.length} data points</p>
-                  <p className="text-muted-foreground">Color scheme: {config.colorScheme}</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+          {geoJSON && (
+            <GeoJSON
+              data={geoJSON}
+              {...{
+                style: getFeatureStyle,
+                onEachFeature: onEachFeature
+              } as any}
+            />
+          )}
+        </MapContainer>
+      </div>
+      
+      {/* Info Panel */}
+      <div className="absolute top-4 left-4 z-20">
+        <Card className="shadow-lg border-border/20 bg-background/95 backdrop-blur-sm">
+          <CardContent className="p-3 space-y-2">
+            <div className="flex items-center space-x-2">
+              <Badge variant="secondary" className="text-xs">
+                Choropleth Analysis
+              </Badge>
+            </div>
+            <div className="space-y-1 text-sm">
+              <p className="font-medium">{timeFilteredPoints.length} data points</p>
+              <p className="text-muted-foreground">Color scheme: {config.colorScheme}</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 };
 

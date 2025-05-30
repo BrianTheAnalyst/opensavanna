@@ -28,52 +28,62 @@ const VisualizationTabs: React.FC<VisualizationTabsProps> = ({
   visualizationProps
 }) => {
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="pb-4">
-        <Tabs value={activeVisualization} onValueChange={onVisualizationChange}>
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="choropleth" className="flex items-center gap-2">
-              <Layers className="h-4 w-4" />
-              Choropleth
-            </TabsTrigger>
-            <TabsTrigger value="cluster" className="flex items-center gap-2">
-              <Target className="h-4 w-4" />
-              Clusters
-            </TabsTrigger>
-            <TabsTrigger value="heatmap" className="flex items-center gap-2">
-              <Activity className="h-4 w-4" />
-              Heatmap
-            </TabsTrigger>
-            <TabsTrigger value="flow" className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4" />
-              Flow
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </CardHeader>
-      
-      <CardContent className="p-0">
-        <div className="h-[500px] relative">
-          <Tabs value={activeVisualization}>
-            <TabsContent value="choropleth" className="h-full m-0">
-              <IntelligentChoroplethMap {...visualizationProps} />
-            </TabsContent>
-            
-            <TabsContent value="cluster" className="h-full m-0">
-              <DynamicClusterMap {...visualizationProps} />
-            </TabsContent>
-            
-            <TabsContent value="heatmap" className="h-full m-0">
-              <HeatmapAnalysis {...visualizationProps} />
-            </TabsContent>
-            
-            <TabsContent value="flow" className="h-full m-0">
-              <FlowMap {...visualizationProps} />
-            </TabsContent>
+    <div className="w-full">
+      <Card className="shadow-lg border border-border/50">
+        <CardHeader className="pb-4">
+          <Tabs value={activeVisualization} onValueChange={onVisualizationChange} className="w-full">
+            <TabsList className="grid w-full grid-cols-4 h-12">
+              <TabsTrigger value="choropleth" className="flex items-center gap-2 h-10">
+                <Layers className="h-4 w-4" />
+                <span className="hidden sm:inline">Choropleth</span>
+              </TabsTrigger>
+              <TabsTrigger value="cluster" className="flex items-center gap-2 h-10">
+                <Target className="h-4 w-4" />
+                <span className="hidden sm:inline">Clusters</span>
+              </TabsTrigger>
+              <TabsTrigger value="heatmap" className="flex items-center gap-2 h-10">
+                <Activity className="h-4 w-4" />
+                <span className="hidden sm:inline">Heatmap</span>
+              </TabsTrigger>
+              <TabsTrigger value="flow" className="flex items-center gap-2 h-10">
+                <BarChart3 className="h-4 w-4" />
+                <span className="hidden sm:inline">Flow</span>
+              </TabsTrigger>
+            </TabsList>
           </Tabs>
-        </div>
-      </CardContent>
-    </Card>
+        </CardHeader>
+        
+        <CardContent className="p-0">
+          <div className="w-full">
+            <Tabs value={activeVisualization}>
+              <TabsContent value="choropleth" className="m-0 w-full">
+                <div className="w-full h-[600px]">
+                  <IntelligentChoroplethMap {...visualizationProps} />
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="cluster" className="m-0 w-full">
+                <div className="w-full h-[600px]">
+                  <DynamicClusterMap {...visualizationProps} />
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="heatmap" className="m-0 w-full">
+                <div className="w-full h-[600px]">
+                  <HeatmapAnalysis {...visualizationProps} />
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="flow" className="m-0 w-full">
+                <div className="w-full h-[600px]">
+                  <FlowMap {...visualizationProps} />
+                </div>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

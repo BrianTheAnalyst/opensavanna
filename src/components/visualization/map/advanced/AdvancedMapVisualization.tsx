@@ -20,21 +20,23 @@ interface AdvancedMapVisualizationProps {
 }
 
 const LoadingSkeleton = () => (
-  <div className="space-y-6">
+  <div className="w-full max-w-7xl mx-auto p-6 space-y-8">
     <div className="space-y-4">
       <Skeleton className="h-8 w-1/3" />
       <Skeleton className="h-4 w-2/3" />
     </div>
-    <Card className="h-[500px]">
-      <CardContent className="flex items-center justify-center h-full">
-        <div className="text-center space-y-4">
-          <Globe className="h-16 w-16 mx-auto text-muted-foreground animate-spin" />
-          <div className="space-y-2">
-            <p className="text-lg font-medium">Loading Map Visualization</p>
-            <p className="text-sm text-muted-foreground">Processing geographic data...</p>
-          </div>
-          <div className="flex justify-center">
-            <Loader2 className="h-6 w-6 animate-spin" />
+    <Card className="w-full">
+      <CardContent className="p-6">
+        <div className="h-[600px] flex items-center justify-center">
+          <div className="text-center space-y-4">
+            <Globe className="h-16 w-16 mx-auto text-muted-foreground animate-spin" />
+            <div className="space-y-2">
+              <p className="text-lg font-medium">Loading Map Visualization</p>
+              <p className="text-sm text-muted-foreground">Processing geographic data...</p>
+            </div>
+            <div className="flex justify-center">
+              <Loader2 className="h-6 w-6 animate-spin" />
+            </div>
           </div>
         </div>
       </CardContent>
@@ -88,43 +90,45 @@ const AdvancedMapVisualization: React.FC<AdvancedMapVisualizationProps> = ({
   }
 
   return (
-    <div className="space-y-8 p-6">
-      {/* Header Section - Properly Spaced */}
-      <div className="space-y-4">
-        <MapHeader
-          title={title}
-          description={description}
-          pointsCount={points.length}
-          spatialAnalysis={spatialAnalysis}
-          anomalyDetection={config.anomalyDetection}
-          outlierCount={patterns.outliers.length}
-        />
-      </div>
+    <div className="w-full max-w-7xl mx-auto">
+      <div className="p-6 space-y-8">
+        {/* Header Section */}
+        <div className="w-full">
+          <MapHeader
+            title={title}
+            description={description}
+            pointsCount={points.length}
+            spatialAnalysis={spatialAnalysis}
+            anomalyDetection={config.anomalyDetection}
+            outlierCount={patterns.outliers.length}
+          />
+        </div>
 
-      {/* Main Visualization Section - Clear Separation */}
-      <div className="space-y-6">
-        <VisualizationTabs
-          activeVisualization={activeVisualization}
-          onVisualizationChange={(value: any) => setActiveVisualization(value)}
-          visualizationProps={getVisualizationProps()}
-        />
-      </div>
+        {/* Main Visualization Section */}
+        <div className="w-full">
+          <VisualizationTabs
+            activeVisualization={activeVisualization}
+            onVisualizationChange={(value: any) => setActiveVisualization(value)}
+            visualizationProps={getVisualizationProps()}
+          />
+        </div>
 
-      {/* Controls Section - Bottom Spacing */}
-      <div className="pt-6 border-t border-border/50">
-        <ControlsGrid
-          hasTemporalData={patterns.hasTemporalData}
-          timeRange={patterns.timeRange}
-          currentTimeIndex={currentTimeIndex}
-          onTimeChange={setCurrentTimeIndex}
-          config={config}
-          onConfigChange={setConfig}
-          showInsights={config.showInsights}
-          spatialAnalysis={spatialAnalysis}
-          insights={insights}
-          isAnalyzing={isAnalyzing}
-          patterns={patterns}
-        />
+        {/* Controls Section */}
+        <div className="w-full mt-8">
+          <ControlsGrid
+            hasTemporalData={patterns.hasTemporalData}
+            timeRange={patterns.timeRange}
+            currentTimeIndex={currentTimeIndex}
+            onTimeChange={setCurrentTimeIndex}
+            config={config}
+            onConfigChange={setConfig}
+            showInsights={config.showInsights}
+            spatialAnalysis={spatialAnalysis}
+            insights={insights}
+            isAnalyzing={isAnalyzing}
+            patterns={patterns}
+          />
+        </div>
       </div>
     </div>
   );
