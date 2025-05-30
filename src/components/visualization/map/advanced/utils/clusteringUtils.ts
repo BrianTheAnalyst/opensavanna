@@ -1,90 +1,104 @@
 
 import { MapPoint } from '../types';
 
+export interface ClusterResult {
+  points: MapPoint[];
+  clusters: Array<{
+    id: string;
+    center: [number, number];
+    points: MapPoint[];
+    avgValue: number;
+    variance: number;
+  }>;
+  noise: MapPoint[];
+}
+
 /**
- * DBSCAN clustering algorithm implementation
+ * Perform DBSCAN clustering on map points
  */
 export const performDBSCANClustering = (
-  points: MapPoint[], 
-  radiusKm: number, 
-  minPoints: number
-) => {
-  const clusteredPoints = [...points];
+  points: MapPoint[],
+  eps: number = 50, // Distance threshold in km
+  minPts: number = 3
+): ClusterResult => {
+  if (points.length === 0) {
+    return { points: [], clusters: [], noise: [] };
+  }
+
+  const visited = new Set<string>();
+  const clustered = new Set<string>();
   const clusters: Array<{
-    id: number;
+    id: string;
     center: [number, number];
     points: MapPoint[];
     avgValue: number;
     variance: number;
   }> = [];
-  
-  let clusterIndex = 0;
-  const visited = new Set<string>();
-  
-  // Initialize all points as unassigned
-  clusteredPoints.forEach(point => {
-    point.cluster = -1; // -1 indicates noise/unassigned
-  });
-  
-  for (const point of clusteredPoints) {
+  const noise: MapPoint[] = [];
+  let clusterId = 0;
+
+  // Create a copy of points with cluster assignment
+  const processedPoints: MapPoint[] = points.map(p => ({ ...p, cluster: -1 }));
+
+  for (const point of processedPoints) {
     if (visited.has(point.id)) continue;
     
     visited.add(point.id);
-    const neighbors = getNeighbors(point, clusteredPoints, radiusKm);
+    const neighbors = regionQuery(point, processedPoints, eps);
     
-    if (neighbors.length < minPoints) {
-      // Mark as noise
-      point.cluster = -1;
-    } else {
-      // Start new cluster
-      const clusterPoints = expandCluster(
-        point, 
-        neighbors, 
-        clusteredPoints, 
-        radiusKm, 
-        minPoints, 
-        visited, 
-        clusterIndex
-      );
+    if (neighbors.length < minPts) {
+      noise.push(point);
+      continue;
+    }
+    
+    // Create new cluster
+    const clusterPoints: MapPoint[] = [];
+    expandCluster(point, neighbors, clusterId, visited, clustered, processedPoints, eps, minPts, clusterPoints);
+    
+    if (clusterPoints.length > 0) {
+      const center = calculateClusterCenter(clusterPoints);
+      const avgValue = clusterPoints.reduce((sum, p) => sum + p.value, 0) / clusterPoints.length;
+      const variance = calculateVariance(clusterPoints.map(p => p.value), avgValue);
       
-      if (clusterPoints.length > 0) {
-        // Calculate cluster statistics
-        const avgLat = clusterPoints.reduce((sum, p) => sum + p.lat, 0) / clusterPoints.length;
-        const avgLng = clusterPoints.reduce((sum, p) => sum + p.lng, 0) / clusterPoints.length;
-        const avgValue = clusterPoints.reduce((sum, p) => sum + p.value, 0) / clusterPoints.length;
-        const variance = clusterPoints.reduce((sum, p) => 
-          sum + Math.pow(p.value - avgValue, 2), 0
-        ) / clusterPoints.length;
-        
-        clusters.push({
-          id: clusterIndex,
-          center: [avgLat, avgLng],
-          points: clusterPoints,
-          avgValue,
-          variance
-        });
-        
-        clusterIndex++;
-      }
+      clusters.push({
+        id: clusterId.toString(),
+        center,
+        points: clusterPoints,
+        avgValue,
+        variance
+      });
+      
+      clusterId++;
     }
   }
-  
+
   return {
-    points: clusteredPoints,
+    points: processedPoints,
     clusters,
-    noisePoints: clusteredPoints.filter(p => p.cluster === -1)
+    noise
   };
 };
 
 /**
- * Get neighbors within specified radius
+ * Find all points within eps distance of the query point
  */
-const getNeighbors = (point: MapPoint, allPoints: MapPoint[], radiusKm: number): MapPoint[] => {
-  return allPoints.filter(p => {
-    if (p.id === point.id) return false;
-    const distance = haversineDistance(point.lat, point.lng, p.lat, p.lng);
-    return distance <= radiusKm;
-  });
+const regionQuery = (queryPoint: MapPoint, points: MapPoint[], eps: number): MapPoint[] => {
+  const neighbors: MapPoint[] = [];
+  
+  for (const point of points) {
+    if (point.id !== queryPoint.id) {
+      const distance = haversineDistance(
+        queryPoint.lat, queryPoint.lng,
+        point.lat, point.lng
+      );
+      
+      if (distance <= eps) {
+        neighbors.push(point);
+      }
+    }
+  }
+  
+  return neighbors;
 };
 
 /**
@@ -93,163 +107,175 @@ const getNeighbors = (point: MapPoint, allPoints: MapPoint[], radiusKm: number):
 const expandCluster = (
   point: MapPoint,
   neighbors: MapPoint[],
-  allPoints: MapPoint[],
-  radiusKm: number,
-  minPoints: number,
+  clusterId: number,
   visited: Set<string>,
-  clusterIndex: number
-): MapPoint[] => {
-  const cluster: MapPoint[] = [];
+  clustered: Set<string>,
+  points: MapPoint[],
+  eps: number,
+  minPts: number,
+  clusterPoints: MapPoint[]
+): void => {
+  point.cluster = clusterId;
+  clustered.add(point.id);
+  clusterPoints.push(point);
   
-  // Add starting point to cluster
-  point.cluster = clusterIndex;
-  cluster.push(point);
-  
-  // Process each neighbor
   for (let i = 0; i < neighbors.length; i++) {
     const neighbor = neighbors[i];
     
     if (!visited.has(neighbor.id)) {
       visited.add(neighbor.id);
-      const neighborNeighbors = getNeighbors(neighbor, allPoints, radiusKm);
+      const neighborNeighbors = regionQuery(neighbor, points, eps);
       
-      // If neighbor has enough neighbors, add them to the search list
-      if (neighborNeighbors.length >= minPoints) {
-        neighbors.push(...neighborNeighbors.filter(nn => 
-          !neighbors.some(existing => existing.id === nn.id)
-        ));
+      if (neighborNeighbors.length >= minPts) {
+        neighbors.push(...neighborNeighbors);
       }
     }
     
-    // If neighbor is not yet assigned to a cluster, add it to this one
-    if (neighbor.cluster === -1) {
-      neighbor.cluster = clusterIndex;
-      cluster.push(neighbor);
+    if (!clustered.has(neighbor.id)) {
+      neighbor.cluster = clusterId;
+      clustered.add(neighbor.id);
+      clusterPoints.push(neighbor);
     }
   }
-  
-  return cluster;
 };
 
 /**
- * Calculate density for each point
+ * Calculate the geometric center of a cluster
  */
-export const calculatePointDensity = (points: MapPoint[], radiusKm: number): MapPoint[] => {
-  return points.map(point => {
-    const neighbors = getNeighbors(point, points, radiusKm);
-    const density = neighbors.length / (Math.PI * radiusKm * radiusKm); // points per km²
-    
-    return {
-      ...point,
-      density
-    };
-  });
+const calculateClusterCenter = (points: MapPoint[]): [number, number] => {
+  const sumLat = points.reduce((sum, p) => sum + p.lat, 0);
+  const sumLng = points.reduce((sum, p) => sum + p.lng, 0);
+  
+  return [sumLat / points.length, sumLng / points.length];
 };
 
 /**
- * Haversine distance calculation
+ * Calculate variance of values
+ */
+const calculateVariance = (values: number[], mean: number): number => {
+  const squaredDiffs = values.map(value => Math.pow(value - mean, 2));
+  return squaredDiffs.reduce((sum, diff) => sum + diff, 0) / values.length;
+};
+
+/**
+ * Calculate Haversine distance between two points in kilometers
  */
 const haversineDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
-  const R = 6371; // Earth's radius in km
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const R = 6371; // Earth's radius in kilometers
+  const dLat = toRadians(lat2 - lat1);
+  const dLng = toRadians(lng2 - lng1);
+  
   const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) *
     Math.sin(dLng / 2) * Math.sin(dLng / 2);
+  
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  
   return R * c;
 };
 
 /**
- * K-means clustering alternative
+ * Convert degrees to radians
  */
-export const performKMeansClustering = (points: MapPoint[], k: number, maxIterations: number = 100) => {
-  if (points.length < k) return { points, clusters: [] };
-  
-  // Initialize centroids randomly
-  let centroids = initializeRandomCentroids(points, k);
-  
-  for (let iteration = 0; iteration < maxIterations; iteration++) {
-    // Assign points to nearest centroid
-    const assignments = points.map(point => {
-      let minDistance = Infinity;
-      let assignedCluster = 0;
-      
-      centroids.forEach((centroid, index) => {
-        const distance = haversineDistance(point.lat, point.lng, centroid.lat, centroid.lng);
-        if (distance < minDistance) {
-          minDistance = distance;
-          assignedCluster = index;
-        }
-      });
-      
-      return { ...point, cluster: assignedCluster };
-    });
-    
-    // Update centroids
-    const newCentroids = centroids.map((_, clusterIndex) => {
-      const clusterPoints = assignments.filter(p => p.cluster === clusterIndex);
-      if (clusterPoints.length === 0) return centroids[clusterIndex];
-      
-      const avgLat = clusterPoints.reduce((sum, p) => sum + p.lat, 0) / clusterPoints.length;
-      const avgLng = clusterPoints.reduce((sum, p) => sum + p.lng, 0) / clusterPoints.length;
-      const avgValue = clusterPoints.reduce((sum, p) => sum + p.value, 0) / clusterPoints.length;
-      
-      return { lat: avgLat, lng: avgLng, value: avgValue };
-    });
-    
-    // Check for convergence
-    const convergence = centroids.every((centroid, index) => {
-      const distance = haversineDistance(
-        centroid.lat, centroid.lng, 
-        newCentroids[index].lat, newCentroids[index].lng
-      );
-      return distance < 0.1; // 100m threshold
-    });
-    
-    centroids = newCentroids;
-    
-    if (convergence) break;
-  }
-  
-  // Create final cluster structure
-  const clusters = centroids.map((centroid, index) => {
-    const clusterPoints = points.filter((_, pointIndex) => {
-      let minDistance = Infinity;
-      let assignedCluster = 0;
-      
-      centroids.forEach((c, cIndex) => {
-        const distance = haversineDistance(points[pointIndex].lat, points[pointIndex].lng, c.lat, c.lng);
-        if (distance < minDistance) {
-          minDistance = distance;
-          assignedCluster = cIndex;
-        }
-      });
-      
-      return assignedCluster === index;
-    });
-    
-    const avgValue = clusterPoints.reduce((sum, p) => sum + p.value, 0) / clusterPoints.length;
-    const variance = clusterPoints.reduce((sum, p) => 
-      sum + Math.pow(p.value - avgValue, 2), 0
-    ) / clusterPoints.length;
-    
-    return {
-      id: index,
-      center: [centroid.lat, centroid.lng] as [number, number],
-      points: clusterPoints,
-      avgValue,
-      variance
-    };
-  });
-  
-  return { points, clusters };
+const toRadians = (degrees: number): number => {
+  return degrees * (Math.PI / 180);
 };
 
 /**
- * Initialize random centroids for K-means
+ * K-means clustering implementation
  */
-const initializeRandomCentroids = (points: MapPoint[], k: number) => {
-  const shuffled = [...points].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, k);
+export const performKMeansClustering = (
+  points: MapPoint[],
+  k: number = 5,
+  maxIterations: number = 100
+): ClusterResult => {
+  if (points.length === 0 || k <= 0) {
+    return { points: [], clusters: [], noise: [] };
+  }
+
+  // Initialize centroids randomly
+  const centroids: [number, number][] = [];
+  for (let i = 0; i < k; i++) {
+    const randomPoint = points[Math.floor(Math.random() * points.length)];
+    centroids.push([randomPoint.lat, randomPoint.lng]);
+  }
+
+  let iterations = 0;
+  let converged = false;
+  const processedPoints: MapPoint[] = points.map(p => ({ ...p, cluster: -1 }));
+
+  while (!converged && iterations < maxIterations) {
+    // Assign points to nearest centroid
+    for (const point of processedPoints) {
+      let minDistance = Infinity;
+      let nearestCluster = -1;
+
+      for (let i = 0; i < centroids.length; i++) {
+        const distance = haversineDistance(
+          point.lat, point.lng,
+          centroids[i][0], centroids[i][1]
+        );
+
+        if (distance < minDistance) {
+          minDistance = distance;
+          nearestCluster = i;
+        }
+      }
+
+      point.cluster = nearestCluster;
+    }
+
+    // Update centroids
+    const newCentroids: [number, number][] = [];
+    converged = true;
+
+    for (let i = 0; i < k; i++) {
+      const clusterPoints = processedPoints.filter(p => p.cluster === i);
+
+      if (clusterPoints.length > 0) {
+        const newCentroid = calculateClusterCenter(clusterPoints);
+        newCentroids.push(newCentroid);
+
+        // Check for convergence
+        const distance = haversineDistance(
+          centroids[i][0], centroids[i][1],
+          newCentroid[0], newCentroid[1]
+        );
+
+        if (distance > 0.001) { // 1 meter threshold
+          converged = false;
+        }
+      } else {
+        newCentroids.push(centroids[i]);
+      }
+    }
+
+    centroids.splice(0, centroids.length, ...newCentroids);
+    iterations++;
+  }
+
+  // Build cluster results
+  const clusters = [];
+  for (let i = 0; i < k; i++) {
+    const clusterPoints = processedPoints.filter(p => p.cluster === i);
+    
+    if (clusterPoints.length > 0) {
+      const avgValue = clusterPoints.reduce((sum, p) => sum + p.value, 0) / clusterPoints.length;
+      const variance = calculateVariance(clusterPoints.map(p => p.value), avgValue);
+
+      clusters.push({
+        id: i.toString(),
+        center: centroids[i],
+        points: clusterPoints,
+        avgValue,
+        variance
+      });
+    }
+  }
+
+  return {
+    points: processedPoints,
+    clusters,
+    noise: []
+  };
 };

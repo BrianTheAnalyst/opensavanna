@@ -10,6 +10,8 @@ export interface MapPoint {
   isAnomaly?: boolean;
   zScore?: number;
   density?: number;
+  localMoransI?: number;
+  spatialDeviation?: number;
 }
 
 export interface AdvancedMapConfig {

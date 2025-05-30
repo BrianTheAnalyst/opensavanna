@@ -56,7 +56,6 @@ const DynamicClusterMap: React.FC<DynamicClusterMapProps> = ({
     >
       <TileLayer
         url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
       />
       
       {/* Render clustered points */}
@@ -87,13 +86,13 @@ const DynamicClusterMap: React.FC<DynamicClusterMapProps> = ({
           <CircleMarker
             key={point.id}
             center={[point.lat, point.lng]}
-            radius={radius}
             pathOptions={{
               fillColor: color,
               color: isAnomaly ? '#ff0000' : '#ffffff',
               weight: isAnomaly ? 3 : 1,
               opacity: 0.8,
-              fillOpacity: 0.7
+              fillOpacity: 0.7,
+              radius: radius
             }}
           >
             <Popup>
@@ -118,13 +117,13 @@ const DynamicClusterMap: React.FC<DynamicClusterMapProps> = ({
         <CircleMarker
           key={`center-${cluster.id}`}
           center={cluster.center}
-          radius={20}
           pathOptions={{
             fillColor: clusterColors[`Cluster ${cluster.id}`] || '#3388ff',
             color: '#ffffff',
             weight: 3,
             opacity: 1,
-            fillOpacity: 0.3
+            fillOpacity: 0.3,
+            radius: 20
           }}
         >
           <Popup>

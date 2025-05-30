@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -62,7 +61,7 @@ const AdvancedMapVisualization: React.FC<AdvancedMapVisualizationProps> = ({
 
   // Process and analyze data
   const processedData = useMemo(() => {
-    if (!data || data.length === 0) return { points: [], insights: [], patterns: [] };
+    if (!data || data.length === 0) return { points: [], insights: [], patterns: { clusters: [], outliers: [], hasTemporalData: false, correlations: [] } };
     
     // Convert data to standardized map points
     const points: MapPoint[] = data.map((item, index) => ({
