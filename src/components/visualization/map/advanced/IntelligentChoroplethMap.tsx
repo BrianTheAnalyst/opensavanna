@@ -103,41 +103,36 @@ const IntelligentChoroplethMap: React.FC<IntelligentChoroplethMapProps> = ({
   };
 
   return (
-    <MapContainer
-      center={mapCenter}
-      zoom={6}
-      style={{ height: '100%', width: '100%' }}
-      className="rounded-lg"
-    >
-      <TileLayer
-        url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-      />
-      
-      {geoJSON && (
-        <GeoJSON
-          data={geoJSON}
-          style={getFeatureStyle}
-          eventHandlers={{
-            add: (e) => {
-              const layer = e.target;
-              layer.eachLayer((featureLayer: any) => {
-                const feature = featureLayer.feature;
-                if (feature) {
-                  onEachFeature(feature, featureLayer);
-                }
-              });
-            }
-          }}
+    <div className="h-full w-full rounded-md overflow-hidden">
+      <MapContainer
+        style={{ height: '100%', width: '100%' }}
+        className="rounded-lg"
+        {...{
+          center: mapCenter,
+          zoom: 6,
+          key: `${mapCenter[0]}-${mapCenter[1]}-6`
+        } as any}
+      >
+        <TileLayer
+          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
         />
-      )}
-      
-      {/* Legend and info overlay */}
-      <div className="absolute top-4 left-4 bg-white p-2 rounded shadow">
-        <p className="text-sm font-semibold">Choropleth Analysis</p>
-        <p className="text-xs text-gray-600">{timeFilteredPoints.length} data points</p>
-        <p className="text-xs text-gray-600">Color scheme: {config.colorScheme}</p>
-      </div>
-    </MapContainer>
+        
+        {geoJSON && (
+          <GeoJSON
+            data={geoJSON}
+            pathOptions={getFeatureStyle}
+            onEachFeature={onEachFeature}
+          />
+        )}
+        
+        {/* Legend and info overlay */}
+        <div className="absolute top-4 left-4 bg-white p-2 rounded shadow">
+          <p className="text-sm font-semibold">Choropleth Analysis</p>
+          <p className="text-xs text-gray-600">{timeFilteredPoints.length} data points</p>
+          <p className="text-xs text-gray-600">Color scheme: {config.colorScheme}</p>
+        </div>
+      </MapContainer>
+    </div>
   );
 };
 

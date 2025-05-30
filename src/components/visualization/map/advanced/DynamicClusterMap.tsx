@@ -35,23 +35,28 @@ const DynamicClusterMap: React.FC<DynamicClusterMapProps> = ({
   }, [timeFilteredPoints]);
 
   return (
-    <MapContainer
-      center={mapCenter}
-      zoom={6}
-      style={{ height: '100%', width: '100%' }}
-      className="rounded-lg"
-    >
-      <TileLayer
-        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-      />
-      
-      {/* Cluster visualization would go here */}
-      <div className="absolute top-4 left-4 bg-white p-2 rounded shadow">
-        <p className="text-sm font-semibold">Dynamic Clustering</p>
-        <p className="text-xs text-gray-600">{timeFilteredPoints.length} data points</p>
-        <p className="text-xs text-gray-600">Radius: {config.clusterRadius}px</p>
-      </div>
-    </MapContainer>
+    <div className="h-full w-full rounded-md overflow-hidden">
+      <MapContainer
+        style={{ height: '100%', width: '100%' }}
+        className="rounded-lg"
+        {...{
+          center: mapCenter,
+          zoom: 6,
+          key: `${mapCenter[0]}-${mapCenter[1]}-6`
+        } as any}
+      >
+        <TileLayer
+          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+        />
+        
+        {/* Cluster visualization would go here */}
+        <div className="absolute top-4 left-4 bg-white p-2 rounded shadow">
+          <p className="text-sm font-semibold">Dynamic Clustering</p>
+          <p className="text-xs text-gray-600">{timeFilteredPoints.length} data points</p>
+          <p className="text-xs text-gray-600">Radius: {config.clusterRadius}px</p>
+        </div>
+      </MapContainer>
+    </div>
   );
 };
 
