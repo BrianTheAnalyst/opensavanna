@@ -2,6 +2,8 @@
 import React, { useMemo } from 'react';
 import { MapContainer, TileLayer, GeoJSON } from 'react-leaflet';
 import L from 'leaflet';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { MapPoint, AdvancedMapConfig } from './types';
 import { getColorForValue } from './utils/colorScales';
 import { processGeoJSONForChoropleth } from './utils/choroplethUtils';
@@ -103,38 +105,52 @@ const IntelligentChoroplethMap: React.FC<IntelligentChoroplethMapProps> = ({
   };
 
   return (
-    <div className="h-full w-full rounded-md overflow-hidden">
-      <MapContainer
-        style={{ height: '100%', width: '100%' }}
-        className="rounded-lg"
-        {...{
-          center: mapCenter,
-          zoom: 6,
-          key: `${mapCenter[0]}-${mapCenter[1]}-6`
-        } as any}
-      >
-        <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-        />
-        
-        {geoJSON && (
-          <GeoJSON
-            data={geoJSON}
+    <Card className="shadow-sm border border-border/50">
+      <CardContent className="p-0">
+        <div className="relative h-[500px] w-full rounded-md overflow-hidden">
+          <MapContainer
+            style={{ height: '100%', width: '100%' }}
+            className="rounded-md z-10"
             {...{
-              pathOptions: getFeatureStyle,
-              onEachFeature: onEachFeature
+              center: mapCenter,
+              zoom: 6,
+              key: `choropleth-${mapCenter[0]}-${mapCenter[1]}-6`
             } as any}
-          />
-        )}
-        
-        {/* Legend and info overlay */}
-        <div className="absolute top-4 left-4 bg-white p-2 rounded shadow">
-          <p className="text-sm font-semibold">Choropleth Analysis</p>
-          <p className="text-xs text-gray-600">{timeFilteredPoints.length} data points</p>
-          <p className="text-xs text-gray-600">Color scheme: {config.colorScheme}</p>
+          >
+            <TileLayer
+              url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+            />
+            
+            {geoJSON && (
+              <GeoJSON
+                data={geoJSON}
+                {...{
+                  pathOptions: getFeatureStyle,
+                  onEachFeature: onEachFeature
+                } as any}
+              />
+            )}
+          </MapContainer>
+          
+          {/* Info Panel - Positioned with proper spacing */}
+          <div className="absolute top-4 left-4 z-20 space-y-2">
+            <Card className="shadow-lg border-border/20 bg-background/95 backdrop-blur-sm">
+              <CardContent className="p-3 space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Badge variant="secondary" className="text-xs">
+                    Choropleth Analysis
+                  </Badge>
+                </div>
+                <div className="space-y-1 text-sm">
+                  <p className="font-medium">{timeFilteredPoints.length} data points</p>
+                  <p className="text-muted-foreground">Color scheme: {config.colorScheme}</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-      </MapContainer>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 
