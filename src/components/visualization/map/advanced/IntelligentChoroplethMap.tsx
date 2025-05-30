@@ -105,13 +105,10 @@ const IntelligentChoroplethMap: React.FC<IntelligentChoroplethMapProps> = ({
   return (
     <div className="h-full w-full rounded-md overflow-hidden">
       <MapContainer
+        center={mapCenter}
+        zoom={6}
         style={{ height: '100%', width: '100%' }}
         className="rounded-lg"
-        {...{
-          center: mapCenter,
-          zoom: 6,
-          key: `${mapCenter[0]}-${mapCenter[1]}-6`
-        } as any}
       >
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
@@ -120,7 +117,7 @@ const IntelligentChoroplethMap: React.FC<IntelligentChoroplethMapProps> = ({
         {geoJSON && (
           <GeoJSON
             data={geoJSON}
-            pathOptions={getFeatureStyle}
+            style={getFeatureStyle}
             onEachFeature={onEachFeature}
           />
         )}
