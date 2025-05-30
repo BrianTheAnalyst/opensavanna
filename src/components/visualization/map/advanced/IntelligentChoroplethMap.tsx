@@ -129,7 +129,7 @@ const IntelligentChoroplethMap: React.FC<IntelligentChoroplethMapProps> = ({
       
       <GeoJSON
         data={geoJSON}
-        pathOptions={getFeatureStyle}
+        style={getFeatureStyle}
         onEachFeature={onEachFeature}
       />
       
