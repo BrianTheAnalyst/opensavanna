@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from 'react';
 import { MapPoint } from '../types';
-import { analyzeSpatialData } from '../utils/spatialAnalyzer';
+import { analyzeSpatialData } from '../utils/spatial';
 
 interface UseSpatialAnalysisProps {
   points: MapPoint[];

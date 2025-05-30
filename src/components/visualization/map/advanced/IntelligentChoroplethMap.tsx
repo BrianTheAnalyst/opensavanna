@@ -1,10 +1,9 @@
 
 import React, { useMemo } from 'react';
 import { MapContainer, TileLayer, GeoJSON } from 'react-leaflet';
-import L from 'leaflet';
-import { MapPoint, AdvancedMapConfig, ChoroplethData } from './types';
-import { calculateChoroplethValues } from './utils/choroplethUtils';
-import { getIntelligentColorScale } from './utils/colorScales';
+import { MapPoint, AdvancedMapConfig } from './types';
+import { getColorForValue } from './utils/colorScales';
+import { processGeoJSONForChoropleth } from './utils/choroplethUtils';
 
 interface IntelligentChoroplethMapProps {
   points: MapPoint[];
@@ -22,104 +21,90 @@ const IntelligentChoroplethMap: React.FC<IntelligentChoroplethMapProps> = ({
   currentTimeIndex,
   spatialAnalysis
 }) => {
-  // Process choropleth data with intelligent binning
-  const choroplethData = useMemo(() => {
-    if (!geoJSON || !points.length) return [];
-    
-    return calculateChoroplethValues(geoJSON, points, {
-      binningMethod: 'quantile',
-      bins: 7,
-      smoothing: config.spatialSmoothing,
-      timeIndex: currentTimeIndex
-    });
-  }, [geoJSON, points, config.spatialSmoothing, currentTimeIndex]);
+  // Filter points by time if temporal data exists
+  const timeFilteredPoints = useMemo(() => {
+    return points.filter(point => 
+      point.timeIndex === undefined || point.timeIndex === currentTimeIndex
+    );
+  }, [points, currentTimeIndex]);
 
-  // Get intelligent color scale
-  const colorScale = useMemo(() => {
-    return getIntelligentColorScale(config.colorScheme, choroplethData);
-  }, [config.colorScheme, choroplethData]);
+  // Process GeoJSON data for choropleth
+  const choroplethData = useMemo(() => {
+    if (!geoJSON) return null;
+    return processGeoJSONForChoropleth(geoJSON, timeFilteredPoints, config.colorScheme);
+  }, [geoJSON, timeFilteredPoints, config.colorScheme]);
+
+  // Calculate center of map
+  const mapCenter = useMemo(() => {
+    if (timeFilteredPoints.length === 0) return [20, 0] as [number, number];
+    
+    const avgLat = timeFilteredPoints.reduce((sum, p) => sum + p.lat, 0) / timeFilteredPoints.length;
+    const avgLng = timeFilteredPoints.reduce((sum, p) => sum + p.lng, 0) / timeFilteredPoints.length;
+    
+    return [avgLat, avgLng] as [number, number];
+  }, [timeFilteredPoints]);
 
   // Style function for GeoJSON features
   const getFeatureStyle = (feature: any) => {
-    const choroplethItem = choroplethData.find(item => 
-      item.feature.properties.id === feature.properties.id ||
-      item.feature.properties.name === feature.properties.name
-    );
-    
-    if (!choroplethItem) {
+    if (!choroplethData) {
       return {
-        fillColor: '#f0f0f0',
-        weight: 1,
-        opacity: 0.7,
-        color: '#999',
-        fillOpacity: 0.5
+        fillColor: '#3388ff',
+        weight: 2,
+        opacity: 1,
+        color: 'white',
+        fillOpacity: 0.7
       };
     }
-    
-    const isAnomaly = config.anomalyDetection && choroplethItem.isOutlier;
+
+    const featureData = choroplethData.features.find(f => 
+      f.properties.id === feature.properties.id || 
+      f.properties.name === feature.properties.name
+    );
+
+    if (!featureData) {
+      return {
+        fillColor: '#cccccc',
+        weight: 2,
+        opacity: 1,
+        color: 'white',
+        dashArray: '3',
+        fillOpacity: 0.3
+      };
+    }
+
+    const color = getColorForValue(featureData.value, choroplethData.valueRange, config.colorScheme);
     
     return {
-      fillColor: colorScale(choroplethItem.normalizedValue),
-      weight: isAnomaly ? 3 : 1,
-      opacity: isAnomaly ? 1.0 : 0.7,
-      color: isAnomaly ? '#ff0000' : '#333',
-      dashArray: isAnomaly ? '5,5' : '',
-      fillOpacity: 0.8
+      fillColor: color,
+      weight: 2,
+      opacity: 1,
+      color: 'white',
+      fillOpacity: 0.7
     };
   };
 
-  // Feature interaction handlers
+  // Handle feature events
   const onEachFeature = (feature: any, layer: L.Layer) => {
-    const choroplethItem = choroplethData.find(item => 
-      item.feature.properties.id === feature.properties.id ||
-      item.feature.properties.name === feature.properties.name
-    );
-    
-    if (choroplethItem) {
-      const popupContent = `
-        <div class="space-y-2">
-          <h3 class="font-semibold">${feature.properties.name || 'Region'}</h3>
-          <p><strong>Value:</strong> ${choroplethItem.value.toFixed(2)}</p>
-          <p><strong>Rank:</strong> ${choroplethItem.rank} of ${choroplethData.length}</p>
-          ${choroplethItem.isOutlier ? '<p class="text-red-600 font-semibold">⚠️ Statistical Outlier</p>' : ''}
-          ${spatialAnalysis?.hotspots?.some((hs: any) => hs.id === feature.properties.id) ? 
-            '<p class="text-orange-600 font-semibold">🔥 Hotspot</p>' : ''}
-        </div>
-      `;
-      
-      layer.bindPopup(popupContent);
-      
-      // Hover effects
-      layer.on({
-        mouseover: (e) => {
-          const layer = e.target;
-          layer.setStyle({
-            weight: 3,
-            color: '#000',
-            fillOpacity: 0.9
-          });
-          layer.bringToFront();
-        },
-        mouseout: (e) => {
-          // Reset style
-          e.target.setStyle(getFeatureStyle(feature));
-        }
-      });
-    }
+    layer.on({
+      mouseover: (e) => {
+        const layer = e.target;
+        layer.setStyle({
+          weight: 3,
+          color: '#666',
+          fillOpacity: 0.9
+        });
+      },
+      mouseout: (e) => {
+        const layer = e.target;
+        layer.setStyle(getFeatureStyle(feature));
+      }
+    });
   };
-
-  if (!geoJSON) {
-    return (
-      <div className="h-full flex items-center justify-center bg-gray-50">
-        <p className="text-muted-foreground">No geographic boundaries available for choropleth mapping</p>
-      </div>
-    );
-  }
 
   return (
     <MapContainer
-      center={[20, 0]}
-      zoom={2}
+      center={mapCenter}
+      zoom={6}
       style={{ height: '100%', width: '100%' }}
       className="rounded-lg"
     >
@@ -127,30 +112,19 @@ const IntelligentChoroplethMap: React.FC<IntelligentChoroplethMapProps> = ({
         url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
       />
       
-      <GeoJSON
-        data={geoJSON}
-        style={getFeatureStyle}
-        onEachFeature={onEachFeature}
-      />
+      {geoJSON && (
+        <GeoJSON
+          data={geoJSON}
+          pathOptions={getFeatureStyle}
+          onEachFeature={onEachFeature}
+        />
+      )}
       
-      {/* Legend */}
-      <div className="leaflet-bottom leaflet-right">
-        <div className="bg-white p-3 rounded shadow-lg border">
-          <h4 className="font-semibold mb-2">Data Intensity</h4>
-          <div className="space-y-1">
-            {[0, 0.2, 0.4, 0.6, 0.8, 1.0].map(value => (
-              <div key={value} className="flex items-center gap-2">
-                <div 
-                  className="w-4 h-4 border"
-                  style={{ backgroundColor: colorScale(value) }}
-                />
-                <span className="text-xs">
-                  {value === 0 ? 'Low' : value === 1 ? 'High' : ''}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
+      {/* Legend and info overlay */}
+      <div className="absolute top-4 left-4 bg-white p-2 rounded shadow">
+        <p className="text-sm font-semibold">Choropleth Analysis</p>
+        <p className="text-xs text-gray-600">{timeFilteredPoints.length} data points</p>
+        <p className="text-xs text-gray-600">Color scheme: {config.colorScheme}</p>
       </div>
     </MapContainer>
   );
