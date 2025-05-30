@@ -2,6 +2,25 @@
 import { ChoroplethData } from '../types';
 
 /**
+ * Get color for a specific value within a range
+ */
+export const getColorForValue = (value: number, range: [number, number], scheme: string): string => {
+  const [min, max] = range;
+  if (max === min) return getColorScheme(scheme)[0];
+  
+  const normalized = (value - min) / (max - min);
+  const colors = getColorScheme(scheme);
+  const position = normalized * (colors.length - 1);
+  const index = Math.floor(position);
+  const fraction = position - index;
+  
+  if (index >= colors.length - 1) return colors[colors.length - 1];
+  if (index < 0) return colors[0];
+  
+  return interpolateColor(colors[index], colors[index + 1], fraction);
+};
+
+/**
  * Intelligent color scale generator based on data characteristics
  */
 export const getIntelligentColorScale = (

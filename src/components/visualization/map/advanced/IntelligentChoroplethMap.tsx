@@ -1,6 +1,7 @@
 
 import React, { useMemo } from 'react';
 import { MapContainer, TileLayer, GeoJSON } from 'react-leaflet';
+import L from 'leaflet';
 import { MapPoint, AdvancedMapConfig } from './types';
 import { getColorForValue } from './utils/colorScales';
 import { processGeoJSONForChoropleth } from './utils/choroplethUtils';
@@ -115,8 +116,18 @@ const IntelligentChoroplethMap: React.FC<IntelligentChoroplethMapProps> = ({
       {geoJSON && (
         <GeoJSON
           data={geoJSON}
-          pathOptions={getFeatureStyle}
-          onEachFeature={onEachFeature}
+          style={getFeatureStyle}
+          eventHandlers={{
+            add: (e) => {
+              const layer = e.target;
+              layer.eachLayer((featureLayer: any) => {
+                const feature = featureLayer.feature;
+                if (feature) {
+                  onEachFeature(feature, featureLayer);
+                }
+              });
+            }
+          }}
         />
       )}
       

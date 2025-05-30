@@ -9,6 +9,39 @@ interface ChoroplethOptions {
 }
 
 /**
+ * Process GeoJSON for choropleth visualization
+ */
+export const processGeoJSONForChoropleth = (geoJSON: any, points: any[], colorScheme: string) => {
+  if (!geoJSON || !geoJSON.features) return null;
+  
+  const processedFeatures = geoJSON.features.map((feature: any) => {
+    // Find points within this feature (simplified approach)
+    const featurePoints = points.filter(point => 
+      isPointInFeature(point, feature)
+    );
+    
+    // Calculate aggregate value for this feature
+    const value = featurePoints.length > 0 
+      ? featurePoints.reduce((sum, p) => sum + p.value, 0) / featurePoints.length
+      : 0;
+    
+    return {
+      ...feature,
+      value
+    };
+  });
+  
+  // Calculate value range
+  const values = processedFeatures.map(f => f.value);
+  const valueRange = [Math.min(...values), Math.max(...values)] as [number, number];
+  
+  return {
+    features: processedFeatures,
+    valueRange
+  };
+};
+
+/**
  * Calculate choropleth values for geographic features
  */
 export const calculateChoroplethValues = (
