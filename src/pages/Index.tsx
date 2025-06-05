@@ -7,19 +7,16 @@ import Footer from '@/components/Footer';
 import { getDatasets, getCategoryCounts } from '@/services/datasetService';
 import { Dataset } from '@/types/dataset';
 import DataQuerySection from '@/components/dataQuery/DataQuerySection';
-import ExampleQueriesSection from '@/components/dataQuery/ExampleQueriesSection';
 import { toast } from 'sonner';
-import { PieChart, Map, FileText, Database, TrendingUp, Users, Building, Leaf } from 'lucide-react';
+import { TrendingUp, Users, Building, Leaf } from 'lucide-react';
 
 // Import the components
-import FeaturedDatasetsSection from '@/components/home/FeaturedDatasetsSection';
 import CategoriesSection from '@/components/home/CategoriesSection';
 import DataVisualizationSection from '@/components/home/DataVisualizationSection';
 import ApiDeveloperSection from '@/components/home/ApiDeveloperSection';
 
 const Index = () => {
   const [isLoaded, setIsLoaded] = useState(false);
-  const [featuredDatasets, setFeaturedDatasets] = useState<Dataset[]>([]);
   const [visData, setVisData] = useState<any[]>([]);
   
   const location = useLocation();
@@ -55,13 +52,6 @@ const Index = () => {
   
   const fetchData = useCallback(async () => {
     try {
-      const datasets = await getDatasets();
-      const featured = datasets.filter(d => d.featured).length > 0 
-        ? datasets.filter(d => d.featured)
-        : datasets.slice(0, 3);
-      
-      setFeaturedDatasets(featured);
-      
       const categoryCounts = await getCategoryCounts();
       if (categoryCounts && categoryCounts.length > 0) {
         setVisData(categoryCounts);
@@ -105,16 +95,6 @@ const Index = () => {
     }, 100);
   };
 
-  const handleQuerySelect = (query: string) => {
-    setActiveQuery(query);
-    handleSearch(query);
-    toast.info('Loading query results...');
-  };
-
-  const handleDatasetUpdate = () => {
-    fetchData();
-  };
-
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
@@ -125,32 +105,10 @@ const Index = () => {
           <Hero onSearch={handleSearch} />
         </section>
         
-        {/* Example Queries Section - Only show if no active query */}
-        {!activeQuery && (
-          <section className="py-20 bg-muted/20">
-            <div className="container mx-auto max-w-7xl px-6">
-              <ExampleQueriesSection onQuerySelect={handleQuerySelect} />
-            </div>
-          </section>
-        )}
-        
         {/* Data Query Section - Results area */}
         {activeQuery && (
           <section className="mb-20">
             <DataQuerySection initialQuery={activeQuery} />
-          </section>
-        )}
-        
-        {/* Featured Datasets - Show what's available */}
-        {!activeQuery && (
-          <section className="py-24 bg-background">
-            <div className="container mx-auto max-w-7xl px-6">
-              <FeaturedDatasetsSection 
-                datasets={featuredDatasets} 
-                isLoaded={isLoaded} 
-                onDataChange={handleDatasetUpdate}
-              />
-            </div>
           </section>
         )}
         
