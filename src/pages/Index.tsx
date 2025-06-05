@@ -1,203 +1,194 @@
 
-/**
- * Clean, minimal home page demonstrating the new architecture
- * Production-ready with security and performance optimizations
- */
+import { useState, useEffect, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
+import Navbar from '@/components/Navbar';
+import Hero from '@/components/Hero';
+import Footer from '@/components/Footer';
+import { getDatasets, getCategoryCounts } from '@/services/datasetService';
+import { Dataset } from '@/types/dataset';
+import DataQuerySection from '@/components/dataQuery/DataQuerySection';
+import ExampleQueriesSection from '@/components/dataQuery/ExampleQueriesSection';
+import { toast } from 'sonner';
+import { PieChart, Map, FileText, Database, TrendingUp, Users, Building, Leaf } from 'lucide-react';
 
-import React, { useState, useCallback } from 'react';
-import { ErrorBoundary } from '@/components/core/ErrorBoundary';
-import { SecureInput } from '@/components/core/SecureInput';
-import { DataProcessor } from '@/components/core/DataProcessor';
-import { useSecureStringState, useSecureNumberState } from '@/hooks/useSecureState';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Database, Shield, Zap, Code } from 'lucide-react';
-import type { DataPoint } from '@/types/core';
+// Import the components
+import FeaturedDatasetsSection from '@/components/home/FeaturedDatasetsSection';
+import CategoriesSection from '@/components/home/CategoriesSection';
+import DataVisualizationSection from '@/components/home/DataVisualizationSection';
+import ApiDeveloperSection from '@/components/home/ApiDeveloperSection';
 
 const Index = () => {
-  const [data, setData] = useState<DataPoint[]>([]);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [featuredDatasets, setFeaturedDatasets] = useState<Dataset[]>([]);
+  const [visData, setVisData] = useState<any[]>([]);
   
-  const nameState = useSecureStringState();
-  const valueState = useSecureNumberState(0, 0, 10000);
+  const location = useLocation();
+  const [activeQuery, setActiveQuery] = useState<string | null>(null);
   
-  const handleAddData = useCallback(() => {
-    if (nameState.value && valueState.value >= 0) {
-      const newDataPoint: DataPoint = {
-        id: crypto.randomUUID(),
-        value: valueState.value,
-        timestamp: new Date(),
-        metadata: {
-          name: nameState.value,
-          source: 'user_input'
-        }
-      };
-      
-      setData(prev => [newDataPoint, ...prev].slice(0, 100)); // Limit to 100 items
-      nameState.reset();
-      valueState.reset();
-    }
-  }, [nameState, valueState]);
-  
-  const handleProcess = useCallback((processedData: DataPoint[]) => {
-    setIsProcessing(true);
-    
-    // Simulate processing time
-    setTimeout(() => {
-      console.log('Processed data:', processedData);
-      setIsProcessing(false);
-    }, 1000);
-  }, []);
-  
-  const features = [
+  // Define categories with appropriate data
+  const categories = [
     {
-      icon: Shield,
-      title: 'Security First',
-      description: 'Input sanitization, validation, and secure coding practices'
+      title: "Economics",
+      icon: TrendingUp,
+      count: 45,
+      description: "Economic indicators, financial data, and market trends"
     },
     {
-      icon: Zap,
-      title: 'Performance Optimized',
-      description: 'Debounced inputs, chunked processing, and memory management'
+      title: "Demographics",
+      icon: Users,
+      count: 32,
+      description: "Population statistics, census data, and social metrics"
     },
     {
-      icon: Database,
-      title: 'Type Safe',
-      description: 'Full TypeScript coverage with strict type checking'
+      title: "Infrastructure",
+      icon: Building,
+      count: 28,
+      description: "Transportation, utilities, and urban development data"
     },
     {
-      icon: Code,
-      title: 'Clean Architecture',
-      description: 'Modular design with separation of concerns'
+      title: "Environment",
+      icon: Leaf,
+      count: 38,
+      description: "Climate data, environmental monitoring, and sustainability metrics"
     }
   ];
   
+  const fetchData = useCallback(async () => {
+    try {
+      const datasets = await getDatasets();
+      const featured = datasets.filter(d => d.featured).length > 0 
+        ? datasets.filter(d => d.featured)
+        : datasets.slice(0, 3);
+      
+      setFeaturedDatasets(featured);
+      
+      const categoryCounts = await getCategoryCounts();
+      if (categoryCounts && categoryCounts.length > 0) {
+        setVisData(categoryCounts);
+      }
+      
+      setIsLoaded(true);
+    } catch (error) {
+      console.error('Error loading homepage data:', error);
+      setIsLoaded(true);
+    }
+  }, []);
+  
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const query = searchParams.get('query');
+    if (query) {
+      setActiveQuery(query);
+    }
+    fetchData();
+  }, [location, fetchData]);
+
+  const handleSearch = async (query: string) => {
+    setActiveQuery(query);
+    
+    const url = new URL(window.location.href);
+    url.searchParams.set('query', query);
+    window.history.pushState({}, '', url);
+
+    setTimeout(() => {
+      const searchElement = document.getElementById('search-section');
+      if (searchElement) {
+        const offset = 100;
+        const elementPosition = searchElement.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - offset;
+        
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
+      }
+    }, 100);
+  };
+
+  const handleQuerySelect = (query: string) => {
+    setActiveQuery(query);
+    handleSearch(query);
+    toast.info('Loading query results...');
+  };
+
+  const handleDatasetUpdate = () => {
+    fetchData();
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-100 mb-4">
-            Production-Ready Foundation
-          </h1>
-          <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-            A clean, secure, and performant architecture built with modern best practices.
-            Focused on security, performance, and maintainability.
-          </p>
-        </div>
+    <div className="min-h-screen flex flex-col bg-background">
+      <Navbar />
+      
+      <main className="flex-grow">
+        {/* Hero Section with Search Feature */}
+        <section className="relative mb-20">
+          <Hero onSearch={handleSearch} />
+        </section>
         
-        {/* Feature Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {features.map((feature, index) => (
-            <Card key={index} className="text-center hover:shadow-lg transition-shadow">
-              <CardHeader className="pb-2">
-                <feature.icon className="h-8 w-8 mx-auto text-primary mb-2" />
-                <CardTitle className="text-lg">{feature.title}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">{feature.description}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-        
-        {/* Interactive Demo */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Input Form */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5" />
-                Secure Data Input
-                <Badge variant="outline" className="ml-auto">Demo</Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <SecureInput
-                id="name"
-                label="Data Name"
-                value={nameState.value}
-                onChange={nameState.update}
-                placeholder="Enter a descriptive name"
-                required
-                maxLength={50}
-              />
-              
-              <SecureInput
-                id="value"
-                label="Value"
-                type="number"
-                value={valueState.value}
-                onChange={valueState.update}
-                placeholder="Enter a numeric value"
-                required
-                min={0}
-                max={10000}
-              />
-              
-              <Button 
-                onClick={handleAddData} 
-                className="w-full"
-                disabled={!nameState.value || valueState.value < 0}
-              >
-                Add Data Point
-              </Button>
-              
-              {(nameState.error || valueState.error) && (
-                <div className="text-sm text-red-600">
-                  Please fix the errors above before proceeding.
-                </div>
-              )}
-            </CardContent>
-          </Card>
-          
-          {/* Data Processing */}
-          <ErrorBoundary>
-            <DataProcessor
-              data={data}
-              onProcess={handleProcess}
-              isProcessing={isProcessing}
-              maxBatchSize={50}
-            />
-          </ErrorBoundary>
-        </div>
-        
-        {/* Data Display */}
-        {data.length > 0 && (
-          <Card className="mt-8">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Database className="h-5 w-5" />
-                Recent Data Points
-                <Badge variant="outline" className="ml-auto">
-                  {data.length} items
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {data.slice(0, 10).map((point) => (
-                  <div
-                    key={point.id}
-                    className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg"
-                  >
-                    <div>
-                      <span className="font-medium">{point.metadata?.name}</span>
-                      <span className="text-sm text-muted-foreground ml-2">
-                        {point.timestamp.toLocaleTimeString()}
-                      </span>
-                    </div>
-                    <Badge variant="secondary">
-                      {point.value.toFixed(2)}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+        {/* Example Queries Section - Only show if no active query */}
+        {!activeQuery && (
+          <section className="py-20 bg-muted/20">
+            <div className="container mx-auto max-w-7xl px-6">
+              <ExampleQueriesSection onQuerySelect={handleQuerySelect} />
+            </div>
+          </section>
         )}
-      </div>
+        
+        {/* Data Query Section - Results area */}
+        {activeQuery && (
+          <section className="mb-20">
+            <DataQuerySection initialQuery={activeQuery} />
+          </section>
+        )}
+        
+        {/* Featured Datasets - Show what's available */}
+        {!activeQuery && (
+          <section className="py-24 bg-background">
+            <div className="container mx-auto max-w-7xl px-6">
+              <FeaturedDatasetsSection 
+                datasets={featuredDatasets} 
+                isLoaded={isLoaded} 
+                onDataChange={handleDatasetUpdate}
+              />
+            </div>
+          </section>
+        )}
+        
+        {/* Data Visualization Overview - Show capabilities */}
+        {!activeQuery && isLoaded && visData.length > 0 && (
+          <section className="py-24 bg-muted/10">
+            <div className="container mx-auto max-w-7xl px-6">
+              <DataVisualizationSection 
+                isLoaded={isLoaded} 
+                visData={visData} 
+              />
+            </div>
+          </section>
+        )}
+        
+        {/* Data Categories - Browse options */}
+        {!activeQuery && (
+          <section className="py-24 bg-background">
+            <div className="container mx-auto max-w-7xl px-6">
+              <CategoriesSection 
+                isLoaded={isLoaded} 
+                categories={categories}
+              />
+            </div>
+          </section>
+        )}
+        
+        {/* API & Developer Tools */}
+        {!activeQuery && (
+          <section className="py-24 bg-muted/10">
+            <div className="container mx-auto max-w-7xl px-6">
+              <ApiDeveloperSection isLoaded={isLoaded} />
+            </div>
+          </section>
+        )}
+      </main>
+      
+      <Footer />
     </div>
   );
 };
