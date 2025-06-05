@@ -1,12 +1,12 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Map, PieChart, Activity, Layers } from 'lucide-react';
+import { Map, PieChart, Activity, Layers, Hexagon, Share2, Circle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface MapControlsProps {
-  currentType: 'standard' | 'choropleth' | 'heatmap' | 'cluster';
-  setType: (type: 'standard' | 'choropleth' | 'heatmap' | 'cluster') => void;
+  currentType: 'standard' | 'choropleth' | 'heatmap' | 'cluster' | 'hexbin' | 'cartogram' | 'connection' | 'bubble';
+  setType: (type: 'standard' | 'choropleth' | 'heatmap' | 'cluster' | 'hexbin' | 'cartogram' | 'connection' | 'bubble') => void;
   hasGeoJSON: boolean;
   hasPoints: boolean;
 }
@@ -42,6 +42,30 @@ const MapControls: React.FC<MapControlsProps> = ({
       label: 'Cluster', 
       icon: Layers, 
       description: 'Group nearby points into clusters' 
+    },
+    { 
+      id: 'hexbin', 
+      label: 'Hexbin', 
+      icon: Hexagon, 
+      description: 'Hexagonal binning for spatial aggregation' 
+    },
+    { 
+      id: 'cartogram', 
+      label: 'Cartogram', 
+      icon: PieChart, 
+      description: 'Distorted map based on data values' 
+    },
+    { 
+      id: 'connection', 
+      label: 'Connection', 
+      icon: Share2, 
+      description: 'Flow and connection visualization' 
+    },
+    { 
+      id: 'bubble', 
+      label: 'Bubble', 
+      icon: Circle, 
+      description: 'Proportional symbol mapping' 
     }
   ] as const;
 
@@ -54,9 +78,10 @@ const MapControls: React.FC<MapControlsProps> = ({
             const Icon = type.icon;
             const isActive = currentType === type.id;
             
-            // Disable choropleth if no GeoJSON data
+            // Disable certain types if no appropriate data
             const isDisabled = (type.id === 'choropleth' && !hasGeoJSON) || 
-                               ((type.id === 'heatmap' || type.id === 'cluster') && !hasPoints);
+                               ((type.id === 'heatmap' || type.id === 'cluster' || type.id === 'hexbin' || type.id === 'bubble') && !hasPoints) ||
+                               ((type.id === 'cartogram' || type.id === 'connection') && !hasGeoJSON && !hasPoints);
             
             return (
               <Tooltip key={type.id}>
@@ -74,7 +99,7 @@ const MapControls: React.FC<MapControlsProps> = ({
                 </TooltipTrigger>
                 <TooltipContent side="bottom">
                   <p>{isDisabled 
-                    ? `${type.description} (requires ${type.id === 'choropleth' ? 'GeoJSON data' : 'point data'})` 
+                    ? `${type.description} (requires ${type.id === 'choropleth' || type.id === 'cartogram' ? 'GeoJSON data' : 'point data'})` 
                     : type.description}</p>
                 </TooltipContent>
               </Tooltip>

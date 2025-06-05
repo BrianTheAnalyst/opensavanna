@@ -12,10 +12,12 @@ export {
   generateVisualizationSummary, 
   generateDataRecommendations 
 } from './dataSummaryService';
+export { getSuggestedQuestions, generateFollowUpQuestions } from './suggestedQueries';
 
 // Import the functions we need for the main service function
 import { generateInsights, detectPatterns } from './insightGenerator';
 import { generateVisualizationSummary, generateDataRecommendations } from './dataSummaryService';
+import { generateFollowUpQuestions } from './suggestedQueries';
 
 // Main service function that orchestrates all insights
 export const generateCompleteDataInsights = async (
@@ -28,12 +30,14 @@ export const generateCompleteDataInsights = async (
     const patterns = detectPatterns(data, category);
     const summary = generateVisualizationSummary(data, category, 'analysis');
     const recommendations = generateDataRecommendations(data, category);
+    const followUpQuestions = generateFollowUpQuestions(query, category);
     
     return {
       insights,
       patterns,
       summary,
       recommendations,
+      followUpQuestions,
       dataPoints: data.length,
       category
     };
@@ -44,6 +48,7 @@ export const generateCompleteDataInsights = async (
       patterns: [],
       summary: 'Analysis unavailable',
       recommendations: [],
+      followUpQuestions: [],
       dataPoints: 0,
       category
     };
