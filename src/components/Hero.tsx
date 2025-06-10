@@ -43,7 +43,7 @@ const Hero = ({ onSearch }: HeroProps) => {
       <div className="container px-4 mx-auto">
         <div className="max-w-4xl mx-auto text-center mb-8">
           <h1 className={`text-4xl sm:text-5xl md:text-6xl font-semibold tracking-tight mb-6 transition-all duration-700 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-            Explore Africa's Data, <span className="text-primary">Discover Insights</span>
+            Ask Questions, <span className="text-primary">Get Data-Driven Insights</span>
           </h1>
           <p className={`text-xl text-foreground/80 mb-8 max-w-2xl mx-auto transition-all duration-700 delay-100 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
             Transform complex datasets into actionable intelligence. Use natural language to explore 
