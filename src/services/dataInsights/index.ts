@@ -5,51 +5,61 @@ import { getDatasetVisualization } from "@/services";
 import { transformSampleDataForCategory } from "@/services/visualization/dataTransformer";
 import { getGeoJSONForDataset } from "@/services/visualization/datasetProcessor";
 import { DataInsightResult } from "./types";
-import { findRelevantDatasets } from "./datasetFinder";
-import { determineVisualizationType, generateComparison } from "./visualizationUtils";
+import { findRelevantDatasetsIntelligent } from "./intelligentDatasetFinder";
+import { determineVisualizationType, generateComparison } from "./enhancedVisualizationUtils";
 import { generateInsightsForQuery, generateAnswerFromData } from "./insightGenerator";
 import { getSuggestedQuestions, DEFAULT_QUESTIONS } from "./suggestedQueries";
 import { 
   addToConversationHistory, 
   getConversationContext
 } from "./conversationContext";
+import { insightsCache, performCacheCleanup } from "./intelligentCache";
 
-// Main function to process a user question and generate insights
+// Main function to process a user question and generate insights with enhanced intelligence
 export const processDataQuery = async (query: string): Promise<DataInsightResult> => {
   try {
+    // Check cache first for complete results
+    const cached = insightsCache.get(query);
+    if (cached) {
+      console.log('Returning cached insights for query:', query);
+      return cached;
+    }
+
     // Get conversation context to enhance the search
     const context = getConversationContext();
     
-    // 1. Analyze the question to determine relevant datasets
-    const relevantDatasets = await findRelevantDatasets(query, context);
+    // 1. Use intelligent dataset finder
+    const relevantDatasets = await findRelevantDatasetsIntelligent(query, context);
     if (!relevantDatasets.length) {
       throw new Error("No relevant datasets found for your question.");
     }
 
-    // 2. Process each dataset to extract visualization data
+    console.log('Found relevant datasets:', relevantDatasets.map(d => d.title));
+
+    // 2. Process each dataset to extract visualization data with enhanced chart selection
     const visualizations = await Promise.all(
       relevantDatasets.map(async (dataset) => {
         try {
           const visualizationData = await getDatasetVisualization(dataset.id);
-          const visType = determineVisualizationType(query, dataset.category);
+          
+          // Use enhanced visualization type determination
+          const visType = determineVisualizationType(query, dataset.category, visualizationData);
           
           // Special handling for map visualizations
           let geoJSON = null;
           if (visType === 'map') {
-            // Try to get GeoJSON data for the dataset
             geoJSON = await getGeoJSONForDataset(dataset.id);
             
-            // If no GeoJSON but we need a map, add geo data to points if needed
             if (!geoJSON && visualizationData && visualizationData.length > 0) {
               visualizationData.forEach(item => {
-                // Make sure points have coordinates for map rendering if they exist in the data
                 if (item.latitude && !item.lat) item.lat = item.latitude;
                 if (item.longitude && !item.lng) item.lng = item.longitude;
               });
             }
           }
-          
-          return {
+
+          // Add enhanced properties for better visualization control
+          const result = {
             datasetId: dataset.id,
             title: dataset.title,
             type: visType,
@@ -57,8 +67,13 @@ export const processDataQuery = async (query: string): Promise<DataInsightResult
             data: visualizationData && visualizationData.length > 0 
               ? visualizationData 
               : transformSampleDataForCategory(dataset.category, []),
-            geoJSON: geoJSON
+            geoJSON: geoJSON,
+            timeAxis: visType === 'line' ? 'Time Period' : undefined,
+            valueLabel: `${dataset.category} Value`
           };
+
+          console.log(`Processed dataset ${dataset.title} with visualization type: ${visType}`);
+          return result;
         } catch (error) {
           console.error(`Error processing dataset ${dataset.title}:`, error);
           return {
@@ -66,7 +81,9 @@ export const processDataQuery = async (query: string): Promise<DataInsightResult
             title: dataset.title,
             type: 'bar' as const,
             category: dataset.category,
-            data: transformSampleDataForCategory(dataset.category, [])
+            data: transformSampleDataForCategory(dataset.category, []),
+            timeAxis: undefined,
+            valueLabel: `${dataset.category} Value`
           };
         }
       })
@@ -75,7 +92,7 @@ export const processDataQuery = async (query: string): Promise<DataInsightResult
     // 3. Generate insights based on the data
     const allInsights = generateInsightsForQuery(query, relevantDatasets, visualizations);
     
-    // 4. Generate a comparison if multiple datasets are available
+    // 4. Generate enhanced comparison if multiple datasets are available
     const comparisonResult = relevantDatasets.length > 1 
       ? generateComparison(relevantDatasets, visualizations)
       : undefined;
@@ -93,8 +110,12 @@ export const processDataQuery = async (query: string): Promise<DataInsightResult
       comparisonResult
     };
     
+    // Cache the complete result
+    insightsCache.set(query, result);
+    
     addToConversationHistory(query, result);
     
+    console.log('Successfully processed query with enhanced intelligence');
     return result;
   } catch (error) {
     console.error("Error processing question:", error);
@@ -102,6 +123,11 @@ export const processDataQuery = async (query: string): Promise<DataInsightResult
     throw error;
   }
 };
+
+// Periodic cleanup to maintain cache performance
+setInterval(() => {
+  performCacheCleanup();
+}, 5 * 60 * 1000); // Every 5 minutes
 
 // Re-export other functions
 export { 
