@@ -39,16 +39,18 @@ const Visualization = ({ data, title, description }: VisualizationProps) => {
   
   if (isLoading) {
     return (
-      <div className="glass border border-border/50 rounded-xl p-6 animate-pulse">
-        <div className="h-8 bg-muted rounded w-1/3 mb-4"></div>
-        <div className="h-4 bg-muted rounded w-2/3 mb-6"></div>
-        <div className="h-64 bg-muted rounded"></div>
+      <div className="bg-card border border-border rounded-xl p-8 animate-pulse shadow-sm">
+        <div className="space-y-4">
+          <div className="h-6 bg-muted rounded-md w-1/3"></div>
+          <div className="h-4 bg-muted rounded-md w-2/3"></div>
+          <div className="h-80 bg-muted rounded-lg"></div>
+        </div>
       </div>
     );
   }
   
   return (
-    <div className="glass border border-border/50 rounded-xl overflow-hidden">
+    <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
       <ChartHeader 
         title={title} 
         description={description} 
@@ -57,7 +59,7 @@ const Visualization = ({ data, title, description }: VisualizationProps) => {
         onDownload={handleDownload}
       />
       
-      <div className="p-6 pt-0">
+      <div className="p-6 pt-0 bg-gradient-to-b from-background/50 to-background">
         <ChartContainer 
           data={chartData}
           colors={chartColors}

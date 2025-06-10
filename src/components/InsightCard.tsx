@@ -23,9 +23,33 @@ interface InsightCardProps {
 }
 
 const COLORS = [
-  '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef', '#ec4899', 
-  '#f43f5e', '#f97316', '#eab308', '#22c55e', '#06b6d4'
+  'hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 
+  'hsl(var(--chart-4))', 'hsl(var(--chart-5))', 'hsl(var(--primary))',
+  'hsl(var(--secondary))', 'hsl(var(--accent))'
 ];
+
+const CustomTooltip = ({ active, payload, label, formatter }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-card border border-border rounded-lg shadow-lg p-3 min-w-[120px]">
+        <p className="font-medium text-foreground mb-2">{label}</p>
+        {payload.map((entry: any, index: number) => (
+          <div key={index} className="flex items-center gap-2">
+            <div 
+              className="w-3 h-3 rounded-full" 
+              style={{ backgroundColor: entry.color }}
+            />
+            <span className="text-sm text-muted-foreground">
+              {formatter ? formatter(entry.value, entry.name) : 
+                `${entry.name}: ${typeof entry.value === 'number' ? entry.value.toLocaleString() : entry.value}`}
+            </span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
 
 const InsightCard = ({
   title,
@@ -43,12 +67,12 @@ const InsightCard = ({
   if (!data || data.length === 0) {
     return (
       <Card className={className}>
-        <CardHeader>
-          <CardTitle>{title}</CardTitle>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg">{title}</CardTitle>
           {description && <CardDescription>{description}</CardDescription>}
         </CardHeader>
         <CardContent>
-          <div className="flex h-40 items-center justify-center">
+          <div className="flex h-48 items-center justify-center bg-muted/30 rounded-lg">
             <p className="text-muted-foreground">No data available</p>
           </div>
         </CardContent>
@@ -60,7 +84,7 @@ const InsightCard = ({
   const calculateStats = () => {
     if (type !== 'line' || !data.length) return {};
     
-    const values = data.map(item => item[dataKey]);
+    const values = data.map(item => typeof item[dataKey] === 'number' ? item[dataKey] : 0);
     return {
       min: Math.min(...values),
       max: Math.max(...values),
@@ -76,35 +100,30 @@ const InsightCard = ({
         return (
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 40 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
               <XAxis 
                 dataKey={nameKey} 
-                tick={{ fontSize: 12 }} 
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} 
                 tickLine={false}
+                axisLine={{ stroke: 'hsl(var(--border))' }}
                 angle={-45}
                 textAnchor="end"
-                label={xAxisLabel ? { value: xAxisLabel, position: 'insideBottom', offset: -10 } : undefined}
+                height={60}
+                interval={0}
               />
               <YAxis 
-                tick={{ fontSize: 12 }} 
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} 
                 tickLine={false}
                 axisLine={false}
-                label={yAxisLabel ? { value: yAxisLabel, angle: -90, position: 'insideLeft', offset: -5 } : undefined}
+                tickFormatter={(value) => typeof value === 'number' ? value.toLocaleString() : value}
               />
-              <Tooltip 
-                formatter={tooltipFormatter}
-                contentStyle={{ 
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                  border: 'none'
-                }} 
-              />
-              <Legend />
+              <Tooltip content={<CustomTooltip formatter={tooltipFormatter} />} />
+              <Legend wrapperStyle={{ paddingTop: '16px' }} />
               <Bar 
                 dataKey={dataKey} 
                 fill={colors[0]}
                 radius={[4, 4, 0, 0]}
-                animationDuration={1000}
+                animationDuration={600}
               />
             </BarChart>
           </ResponsiveContainer>
@@ -113,36 +132,32 @@ const InsightCard = ({
         return (
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 40 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
               <XAxis 
                 dataKey={nameKey} 
-                tick={{ fontSize: 12 }} 
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} 
                 tickLine={false}
+                axisLine={{ stroke: 'hsl(var(--border))' }}
                 angle={-45}
                 textAnchor="end"
-                label={xAxisLabel ? { value: xAxisLabel, position: 'insideBottom', offset: -10 } : undefined}
+                height={60}
+                interval={0}
               />
               <YAxis 
-                tick={{ fontSize: 12 }} 
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} 
                 tickLine={false}
                 axisLine={false}
-                label={yAxisLabel ? { value: yAxisLabel, angle: -90, position: 'insideLeft', offset: -5 } : undefined}
+                tickFormatter={(value) => typeof value === 'number' ? value.toLocaleString() : value}
               />
-              <Tooltip 
-                formatter={tooltipFormatter}
-                contentStyle={{ 
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                  border: 'none'
-                }} 
-              />
-              <Legend />
-              {type === 'line' && stats.avg !== undefined && (
+              <Tooltip content={<CustomTooltip formatter={tooltipFormatter} />} />
+              <Legend wrapperStyle={{ paddingTop: '16px' }} />
+              {stats.avg !== undefined && (
                 <ReferenceLine 
                   y={stats.avg} 
-                  label="Average" 
-                  stroke="#888" 
-                  strokeDasharray="3 3" 
+                  label={{ value: "Avg", position: "topRight", fill: "hsl(var(--muted-foreground))" }} 
+                  stroke="hsl(var(--muted-foreground))" 
+                  strokeDasharray="5 5" 
+                  opacity={0.7}
                 />
               )}
               <Line 
@@ -150,9 +165,9 @@ const InsightCard = ({
                 dataKey={dataKey} 
                 stroke={colors[0]}
                 strokeWidth={2}
-                dot={{ r: 4 }}
-                activeDot={{ r: 6 }}
-                animationDuration={1000}
+                dot={{ r: 4, fill: colors[0], strokeWidth: 2, stroke: '#fff' }}
+                activeDot={{ r: 6, stroke: colors[0], strokeWidth: 2, fill: '#fff' }}
+                animationDuration={600}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -170,28 +185,27 @@ const InsightCard = ({
                 fill="#8884d8"
                 dataKey={dataKey}
                 nameKey={nameKey}
-                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                animationDuration={1000}
+                label={({ name, percent }) => percent > 0.05 ? `${(percent * 100).toFixed(0)}%` : ''}
+                animationDuration={600}
+                stroke="#fff"
+                strokeWidth={2}
               >
                 {data.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
                 ))}
               </Pie>
-              <Tooltip 
-                formatter={tooltipFormatter}
-                contentStyle={{ 
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                  border: 'none'
-                }} 
+              <Tooltip content={<CustomTooltip formatter={tooltipFormatter} />} />
+              <Legend 
+                verticalAlign="bottom" 
+                height={36}
+                wrapperStyle={{ paddingTop: '16px' }}
               />
-              <Legend />
             </PieChart>
           </ResponsiveContainer>
         );
       default:
         return (
-          <div className="flex h-40 items-center justify-center">
+          <div className="flex h-48 items-center justify-center bg-muted/30 rounded-lg">
             <p className="text-muted-foreground">Unsupported chart type</p>
           </div>
         );
@@ -200,12 +214,14 @@ const InsightCard = ({
 
   return (
     <Card className={className}>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        {description && <CardDescription>{description}</CardDescription>}
+      <CardHeader className="pb-4">
+        <CardTitle className="text-lg">{title}</CardTitle>
+        {description && <CardDescription className="text-sm">{description}</CardDescription>}
       </CardHeader>
       <CardContent>
-        {renderChart()}
+        <div className="bg-gradient-to-b from-background/50 to-background rounded-lg p-4">
+          {renderChart()}
+        </div>
       </CardContent>
     </Card>
   );

@@ -13,48 +13,64 @@ interface ChartHeaderProps {
 }
 
 export const ChartHeader: React.FC<ChartHeaderProps> = ({
-  title = 'Visualization',
+  title = 'Data Visualization',
   description,
   activeTab,
   setActiveTab,
   onDownload
 }) => {
   return (
-    <div className="p-6 pb-2">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
-        <div>
-          <h3 className="text-lg font-medium">{title}</h3>
-          {description && (
-            <p className="text-foreground/70 text-sm">{description}</p>
-          )}
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid grid-cols-3 h-8">
-              <TabsTrigger value="bar" className="p-1 px-2">
-                <BarChart3 className="h-4 w-4" />
-              </TabsTrigger>
-              <TabsTrigger value="line" className="p-1 px-2">
-                <LineChart className="h-4 w-4" />
-              </TabsTrigger>
-              <TabsTrigger value="pie" className="p-1 px-2">
-                <PieChart className="h-4 w-4" />
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
+    <div className="bg-gradient-to-r from-primary/5 to-secondary/5 border-b border-border">
+      <div className="p-6">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+          <div className="space-y-1">
+            <h3 className="text-xl font-semibold text-foreground">{title}</h3>
+            {description && (
+              <p className="text-muted-foreground text-sm leading-relaxed max-w-2xl">
+                {description}
+              </p>
+            )}
+          </div>
           
-          {onDownload && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="h-8 gap-1" 
-              onClick={onDownload}
-            >
-              <Download className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Data</span>
-            </Button>
-          )}
+          <div className="flex items-center gap-3">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid grid-cols-3 h-10 bg-background/50 border border-border">
+                <TabsTrigger 
+                  value="bar" 
+                  className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
+                  <BarChart3 className="h-4 w-4" />
+                  <span className="hidden sm:inline">Bar</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="line" 
+                  className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
+                  <LineChart className="h-4 w-4" />
+                  <span className="hidden sm:inline">Line</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="pie" 
+                  className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
+                  <PieChart className="h-4 w-4" />
+                  <span className="hidden sm:inline">Pie</span>
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+            
+            {onDownload && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="h-10 gap-2 bg-background/50 hover:bg-background" 
+                onClick={onDownload}
+              >
+                <Download className="h-4 w-4" />
+                <span className="hidden sm:inline">Export Data</span>
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </div>

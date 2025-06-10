@@ -30,17 +30,19 @@ const VisualizationContainer: React.FC<VisualizationContainerProps> = ({
   geoJSON
 }) => {
   return (
-    <div className="glass border border-border/50 rounded-xl overflow-hidden">
+    <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-gradient-to-r from-primary/5 to-secondary/5 border-b border-border">
+        <div className="p-6">
+          <VisualizationHeader 
+            dataset={dataset} 
+            analysisMode={analysisMode} 
+            isLoading={isLoading} 
+            error={error} 
+          />
+        </div>
+      </div>
+      
       <div className="p-6">
-        <VisualizationHeader 
-          dataset={dataset} 
-          analysisMode={analysisMode} 
-          isLoading={isLoading} 
-          error={error} 
-        />
-        
-        <Separator className="mb-6" />
-        
         {error && (
           <Alert variant="destructive" className="mb-6">
             <AlertCircle className="h-4 w-4" />
