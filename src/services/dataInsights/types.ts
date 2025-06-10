@@ -12,6 +12,8 @@ export interface DataInsightResult {
     category: string;
     data: any[];
     geoJSON?: any;
+    timeAxis?: string;
+    valueLabel?: string;
   }[];
   insights: string[];
   comparisonResult?: {
