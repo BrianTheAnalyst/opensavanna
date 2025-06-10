@@ -11,8 +11,7 @@ import { generateInsightsForQuery, generateAnswerFromData } from "./insightGener
 import { getSuggestedQuestions, DEFAULT_QUESTIONS } from "./suggestedQueries";
 import { 
   addToConversationHistory, 
-  getConversationContext,
-  getRelatedQuestions
+  getConversationContext
 } from "./conversationContext";
 
 // Main function to process a user question and generate insights
@@ -84,9 +83,6 @@ export const processDataQuery = async (query: string): Promise<DataInsightResult
     // 5. Generate an answer to the question
     const answer = generateAnswerFromData(query, relevantDatasets, visualizations, allInsights);
 
-    // 6. Generate follow-up questions based on this result
-    const followUpQuestions = await getRelatedQuestions(query);
-
     // Store this interaction in conversation history
     const result = {
       question: query,
@@ -94,8 +90,7 @@ export const processDataQuery = async (query: string): Promise<DataInsightResult
       datasets: relevantDatasets,
       visualizations,
       insights: allInsights,
-      comparisonResult,
-      followUpQuestions
+      comparisonResult
     };
     
     addToConversationHistory(query, result);
@@ -112,7 +107,6 @@ export const processDataQuery = async (query: string): Promise<DataInsightResult
 export { 
   getSuggestedQuestions, 
   DEFAULT_QUESTIONS,
-  getConversationContext,
-  getRelatedQuestions
+  getConversationContext
 };
 export type { DataInsightResult };
