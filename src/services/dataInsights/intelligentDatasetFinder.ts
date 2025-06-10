@@ -119,8 +119,8 @@ export const findRelevantDatasetsIntelligent = async (
   // Check cache first
   const cacheKey = `datasets:${query}`;
   const cached = datasetCache.get(cacheKey, { context: context?.currentDatasets });
-  if (cached) {
-    return cached;
+  if (cached && Array.isArray(cached)) {
+    return cached as Dataset[];
   }
 
   // Get all datasets

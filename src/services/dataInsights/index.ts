@@ -20,9 +20,9 @@ export const processDataQuery = async (query: string): Promise<DataInsightResult
   try {
     // Check cache first for complete results
     const cached = insightsCache.get(query);
-    if (cached) {
+    if (cached && typeof cached === 'object' && 'question' in cached) {
       console.log('Returning cached insights for query:', query);
-      return cached;
+      return cached as DataInsightResult;
     }
 
     // Get conversation context to enhance the search
@@ -101,7 +101,7 @@ export const processDataQuery = async (query: string): Promise<DataInsightResult
     const answer = generateAnswerFromData(query, relevantDatasets, visualizations, allInsights);
 
     // Store this interaction in conversation history
-    const result = {
+    const result: DataInsightResult = {
       question: query,
       answer,
       datasets: relevantDatasets,

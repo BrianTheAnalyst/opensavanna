@@ -12,8 +12,8 @@ export const determineVisualizationType = (
   // Check cache first
   const cacheKey = `viztype:${query}:${category}`;
   const cached = visualizationCache.get(cacheKey);
-  if (cached) {
-    return cached;
+  if (cached && typeof cached === 'string') {
+    return cached as 'bar' | 'line' | 'pie' | 'area' | 'radar' | 'map';
   }
 
   // Use smart chart selector if data is available
