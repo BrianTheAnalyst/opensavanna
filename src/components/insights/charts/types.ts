@@ -3,7 +3,7 @@
 export interface ChartConfig {
   title: string;
   description: string;
-  type: 'bar' | 'line' | 'pie' | 'area' | 'radar' | 'stacked-area' | 'streamchart';
+  type: 'bar' | 'line' | 'pie' | 'area' | 'radar';
   dataKey: string;
   nameKey?: string;
   className: string;

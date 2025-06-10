@@ -1,27 +1,46 @@
 
 import React from 'react';
+import { ChartContainer, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import ChartRenderer from './InsightCard/ChartRenderer';
-import EmptyState from './InsightCard/EmptyState';
-import { useProcessedData } from './InsightCard/dataProcessor';
-import { InsightCardProps, DEFAULT_COLORS } from './InsightCard/types';
+import { 
+  BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, 
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  Legend, ReferenceLine
+} from 'recharts';
 
-const InsightCard: React.FC<InsightCardProps> = ({
+interface InsightCardProps {
+  title: string;
+  description?: string;
+  data: any[];
+  type: 'bar' | 'line' | 'pie' | 'area' | 'radar';
+  dataKey: string;
+  nameKey?: string;
+  colors?: string[];
+  className?: string;
+  tooltipFormatter?: (value: any, name: any) => React.ReactNode;
+  xAxisLabel?: string;
+  yAxisLabel?: string;
+}
+
+const COLORS = [
+  '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef', '#ec4899', 
+  '#f43f5e', '#f97316', '#eab308', '#22c55e', '#06b6d4'
+];
+
+const InsightCard = ({
   title,
   description,
   data,
   type,
   dataKey,
   nameKey = 'name',
-  colors = DEFAULT_COLORS,
+  colors = COLORS,
   className,
   tooltipFormatter,
   xAxisLabel,
   yAxisLabel
-}) => {
-  const processedData = useProcessedData(data, dataKey, nameKey);
-  
-  if (processedData.length === 0) {
+}: InsightCardProps) => {
+  if (!data || data.length === 0) {
     return (
       <Card className={className}>
         <CardHeader>
@@ -29,11 +48,155 @@ const InsightCard: React.FC<InsightCardProps> = ({
           {description && <CardDescription>{description}</CardDescription>}
         </CardHeader>
         <CardContent>
-          <EmptyState title={title} description={description} />
+          <div className="flex h-40 items-center justify-center">
+            <p className="text-muted-foreground">No data available</p>
+          </div>
         </CardContent>
       </Card>
     );
   }
+
+  // Calculate statistics for reference lines when using line charts
+  const calculateStats = () => {
+    if (type !== 'line' || !data.length) return {};
+    
+    const values = data.map(item => item[dataKey]);
+    return {
+      min: Math.min(...values),
+      max: Math.max(...values),
+      avg: values.reduce((sum, val) => sum + val, 0) / values.length
+    };
+  };
+  
+  const stats = calculateStats();
+
+  const renderChart = () => {
+    switch (type) {
+      case 'bar':
+        return (
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 40 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
+              <XAxis 
+                dataKey={nameKey} 
+                tick={{ fontSize: 12 }} 
+                tickLine={false}
+                angle={-45}
+                textAnchor="end"
+                label={xAxisLabel ? { value: xAxisLabel, position: 'insideBottom', offset: -10 } : undefined}
+              />
+              <YAxis 
+                tick={{ fontSize: 12 }} 
+                tickLine={false}
+                axisLine={false}
+                label={yAxisLabel ? { value: yAxisLabel, angle: -90, position: 'insideLeft', offset: -5 } : undefined}
+              />
+              <Tooltip 
+                formatter={tooltipFormatter}
+                contentStyle={{ 
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                  border: 'none'
+                }} 
+              />
+              <Legend />
+              <Bar 
+                dataKey={dataKey} 
+                fill={colors[0]}
+                radius={[4, 4, 0, 0]}
+                animationDuration={1000}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        );
+      case 'line':
+        return (
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 40 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
+              <XAxis 
+                dataKey={nameKey} 
+                tick={{ fontSize: 12 }} 
+                tickLine={false}
+                angle={-45}
+                textAnchor="end"
+                label={xAxisLabel ? { value: xAxisLabel, position: 'insideBottom', offset: -10 } : undefined}
+              />
+              <YAxis 
+                tick={{ fontSize: 12 }} 
+                tickLine={false}
+                axisLine={false}
+                label={yAxisLabel ? { value: yAxisLabel, angle: -90, position: 'insideLeft', offset: -5 } : undefined}
+              />
+              <Tooltip 
+                formatter={tooltipFormatter}
+                contentStyle={{ 
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                  border: 'none'
+                }} 
+              />
+              <Legend />
+              {type === 'line' && stats.avg !== undefined && (
+                <ReferenceLine 
+                  y={stats.avg} 
+                  label="Average" 
+                  stroke="#888" 
+                  strokeDasharray="3 3" 
+                />
+              )}
+              <Line 
+                type="monotone" 
+                dataKey={dataKey} 
+                stroke={colors[0]}
+                strokeWidth={2}
+                dot={{ r: 4 }}
+                activeDot={{ r: 6 }}
+                animationDuration={1000}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        );
+      case 'pie':
+        return (
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={data}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                outerRadius={100}
+                fill="#8884d8"
+                dataKey={dataKey}
+                nameKey={nameKey}
+                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                animationDuration={1000}
+              >
+                {data.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+                ))}
+              </Pie>
+              <Tooltip 
+                formatter={tooltipFormatter}
+                contentStyle={{ 
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                  border: 'none'
+                }} 
+              />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        );
+      default:
+        return (
+          <div className="flex h-40 items-center justify-center">
+            <p className="text-muted-foreground">Unsupported chart type</p>
+          </div>
+        );
+    }
+  };
 
   return (
     <Card className={className}>
@@ -42,14 +205,7 @@ const InsightCard: React.FC<InsightCardProps> = ({
         {description && <CardDescription>{description}</CardDescription>}
       </CardHeader>
       <CardContent>
-        <ChartRenderer
-          type={type}
-          data={processedData}
-          colors={colors}
-          tooltipFormatter={tooltipFormatter}
-          xAxisLabel={xAxisLabel}
-          yAxisLabel={yAxisLabel}
-        />
+        {renderChart()}
       </CardContent>
     </Card>
   );

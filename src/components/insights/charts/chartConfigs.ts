@@ -7,18 +7,9 @@ export const getChartConfigsForCategory = (category: string, data: any[]): Chart
     case 'economics':
       return [
         {
-          title: "Economic Trends",
-          description: "Time series analysis of economic indicators",
-          type: "line",
-          dataKey: "value",
-          nameKey: "name",
-          className: "col-span-1 md:col-span-2",
-          transformData: (data) => data.slice(0, 15)
-        },
-        {
           title: "Economic Distribution",
-          description: "Stacked area chart of economic factors",
-          type: "area",
+          description: "Distribution of economic factors",
+          type: "pie",
           dataKey: "value",
           nameKey: "name",
           className: "col-span-1 md:col-span-2",
@@ -26,45 +17,54 @@ export const getChartConfigsForCategory = (category: string, data: any[]): Chart
             ...item,
             name: item.name.length > 15 ? item.name.substring(0, 15) + '...' : item.name
           }))
+        },
+        {
+          title: "Economic Comparison",
+          description: "Comparative analysis of factors",
+          type: "bar",
+          dataKey: "value",
+          nameKey: "name",
+          className: "col-span-1 md:col-span-2",
+          transformData: (data) => [...data].sort((a, b) => b.value - a.value)
         }
       ];
       
     case 'health':
       return [
         {
-          title: "Health Metrics Over Time",
-          description: "Line plot showing health indicator trends",
-          type: "line",
+          title: "Health Indicators",
+          description: "Key health metrics analysis",
+          type: "bar",
           dataKey: "value",
           nameKey: "name",
           className: "col-span-1 md:col-span-2",
-          transformData: (data) => [...data].sort((a, b) => b.value - a.value).slice(0, 12)
+          transformData: (data) => [...data].sort((a, b) => b.value - a.value).slice(0, 10)
         },
         {
           title: "Health Distribution",
-          description: "Stacked area visualization of health metrics",
-          type: "area",
+          description: "Distribution of health metrics",
+          type: "pie",
           dataKey: "value",
           nameKey: "name",
           className: "col-span-1 md:col-span-2",
-          transformData: (data) => data.slice(0, 8)
+          transformData: (data) => data.slice(0, 5)
         }
       ];
       
     case 'education':
       return [
         {
-          title: "Education Progress",
-          description: "Line chart showing education trends",
-          type: "line",
+          title: "Education Metrics",
+          description: "Key education performance indicators",
+          type: "bar",
           dataKey: "value",
           nameKey: "name",
           className: "col-span-1 md:col-span-2"
         },
         {
-          title: "Education Levels",
-          description: "Area chart of education distribution",
-          type: "area",
+          title: "Education Distribution",
+          description: "Distribution of education factors",
+          type: "pie",
           dataKey: "value",
           nameKey: "name",
           className: "col-span-1 md:col-span-2",
@@ -75,18 +75,18 @@ export const getChartConfigsForCategory = (category: string, data: any[]): Chart
     case 'transport':
       return [
         {
-          title: "Transport Flow Analysis",
-          description: "Line plot of transport volume trends",
-          type: "line", 
+          title: "Transport Volume",
+          description: "Volume by transport mode",
+          type: "bar", 
           dataKey: "value",
           nameKey: "name",
           className: "col-span-1 md:col-span-2",
           transformData: (data) => [...data].sort((a, b) => b.value - a.value)
         },
         {
-          title: "Transport Mode Distribution",
-          description: "Stacked area showing modal share",
-          type: "area",
+          title: "Modal Share",
+          description: "Distribution of transport modes",
+          type: "pie",
           dataKey: "value",
           nameKey: "name",
           className: "col-span-1 md:col-span-2"
@@ -96,18 +96,18 @@ export const getChartConfigsForCategory = (category: string, data: any[]): Chart
     case 'environment':
       return [
         {
-          title: "Environmental Trends",
-          description: "Line chart of environmental indicators over time",
-          type: "line",
+          title: "Environmental Factors",
+          description: "Key environmental indicators",
+          type: "bar",
           dataKey: "value",
           nameKey: "name",
           className: "col-span-1 md:col-span-2",
           transformData: (data) => [...data].sort((a, b) => b.value - a.value)
         },
         {
-          title: "Environmental Impact",
-          description: "Area chart showing cumulative environmental data",
-          type: "area",
+          title: "Environmental Distribution",
+          description: "Distribution of factors",
+          type: "line",
           dataKey: "value",
           nameKey: "name",
           className: "col-span-1 md:col-span-2",
@@ -119,17 +119,17 @@ export const getChartConfigsForCategory = (category: string, data: any[]): Chart
     case 'demographics':
       return [
         {
-          title: "Population Trends",
-          description: "Line plot of demographic changes over time",
-          type: "line",
+          title: "Population Distribution",
+          description: "Distribution by demographic groups",
+          type: "pie",
           dataKey: "value",
           nameKey: "name",
           className: "col-span-1 md:col-span-2"
         },
         {
-          title: "Demographic Composition",
-          description: "Stacked area chart of population groups",
-          type: "area",
+          title: "Demographic Comparison",
+          description: "Comparison across groups",
+          type: "bar",
           dataKey: "value",
           nameKey: "name",
           className: "col-span-1 md:col-span-2",
@@ -138,25 +138,25 @@ export const getChartConfigsForCategory = (category: string, data: any[]): Chart
       ];
       
     default:
-      // Default visualizations with new chart types
+      // Default visualizations for other dataset types
       return [
         {
-          title: "Data Trends",
-          description: "Line plot showing data patterns over time",
-          type: "line",
+          title: "Data Distribution",
+          description: "Distribution of values",
+          type: "pie",
           dataKey: "value",
           nameKey: "name",
           className: "col-span-1 md:col-span-2",
-          transformData: (data) => data.slice(0, 10)
+          transformData: (data) => data.slice(0, 8)
         },
         {
-          title: "Data Distribution",
-          description: "Area chart of value distribution",
-          type: "area",
+          title: "Comparative Analysis",
+          description: "Comparative view of data points",
+          type: "bar",
           dataKey: "value",
           nameKey: "name",
           className: "col-span-1 md:col-span-2",
-          transformData: (data) => [...data].sort((a, b) => b.value - a.value).slice(0, 8)
+          transformData: (data) => [...data].sort((a, b) => b.value - a.value)
         }
       ];
   }

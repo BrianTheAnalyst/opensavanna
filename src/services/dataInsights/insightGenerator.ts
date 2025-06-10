@@ -1,141 +1,93 @@
 
-import { generateDataDrivenInsights } from './enhancedInsightGenerator';
+import { extractKeywords } from './datasetFinder';
+import { generateInsights } from '@/utils/datasetVisualizationUtils';
+import { detectPatterns } from './patternDetection';
 
-export interface GenerateInsightsOptions {
-  includeRecommendations?: boolean;
-  maxInsights?: number;
-  focusAreas?: string[];
-}
-
-// Main insight generation function
-export const generateInsights = (
-  data: any[], 
-  category: string, 
-  query: string = '',
-  options: GenerateInsightsOptions = {}
-): string[] => {
-  const { maxInsights = 5 } = options;
+// Generate insights based on the visualizations
+export const generateInsightsForQuery = (query: string, datasets: any[], visualizations: any[]): string[] => {
+  const allInsights: string[] = [];
   
-  if (!data || data.length === 0) {
-    return ['No data available for generating insights.'];
-  }
-
-  try {
-    // Use the enhanced insight generator
-    const insights = generateDataDrivenInsights(data, category, query, '');
-    return insights.slice(0, maxInsights);
-  } catch (error) {
-    console.error('Error generating insights:', error);
-    return ['Unable to generate insights from the current data.'];
-  }
-};
-
-// Pattern detection function
-export const detectPatterns = (data: any[], category: string): string[] => {
-  if (!data || data.length === 0) return [];
-  
-  const patterns: string[] = [];
-  
-  try {
-    // Trend detection
-    if (data.length >= 3) {
-      const values = data.map(item => item.value || 0);
-      const isIncreasing = values.every((val, i) => i === 0 || val >= values[i - 1]);
-      const isDecreasing = values.every((val, i) => i === 0 || val <= values[i - 1]);
-      
-      if (isIncreasing) {
-        patterns.push('Consistent upward trend detected across the dataset.');
-      } else if (isDecreasing) {
-        patterns.push('Consistent downward trend detected across the dataset.');
+  // Generate insights for each dataset
+  datasets.forEach((dataset) => {
+    const visualization = visualizations.find(v => v.datasetId === dataset.id);
+    if (visualization && visualization.data && visualization.data.length > 0) {
+      try {
+        // Use the existing insight generation function
+        const datasetInsights = generateInsights(
+          visualization.data,
+          dataset.category,
+          dataset.title
+        );
+        
+        // Add relevant insights to the list
+        if (datasetInsights && datasetInsights.length > 0) {
+          // Take top 2 insights from each dataset
+          allInsights.push(...datasetInsights.slice(0, 2));
+        }
+        
+        // Add automatically detected patterns as insights
+        const patternInsights = detectPatterns(visualization.data, dataset.category);
+        if (patternInsights.length > 0) {
+          allInsights.push(...patternInsights.slice(0, 2));
+        }
+      } catch (error) {
+        console.error(`Error generating insights for ${dataset.title}:`, error);
       }
     }
-    
-    // Outlier detection
-    const values = data.map(item => item.value || 0);
-    const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
-    const stdDev = Math.sqrt(values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length);
-    
-    const outliers = data.filter(item => Math.abs(item.value - mean) > 2 * stdDev);
-    if (outliers.length > 0) {
-      patterns.push(`${outliers.length} outlier(s) detected that deviate significantly from the average.`);
-    }
-    
-  } catch (error) {
-    console.error('Error detecting patterns:', error);
+  });
+  
+  // If we couldn't generate enough insights, add some generic ones
+  if (allInsights.length < 3) {
+    allInsights.push("Based on the available data, further analysis may be needed for a complete answer.");
+    allInsights.push("Consider exploring additional datasets for more comprehensive insights.");
   }
   
-  return patterns;
+  // Add a query-specific insight
+  const queryKeywords = extractKeywords(query);
+  if (queryKeywords.length > 0) {
+    const focusKeyword = queryKeywords[0];
+    allInsights.unshift(`The data shows significant patterns related to ${focusKeyword} that merit further investigation.`);
+  }
+  
+  return allInsights;
 };
 
-// Keyword extraction function
-export const extractKeywords = (text: string, maxKeywords: number = 5): string[] => {
-  if (!text || typeof text !== 'string') return [];
+// Generate a text answer based on the data and insights
+export const generateAnswerFromData = (query: string, datasets: any[], visualizations: any[], insights: string[]): string => {
+  // Extract main topic from the query
+  const keywords = extractKeywords(query);
+  const mainTopic = keywords.length > 0 ? keywords[0] : '';
   
-  try {
-    // Simple keyword extraction based on word frequency
-    const words = text.toLowerCase()
-      .replace(/[^\w\s]/g, '')
-      .split(/\s+/)
-      .filter(word => word.length > 3); // Filter out short words
-    
-    // Count word frequency
-    const wordCount: { [key: string]: number } = {};
-    words.forEach(word => {
-      wordCount[word] = (wordCount[word] || 0) + 1;
-    });
-    
-    // Sort by frequency and return top keywords
-    return Object.entries(wordCount)
-      .sort(([, a], [, b]) => b - a)
-      .slice(0, maxKeywords)
-      .map(([word]) => word);
-      
-  } catch (error) {
-    console.error('Error extracting keywords:', error);
-    return [];
-  }
-};
-
-// Enhanced pattern detection with more sophisticated algorithms
-export const detectAdvancedPatterns = (data: any[], category: string): string[] => {
-  const patterns = detectPatterns(data, category);
+  // Create an answer intro
+  let answer = `Based on analysis of ${datasets.length} ${datasets.length === 1 ? 'dataset' : 'datasets'} related to ${mainTopic || 'your query'}, `;
   
-  // Add seasonal pattern detection for time series
-  if (data.length >= 12) {
-    const seasonalPatterns = detectSeasonalPatterns(data);
-    patterns.push(...seasonalPatterns);
+  // Add information about the datasets used
+  if (datasets.length === 1) {
+    answer += `the "${datasets[0].title}" data shows that `;
+  } else if (datasets.length === 2) {
+    answer += `the ${datasets[0].title} and ${datasets[1].title} datasets indicate that `;
+  } else {
+    answer += `multiple datasets including ${datasets[0].title} suggest that `;
   }
   
-  return patterns;
-};
-
-// Helper function for seasonal pattern detection
-const detectSeasonalPatterns = (data: any[]): string[] => {
-  const patterns: string[] = [];
-  
-  try {
-    // Simple seasonal detection - look for repeating patterns
-    const values = data.map(item => item.value || 0);
-    const quarterlyAverages: number[] = [];
+  // Add a key insight from the data
+  if (insights.length > 0) {
+    // Remove any sentence-ending punctuation and convert first letter to lowercase
+    const firstInsight = insights[0]
+      .replace(/[.!?]$/, '')
+      .replace(/^[A-Z]/, letter => letter.toLowerCase());
     
-    for (let i = 0; i < Math.floor(values.length / 4); i++) {
-      const quarter = values.slice(i * 4, (i + 1) * 4);
-      quarterlyAverages.push(quarter.reduce((sum, val) => sum + val, 0) / quarter.length);
-    }
-    
-    if (quarterlyAverages.length >= 2) {
-      const variance = quarterlyAverages.reduce((sum, val, i) => {
-        const avg = quarterlyAverages.reduce((s, v) => s + v, 0) / quarterlyAverages.length;
-        return sum + Math.pow(val - avg, 2);
-      }, 0) / quarterlyAverages.length;
-      
-      if (variance > 0.1) {
-        patterns.push('Seasonal variation detected in the data with recurring quarterly patterns.');
-      }
-    }
-  } catch (error) {
-    console.error('Error detecting seasonal patterns:', error);
+    answer += firstInsight + '. ';
   }
   
-  return patterns;
+  // Add information about what the visualizations show
+  const vizTypes = [...new Set(visualizations.map(v => v.type))];
+  if (vizTypes.length > 0) {
+    answer += `The ${vizTypes.join(' and ')} ${vizTypes.length === 1 ? 'chart' : 'charts'} ${vizTypes.length === 1 ? 'illustrates' : 'illustrate'} key patterns in the data. `;
+  }
+  
+  // Add a closing statement with a suggestion
+  answer += `For a more detailed understanding, explore the visualizations below and consider how these insights might inform decisions related to ${mainTopic || 'this topic'}.`;
+  
+  return answer;
 };

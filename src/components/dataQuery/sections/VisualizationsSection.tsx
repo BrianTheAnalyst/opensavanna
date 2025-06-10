@@ -1,8 +1,9 @@
 
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import IntelligentChart from '@/components/visualization/IntelligentChart';
+import InsightCard from '@/components/InsightCard';
 import MapVisualization from '@/components/visualization/MapVisualization';
+import { prepareGeoJSONForMap } from '../utils/geoJsonUtils';
 import { DataInsightResult } from '@/services/dataInsights/types';
 
 interface VisualizationsSectionProps {
@@ -10,74 +11,83 @@ interface VisualizationsSectionProps {
 }
 
 const VisualizationsSection: React.FC<VisualizationsSectionProps> = ({ visualizations }) => {
-  if (!visualizations || visualizations.length === 0) {
-    return null;
-  }
-
   return (
-    <div className="space-y-12">
-      <div className="text-center mb-12">
-        <h2 className="text-3xl font-bold mb-4">Intelligent Data Analysis</h2>
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Advanced visualizations with actionable insights, pattern recognition, and data-driven recommendations
-        </p>
-      </div>
-      
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-        {visualizations.map((viz, index) => {
-          // Handle map visualizations separately
-          if (viz.type === 'map') {
-            return (
-              <Card key={viz.id || index} className="border-border/50 shadow-xl xl:col-span-2">
-                <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b border-border/50">
-                  <CardTitle className="text-2xl">{viz.title}</CardTitle>
-                  <CardDescription className="text-base">
-                    Geographic visualization showing spatial patterns and distributions
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div style={{ height: '600px' }} className="w-full">
-                    <MapVisualization
-                      data={viz.data || []}
-                      isLoading={false}
-                      category={viz.category || ""}
-                      geoJSON={viz.geoJSON}
-                      title={viz.title}
-                      description="Explore geographic data patterns"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          }
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {visualizations.map((viz, index) => {
+        if (viz.type === 'map') {
+          // Create GeoJSON from points if not provided
+          const geoJSON = viz.geoJSON || prepareGeoJSONForMap(viz);
           
-          // Convert to intelligent visualization format - handle missing properties gracefully
-          const intelligentViz = {
-            id: viz.id || `viz-${index}`,
-            title: viz.title,
-            type: viz.type as 'line' | 'bar' | 'scatter' | 'heatmap' | 'distribution' | 'correlation_matrix',
-            data: viz.data || [],
-            insights: (viz.intelligentInsights || []).map((insight: any) => ({
-              type: insight.type || 'trend',
-              title: insight.title || 'Data Insight',
-              description: insight.description || 'Analysis of data patterns',
-              confidence: insight.confidence || 0.8,
-              impact: insight.impact || 'medium',
-              recommendations: insight.recommendations || []
-            })),
-            xAxis: viz.xAxisLabel || viz.timeAxis || 'X Axis',
-            yAxis: viz.yAxisLabel || viz.valueLabel || 'Y Axis', 
-            description: viz.description || `Analysis of ${viz.data?.length || 0} data points`,
-            purpose: viz.purpose || 'Data pattern analysis'
-          };
+          // Skip if no geoJSON and no data with coordinates
+          if (!geoJSON && (!viz.data || !Array.isArray(viz.data))) return null;
           
           return (
-            <div key={viz.id || index} className={intelligentViz.type === 'scatter' ? 'xl:col-span-2' : ''}>
-              <IntelligentChart visualization={intelligentViz} />
-            </div>
+            <Card key={index} className="md:col-span-2">
+              <CardHeader>
+                <CardTitle>{viz.title}</CardTitle>
+                <CardDescription>Geographic visualization of data</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[400px]">
+                  <MapVisualization
+                    data={viz.data || []}
+                    isLoading={false}
+                    category={viz.category || ""}
+                    geoJSON={geoJSON}
+                  />
+                </div>
+              </CardContent>
+            </Card>
           );
-        })}
-      </div>
+        }
+        
+        // Determine appropriate axis labels based on visualization type and category
+        const getAxisLabels = () => {
+          let xAxisLabel = 'Category';
+          let yAxisLabel = 'Value';
+          
+          if (viz.type === 'line') {
+            xAxisLabel = viz.timeAxis || 'Time Period';
+            yAxisLabel = viz.valueLabel || 'Value';
+          } else if (viz.category?.toLowerCase().includes('economic')) {
+            xAxisLabel = 'Economic Indicator';
+            yAxisLabel = 'Economic Value';
+          } else if (viz.category?.toLowerCase().includes('health')) {
+            xAxisLabel = 'Health Metric';
+            yAxisLabel = 'Health Value';
+          } else if (viz.category?.toLowerCase().includes('education')) {
+            xAxisLabel = 'Education Metric';
+            yAxisLabel = 'Education Value';
+          }
+          
+          return { xAxisLabel, yAxisLabel };
+        };
+        
+        const { xAxisLabel, yAxisLabel } = getAxisLabels();
+        
+        return (
+          <Card key={index} className={viz.type === 'line' ? "md:col-span-2" : ""}>
+            <CardHeader>
+              <CardTitle>{viz.title}</CardTitle>
+              <CardDescription>
+                Visualization based on {viz.data?.length || 0} data points
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <InsightCard
+                title=""
+                data={viz.data || []}
+                type={viz.type}
+                dataKey="value"
+                nameKey="name"
+                xAxisLabel={xAxisLabel}
+                yAxisLabel={yAxisLabel}
+                tooltipFormatter={(value, name) => [`${value}`, viz.valueLabel || 'Value']}
+              />
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 };
