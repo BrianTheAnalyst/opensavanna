@@ -12,26 +12,86 @@ interface VisualizationProps {
   description?: string;
 }
 
+// Enhanced sample data generator based on title/category
+const generateEnhancedSampleData = (title?: string, description?: string) => {
+  const defaultData = getSampleData();
+  
+  // If we have a title, try to generate more relevant sample data
+  if (title) {
+    const titleLower = title.toLowerCase();
+    
+    if (titleLower.includes('economic') || titleLower.includes('gdp') || titleLower.includes('income')) {
+      return [
+        { name: 'Q1 2023', value: 2840 },
+        { name: 'Q2 2023', value: 3200 },
+        { name: 'Q3 2023', value: 2980 },
+        { name: 'Q4 2023', value: 3450 }
+      ];
+    }
+    
+    if (titleLower.includes('health') || titleLower.includes('medical')) {
+      return [
+        { name: 'Hospitals', value: 45 },
+        { name: 'Clinics', value: 120 },
+        { name: 'Specialists', value: 78 },
+        { name: 'General Practice', value: 200 }
+      ];
+    }
+    
+    if (titleLower.includes('education') || titleLower.includes('school')) {
+      return [
+        { name: 'Primary Schools', value: 150 },
+        { name: 'Secondary Schools', value: 85 },
+        { name: 'Universities', value: 12 },
+        { name: 'Vocational', value: 34 }
+      ];
+    }
+    
+    if (titleLower.includes('transport') || titleLower.includes('traffic')) {
+      return [
+        { name: 'Road Transport', value: 65 },
+        { name: 'Rail Transport', value: 25 },
+        { name: 'Air Transport', value: 8 },
+        { name: 'Water Transport', value: 2 }
+      ];
+    }
+  }
+  
+  return defaultData;
+};
+
 const Visualization = ({ data, title, description }: VisualizationProps) => {
   const [activeTab, setActiveTab] = useState('bar');
   const [isLoading, setIsLoading] = useState(true);
   const [chartData, setChartData] = useState<any[]>([]);
   
   useEffect(() => {
-    // Process data for visualization
     const timer = setTimeout(() => {
       if (data && Array.isArray(data) && data.length > 0) {
-        console.log("Visualization data:", data);
-        setChartData(data);
+        // Validate that the data has the required structure
+        const validData = data.filter(item => 
+          item && 
+          typeof item === 'object' && 
+          (item.name || item.category || item.label) &&
+          (typeof item.value === 'number' || !isNaN(Number(item.value)))
+        );
+        
+        if (validData.length > 0) {
+          console.log("Using provided visualization data:", validData);
+          setChartData(validData);
+        } else {
+          console.log("Data exists but invalid structure, using enhanced sample data");
+          setChartData(generateEnhancedSampleData(title, description));
+        }
       } else {
-        console.log("Using sample data for visualization");
-        setChartData(getSampleData());
+        console.log("No valid data provided, using enhanced sample data");
+        setChartData(generateEnhancedSampleData(title, description));
       }
       setIsLoading(false);
     }, 500);
     
     return () => clearTimeout(timer);
-  }, [data]);
+  }, [data, title, description]);
   
   const handleDownload = () => {
     downloadChartData(chartData);
