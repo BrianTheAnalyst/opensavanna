@@ -4,72 +4,80 @@ import { LatLngExpression } from 'leaflet';
 export interface MapVisualizationProps {
   data?: any[];
   geoJSON?: any;
-  category?: string;
-  isLoading?: boolean;
   title?: string;
   description?: string;
+  isLoading?: boolean;
+  category?: string;
+}
+
+export interface Insight {
+  id: string;
+  title: string;
+  description: string;
+  type: 'anomaly' | 'correlation';
+  confidence: number;
+  applied: boolean;
+}
+
+export interface TimeControlsProps {
+  currentIndex: number;
+  maxIndex?: number;
+  setCurrentIndex: (index: number) => void;
+  labels?: string[];
 }
 
 export interface GeoDataInfo {
   hasGeoData: boolean;
   mapCenter: LatLngExpression;
   mapZoom: number;
-  processedGeoJSON: any | null;
+  processedGeoJSON: any;
 }
 
-export interface ColorScaleInfo {
-  colorScale: string[];
-  minValue: number;
-  maxValue: number;
+export interface MapPoint {
+  lat: number;
+  lng: number;
+  name?: string;
+  value?: number;
+  timeIndex?: number;
+  isAnomaly?: boolean;
+  zScore?: number;
 }
 
-// Type definitions for the component props interfaces
-export interface MapEmptyStateProps {
-  title?: string;
-  description?: string;
+export interface TileLayerConfig {
+  url: string;
+  attribution?: string;
+  attributionControl?: boolean;
 }
 
-export interface MapLoadingStateProps {
-  title: string;
-  description: string;
+export interface AnomalyControlsProps {
+  anomalyDetection: boolean;
+  onAnomalyToggle: (enabled: boolean) => void;
+  anomalyThreshold: number;
+  onThresholdChange: (value: number) => void;
 }
 
-export interface LayerControlsProps {
-  onTileLayerChange: (layer: any) => void;
-}
-
-export interface TimeControlsProps {
-  currentIndex: number;
-  maxIndex?: number; 
-  onChange?: (index: number) => void;
-  setCurrentIndex: React.Dispatch<React.SetStateAction<number>>;
-  labels?: string[];
-}
-
-export interface MapControlsProps {
-  currentType: 'standard' | 'choropleth' | 'heatmap' | 'cluster';
-  setType: (type: 'standard' | 'choropleth' | 'heatmap' | 'cluster') => void;
-  hasGeoJSON: boolean;
-  hasPoints: boolean;
-}
-
-export interface MapLegendProps {
+export interface MapVisualizationLayoutProps {
+  sidebarCollapsed: boolean;
   visualizationType: 'standard' | 'choropleth' | 'heatmap' | 'cluster';
-  geoJSON?: any;
-  category?: string;
-}
-
-export interface AnomalyDetectionProps {
+  handleVisualizationTypeChange: (type: 'standard' | 'choropleth' | 'heatmap' | 'cluster') => void;
+  geoJSON: any;
+  points: MapPoint[];
+  defaultCenter: LatLngExpression;
+  defaultZoom: number;
+  category: string;
+  timeIndex: number;
+  activeLayers: string[];
+  setActiveLayers: (layers: string[]) => void;
   anomalyDetection: boolean;
   anomalyThreshold: number;
+  toggleSidebar: () => void;
+  sidebarProps: any;
 }
 
-// Define the Insight interface with strict types
-export interface Insight {
-  id: string;
+export interface MapVisualizationContentProps {
   title: string;
   description: string;
-  type: 'spatial' | 'temporal' | 'correlation' | 'anomaly';
-  confidence: number;
-  applied?: boolean;
+  anomalyDetection: boolean;
+  data: any[];
+  layoutProps: MapVisualizationLayoutProps;
 }
