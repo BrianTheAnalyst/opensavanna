@@ -154,7 +154,7 @@ const InsightCard = ({
               {stats.avg !== undefined && (
                 <ReferenceLine 
                   y={stats.avg} 
-                  label={{ value: "Avg", position: "topRight", fill: "hsl(var(--muted-foreground))" }} 
+                  label={{ value: "Avg", position: "insideTopRight", fill: "hsl(var(--muted-foreground))" }} 
                   stroke="hsl(var(--muted-foreground))" 
                   strokeDasharray="5 5" 
                   opacity={0.7}

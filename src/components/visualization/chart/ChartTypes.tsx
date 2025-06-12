@@ -113,7 +113,7 @@ export const LineChartContent: React.FC<ChartContentProps> = ({ data, colors }) 
             y={avgValue} 
             stroke="hsl(var(--muted-foreground))" 
             strokeDasharray="5 5" 
-            label={{ value: "Average", position: "topRight", fill: "hsl(var(--muted-foreground))" }}
+            label={{ value: "Average", position: "insideTopRight", fill: "hsl(var(--muted-foreground))" }}
             opacity={0.7}
           />
           
