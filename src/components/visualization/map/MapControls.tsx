@@ -10,13 +10,22 @@ interface MapControlsProps {
   hasPoints: boolean;
 }
 
+// Define the type for the visualization types array items
+interface VisualizationType {
+  id: 'standard' | 'choropleth' | 'heatmap' | 'cluster';
+  label: string;
+  icon: React.ElementType;
+  description: string;
+  disabled?: boolean;
+}
+
 const MapControls: React.FC<MapControlsProps> = ({ 
   currentType, 
   setType,
   hasGeoJSON,
   hasPoints
 }) => {
-  const visualizationTypes = [
+  const visualizationTypes: VisualizationType[] = [
     { 
       id: 'standard', 
       label: 'Standard', 
@@ -44,7 +53,7 @@ const MapControls: React.FC<MapControlsProps> = ({
       description: 'Group nearby points into clusters',
       disabled: !hasPoints
     }
-  ] as const;
+  ];
 
   return (
     <div className="flex flex-wrap items-center gap-2">

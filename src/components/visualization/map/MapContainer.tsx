@@ -28,6 +28,7 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
   return (
     <div className="h-full w-full relative">
       <LeafletMapContainer
+        key={`map-${visualizationType}`}
         center={defaultCenter}
         zoom={defaultZoom}
         style={{ height: '100%', width: '100%' }}
@@ -35,7 +36,6 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
         scrollWheelZoom={true}
         doubleClickZoom={true}
         zoomControl={false}
-        attributionControl={true}
       >
         {/* Base Layer */}
         {activeLayers.includes('base') && (
