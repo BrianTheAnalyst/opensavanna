@@ -56,6 +56,12 @@ export interface AnomalyControlsProps {
   onThresholdChange: (value: number) => void;
 }
 
+export interface ColorScaleInfo {
+  colorScale: string[];
+  minValue: number;
+  maxValue: number;
+}
+
 export interface MapVisualizationLayoutProps {
   sidebarCollapsed: boolean;
   visualizationType: 'standard' | 'choropleth' | 'heatmap' | 'cluster';
