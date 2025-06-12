@@ -1,24 +1,17 @@
+
 import React, { useState } from 'react';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import MapLoadingState from './MapLoadingState';
 import MapEmptyState from './MapEmptyState';
 import { useMapData } from './useMapData';
 import { MapVisualizationProps, Insight } from './types';
-
-// Import refactored components
 import MapHeader from './MapHeader';
-import MapVisualizationTabs from './MapVisualizationTabs';
-import MapLayerControls from './MapLayerControls';
+import MapContainerComponent from '../MapContainer';
+import MapControls from '../MapControls';
 import MapSidebar from './MapSidebar';
-
-// Import the components that were missing
-import AnomalyControls from '../AnomalyControls';
-import CorrelationPanel from '../CorrelationPanel';
 
 export const MapVisualization: React.FC<MapVisualizationProps> = ({
   data = [],
@@ -45,7 +38,7 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
   const [blendMode, setBlendMode] = useState('normal');
   const [opacity, setOpacity] = useState(0.7);
 
-  // State for sidebar collapse
+  // State for sidebar
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   
   // Define available layers for selection
@@ -60,7 +53,7 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
     { id: 'co2', name: 'CO2 Emissions', category: 'Environment' }
   ];
   
-  // Sample insights for insight panel with properly typed 'type' property
+  // Sample insights for insight panel
   const sampleInsights: Insight[] = [
     {
       id: '1',
@@ -76,14 +69,6 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
       description: 'Air pollution levels show significant correlation with traffic density patterns across urban centers.',
       type: 'correlation',
       confidence: 0.76,
-      applied: false
-    },
-    {
-      id: '3',
-      title: 'Seasonal precipitation trend',
-      description: 'Eastern regions show consistent seasonal precipitation patterns with 15% variation from historical averages.',
-      type: 'temporal',
-      confidence: 0.94,
       applied: false
     }
   ];
@@ -129,9 +114,7 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
     setIsAnalyzingCorrelation(true);
     setCorrelationValue(null);
     
-    // Simulate correlation analysis with a timeout
     setTimeout(() => {
-      // In a real application, this would be calculated from actual data
       const correlation = (Math.random() * 1.4 - 0.2).toFixed(2);
       setCorrelationValue(parseFloat(correlation));
       setIsAnalyzingCorrelation(false);
@@ -141,21 +124,12 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
   // Handle spatial filtering
   const handleSpatialFilterChange = (filter: any) => {
     console.log("Applied spatial filter:", filter);
-    // In a real app, this would filter the data based on spatial parameters
   };
   
   // Handle insight application
   const handleApplyInsight = (insightId: string) => {
     console.log(`Applying insight ${insightId}`);
     
-    // Update insights list to mark as applied
-    const updatedInsights = sampleInsights.map(insight => 
-      insight.id === insightId 
-        ? { ...insight, applied: !insight.applied }
-        : insight
-    );
-    
-    // In a real app, we would modify the state based on the insight type
     const insight = sampleInsights.find(item => item.id === insightId);
     if (insight) {
       switch (insight.type) {
@@ -165,20 +139,13 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
         case 'correlation':
           // Would implement correlation visualization
           break;
-        case 'temporal':
-          // Would implement time series visualization
-          break;
-        case 'spatial':
-          // Would implement spatial highlight
-          break;
       }
     }
   };
 
-  // Function to refresh insights (placeholder)
+  // Function to refresh insights
   const handleRefreshInsights = () => {
     console.log("Refreshing insights...");
-    // Would fetch new insights in a real application
   };
 
   // Toggle sidebar collapse
@@ -195,46 +162,81 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <MapHeader 
         title={title} 
         description={description} 
         anomalyDetection={anomalyDetection} 
       />
       
-      <div className="relative flex">
-        {/* Main Map Area */}
-        <div className={`transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'w-full' : 'w-full lg:w-3/4 xl:w-4/5'}`}>
-          <Card className="h-[600px] shadow-md">
-            <CardContent className="p-0 h-full">
-              <MapVisualizationTabs
-                visualizationType={visualizationType}
-                handleVisualizationTypeChange={handleVisualizationTypeChange}
-                defaultCenter={defaultCenter}
-                defaultZoom={defaultZoom}
-                geoJSON={geoJSON}
-                points={points}
-                category={category}
-                timeIndex={timeIndex}
-                activeLayers={activeLayers}
-                anomalyDetection={anomalyDetection}
-                anomalyThreshold={anomalyThreshold}
-                handleTimeIndexChange={handleTimeIndexChange}
-              />
+      {/* Main Layout Container */}
+      <div className="flex gap-6">
+        {/* Map Container */}
+        <div className={`transition-all duration-300 ${sidebarCollapsed ? 'w-full' : 'w-full lg:w-3/4'}`}>
+          <Card className="overflow-hidden">
+            <CardContent className="p-0">
+              {/* Map Controls */}
+              <div className="p-4 border-b bg-muted/20">
+                <MapControls
+                  currentType={visualizationType}
+                  setType={handleVisualizationTypeChange}
+                  hasGeoJSON={!!geoJSON}
+                  hasPoints={points.length > 0}
+                />
+              </div>
+              
+              {/* Map Display */}
+              <div className="relative h-[500px]">
+                <MapContainerComponent 
+                  defaultCenter={defaultCenter}
+                  defaultZoom={defaultZoom}
+                  geoJSON={geoJSON}
+                  points={points}
+                  visualizationType={visualizationType}
+                  category={category}
+                  currentTimeIndex={timeIndex}
+                  activeLayers={activeLayers}
+                  anomalyDetection={anomalyDetection}
+                  anomalyThreshold={anomalyThreshold}
+                />
+              </div>
+              
+              {/* Layer Controls */}
+              <div className="p-4 border-t bg-muted/10">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={activeLayers.includes('labels')}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setActiveLayers([...activeLayers, 'labels']);
+                          } else {
+                            setActiveLayers(activeLayers.filter(layer => layer !== 'labels'));
+                          }
+                        }}
+                        className="rounded"
+                      />
+                      Show Labels
+                    </label>
+                  </div>
+                  
+                  <button
+                    onClick={toggleSidebar}
+                    className="px-3 py-1 text-sm border rounded hover:bg-muted transition-colors"
+                  >
+                    {sidebarCollapsed ? 'Show Controls' : 'Hide Controls'}
+                  </button>
+                </div>
+              </div>
             </CardContent>
           </Card>
-
-          <MapLayerControls 
-            activeLayers={activeLayers}
-            setActiveLayers={setActiveLayers}
-            sidebarCollapsed={sidebarCollapsed}
-            toggleSidebar={toggleSidebar}
-          />
         </div>
         
         {/* Sidebar Controls */}
         {!sidebarCollapsed && (
-          <div className={`w-1/4 xl:w-1/5 ml-4 space-y-4 transition-all duration-300 hidden lg:block animate-fade-in`}>
+          <div className="w-1/4 hidden lg:block">
             <MapSidebar 
               anomalyDetection={anomalyDetection}
               anomalyThreshold={anomalyThreshold}
@@ -260,39 +262,6 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
             />
           </div>
         )}
-      </div>
-      
-      {/* Mobile Controls (shown when sidebar is collapsed on mobile) */}
-      {sidebarCollapsed && (
-        <div className="lg:hidden">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 animate-fade-in">
-            <AnomalyControls 
-              anomalyDetection={anomalyDetection} 
-              onAnomalyToggle={handleAnomalyToggle} 
-              anomalyThreshold={anomalyThreshold}
-              onThresholdChange={handleThresholdChange}
-            />
-            
-            <CorrelationPanel
-              variables={availableLayers}
-              onAnalyze={handleAnalyzeCorrelation}
-              correlationValue={correlationValue}
-              isAnalyzing={isAnalyzingCorrelation}
-            />
-          </div>
-        </div>
-      )}
-      
-      {/* Mobile Controls Button */}
-      <div className="lg:hidden">
-        <Button 
-          variant="outline" 
-          className="w-full mt-4"
-          onClick={toggleSidebar}
-        >
-          {sidebarCollapsed ? 'Show All Controls' : 'Hide Controls'}
-          {sidebarCollapsed ? <ChevronLeft className="ml-1 h-4 w-4" /> : <ChevronRight className="ml-1 h-4 w-4" />}
-        </Button>
       </div>
     </div>
   );

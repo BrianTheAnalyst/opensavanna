@@ -1,5 +1,7 @@
 
 import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import AnomalyControls from '../AnomalyControls';
 import CorrelationPanel from '../CorrelationPanel';
 import SpatialFilterPanel from '../SpatialFilterPanel';
@@ -55,46 +57,55 @@ const MapSidebar: React.FC<MapSidebarProps> = ({
   handleRefreshInsights
 }) => {
   return (
-    <div className="space-y-4 sticky top-4">
-      <AnomalyControls 
-        anomalyDetection={anomalyDetection} 
-        onAnomalyToggle={handleAnomalyToggle} 
-        anomalyThreshold={anomalyThreshold}
-        onThresholdChange={handleThresholdChange}
-      />
-      
-      <CorrelationPanel
-        variables={availableLayers}
-        onAnalyze={handleAnalyzeCorrelation}
-        correlationValue={correlationValue}
-        isAnalyzing={isAnalyzingCorrelation}
-      />
-      
-      <SpatialFilterPanel
-        onFilterChange={handleSpatialFilterChange}
-        regions={sampleRegions}
-        isFiltering={false}
-      />
-      
-      <LayerBlendingControls 
-        primaryLayer={primaryLayer}
-        secondaryLayer={secondaryLayer}
-        availableLayers={availableLayers}
-        blendMode={blendMode}
-        blendOpacity={opacity}
-        onPrimaryLayerChange={setPrimaryLayer}
-        onSecondaryLayerChange={setSecondaryLayer}
-        onBlendModeChange={setBlendMode}
-        onBlendOpacityChange={setOpacity}
-      />
-      
-      <InsightSuggestionPanel
-        insights={sampleInsights}
-        loading={false}
-        onInsightApply={handleApplyInsight}
-        onRefreshInsights={handleRefreshInsights}
-      />
-    </div>
+    <Card className="h-fit">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg">Map Controls</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4 p-4">
+        <ScrollArea className="h-[400px] pr-3">
+          <div className="space-y-4">
+            <AnomalyControls 
+              anomalyDetection={anomalyDetection} 
+              onAnomalyToggle={handleAnomalyToggle} 
+              anomalyThreshold={anomalyThreshold}
+              onThresholdChange={handleThresholdChange}
+            />
+            
+            <CorrelationPanel
+              variables={availableLayers}
+              onAnalyze={handleAnalyzeCorrelation}
+              correlationValue={correlationValue}
+              isAnalyzing={isAnalyzingCorrelation}
+            />
+            
+            <SpatialFilterPanel
+              onFilterChange={handleSpatialFilterChange}
+              regions={sampleRegions}
+              isFiltering={false}
+            />
+            
+            <LayerBlendingControls 
+              primaryLayer={primaryLayer}
+              secondaryLayer={secondaryLayer}
+              availableLayers={availableLayers}
+              blendMode={blendMode}
+              blendOpacity={opacity}
+              onPrimaryLayerChange={setPrimaryLayer}
+              onSecondaryLayerChange={setSecondaryLayer}
+              onBlendModeChange={setBlendMode}
+              onBlendOpacityChange={setOpacity}
+            />
+            
+            <InsightSuggestionPanel
+              insights={sampleInsights}
+              loading={false}
+              onInsightApply={handleApplyInsight}
+              onRefreshInsights={handleRefreshInsights}
+            />
+          </div>
+        </ScrollArea>
+      </CardContent>
+    </Card>
   );
 };
 

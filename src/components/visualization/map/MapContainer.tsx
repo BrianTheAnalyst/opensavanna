@@ -1,33 +1,9 @@
 
-import React, { useCallback } from 'react';
-import { MapContainer as LeafletMapContainer, TileLayer, ZoomControl, useMap } from 'react-leaflet';
+import React from 'react';
+import { MapContainer as LeafletMapContainer, TileLayer, ZoomControl } from 'react-leaflet';
 import VisualizationLayerRenderer from './VisualizationLayerRenderer';
 import { MapContainerProps } from './types';
-import { getTileLayer } from './utils/tileLayerUtils';
 
-// MapEvents component to handle map events that need map context
-const MapEvents: React.FC<{ onMoveEnd?: (center: [number, number], zoom: number) => void }> = ({ onMoveEnd }) => {
-  const map = useMap();
-  
-  React.useEffect(() => {
-    if (onMoveEnd) {
-      const handleMoveEnd = () => {
-        const center = map.getCenter();
-        const zoom = map.getZoom();
-        onMoveEnd([center.lat, center.lng], zoom);
-      };
-      
-      map.on('moveend', handleMoveEnd);
-      return () => {
-        map.off('moveend', handleMoveEnd);
-      };
-    }
-  }, [map, onMoveEnd]);
-  
-  return null;
-};
-
-// Renamed component to avoid confusion with React-Leaflet's MapContainer
 const MapContainerComponent: React.FC<MapContainerProps> = ({
   defaultCenter,
   defaultZoom,
@@ -46,55 +22,33 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
     !point.hasOwnProperty('timeIndex') || point.timeIndex === currentTimeIndex
   );
 
-  // Get the appropriate tile layer based on visualization type
-  const tileLayerProps = getTileLayer(visualizationType);
-
   // Check if data layer is active
   const isDataLayerActive = activeLayers.includes('data');
-  
-  // Callback for map movement
-  const handleMapMove = useCallback((center: [number, number], zoom: number) => {
-    if (onMapMove) {
-      onMapMove(center, zoom);
-    }
-  }, [onMapMove]);
 
   return (
-    <div className="h-full w-full rounded-md overflow-hidden shadow-sm border border-border/30 transition-all duration-200 hover:shadow-md">
-      {/* 
-        The MapContainer from react-leaflet expects different props than what TypeScript thinks.
-        We need to work around this type issue.
-      */}
+    <div className="h-full w-full relative">
       <LeafletMapContainer
+        center={defaultCenter}
+        zoom={defaultZoom}
         style={{ height: '100%', width: '100%' }}
-        // Using type assertion to work around the TypeScript error
-        // This tells TypeScript to trust us that these props are valid
-        {...{
-          center: defaultCenter,
-          zoom: defaultZoom,
-          key: `${defaultCenter[0]}-${defaultCenter[1]}-${defaultZoom}`,
-          minZoom: 2,
-          maxZoom: 18,
-          scrollWheelZoom: true,
-          doubleClickZoom: true,
-          attributionControl: true, // Enable attribution control for proper credits
-          zoomControl: false, // We'll add our own zoom control
-          className: "z-10"
-        } as any}
+        className="rounded-none"
+        scrollWheelZoom={true}
+        doubleClickZoom={true}
+        zoomControl={false}
+        attributionControl={true}
       >
-        {/* Map Events handler */}
-        <MapEvents onMoveEnd={handleMapMove} />
-      
+        {/* Base Layer */}
         {activeLayers.includes('base') && (
           <TileLayer 
-            url={tileLayerProps.url}
-            // Remove the attribution prop as it's not recognized by TileLayerProps
-            // Instead, we'll use attributionControl in the container config
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           />
         )}
         
+        {/* Zoom Control */}
         <ZoomControl position="topright" />
         
+        {/* Data Visualization Layer */}
         <VisualizationLayerRenderer 
           visualizationType={visualizationType}
           geoJSON={geoJSON}
@@ -106,10 +60,11 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
           anomalyThreshold={anomalyThreshold}
         />
         
+        {/* Labels Layer */}
         {activeLayers.includes('labels') && (
           <TileLayer 
             url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png"
-            // Remove the attribution prop here too
+            attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
           />
         )}
       </LeafletMapContainer>
