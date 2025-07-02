@@ -22,7 +22,7 @@ export interface Insight {
 export interface TimeControlsProps {
   currentIndex: number;
   maxIndex?: number;
-  setCurrentIndex: (index: number) => void;
+  setCurrentIndex: (index: number | ((prev: number) => number)) => void;
   labels?: string[];
 }
 

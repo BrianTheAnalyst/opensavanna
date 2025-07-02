@@ -18,7 +18,7 @@ const TimeControls: React.FC<TimeControlsProps> = ({
   React.useEffect(() => {
     if (isPlaying) {
       playIntervalRef.current = setInterval(() => {
-        setCurrentIndex((prev: number) => {
+        setCurrentIndex(prev => {
           return prev >= maxIndex ? 0 : prev + 1;
         });
       }, 1500);
