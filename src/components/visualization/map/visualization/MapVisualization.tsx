@@ -7,6 +7,7 @@ import MapLoadingState from './MapLoadingState';
 import { useMapData } from './useMapData';
 import { MapVisualizationProps } from './types';
 import MapVisualizationContent from './components/MapVisualizationContent';
+import EnhancedMapVisualization from '../EnhancedMapVisualization';
 import { useMapState } from './hooks/useMapState';
 import { useCorrelationState } from './hooks/useCorrelationState';
 import { useLayerBlending } from './hooks/useLayerBlending';
@@ -121,6 +122,31 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
 
   if (isLoading) {
     return <MapLoadingState title={title} description={description} />;
+  }
+
+  // Check if we should show enhanced visualization (for certain categories or when we have rich data)
+  const showEnhancedVisualization = category.toLowerCase().includes('demographic') || 
+                                   category.toLowerCase().includes('retail') ||
+                                   category.toLowerCase().includes('population') ||
+                                   title.toLowerCase().includes('retail') ||
+                                   title.toLowerCase().includes('demographic');
+
+  if (showEnhancedVisualization) {
+    return (
+      <EnhancedMapVisualization
+        title={title}
+        defaultCenter={defaultCenter}
+        defaultZoom={defaultZoom}
+        geoJSON={geoJSON}
+        points={points}
+        visualizationType={visualizationType}
+        category={category}
+        currentTimeIndex={timeIndex}
+        activeLayers={activeLayers}
+        anomalyDetection={anomalyDetection}
+        anomalyThreshold={anomalyThreshold}
+      />
+    );
   }
 
   // Prepare sidebar props
