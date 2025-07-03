@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { MapContainer as LeafletMapContainer, TileLayer, ZoomControl } from 'react-leaflet';
+import { MapContainer, TileLayer, ZoomControl } from 'react-leaflet';
 import VisualizationLayerRenderer from './VisualizationLayerRenderer';
 import { MapContainerProps } from './types';
 
@@ -27,8 +27,7 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
 
   return (
     <div className="h-full w-full relative">
-      <LeafletMapContainer
-        key={`map-${visualizationType}`}
+      <MapContainer
         center={defaultCenter}
         zoom={defaultZoom}
         style={{ height: '100%', width: '100%' }}
@@ -41,7 +40,6 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
         {activeLayers.includes('base') && (
           <TileLayer 
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           />
         )}
         
@@ -64,10 +62,9 @@ const MapContainerComponent: React.FC<MapContainerProps> = ({
         {activeLayers.includes('labels') && (
           <TileLayer 
             url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
           />
         )}
-      </LeafletMapContainer>
+      </MapContainer>
     </div>
   );
 };
