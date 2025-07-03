@@ -2,9 +2,9 @@
 import React from 'react';
 import { MapContainer, TileLayer, ZoomControl } from 'react-leaflet';
 import VisualizationLayerRenderer from './VisualizationLayerRenderer';
-import { MapContainerProps } from './types';
+import { MapVisualizationContainerProps } from './types';
 
-const MapContainerComponent: React.FC<MapContainerProps> = ({
+const MapContainerComponent: React.FC<MapVisualizationContainerProps> = ({
   defaultCenter,
   defaultZoom,
   geoJSON,

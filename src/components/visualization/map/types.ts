@@ -16,7 +16,7 @@ export interface MapPoint {
   properties?: Record<string, any>;
 }
 
-export interface MapContainerProps {
+export interface MapVisualizationContainerProps {
   defaultCenter: LatLngExpression;
   defaultZoom: number;
   geoJSON?: any;
