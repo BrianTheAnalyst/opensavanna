@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { MapContainer, TileLayer, ZoomControl } from 'react-leaflet';
+import { MapContainer as LeafletMapContainer, TileLayer, ZoomControl } from 'react-leaflet';
 import VisualizationLayerRenderer from './VisualizationLayerRenderer';
 import { MapVisualizationContainerProps } from './types';
 
@@ -27,7 +27,7 @@ const MapContainerComponent: React.FC<MapVisualizationContainerProps> = ({
 
   return (
     <div className="h-full w-full relative">
-      <MapContainer
+      <LeafletMapContainer
         center={defaultCenter}
         zoom={defaultZoom}
         style={{ height: '100%', width: '100%' }}
@@ -64,7 +64,7 @@ const MapContainerComponent: React.FC<MapVisualizationContainerProps> = ({
             url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png"
           />
         )}
-      </MapContainer>
+      </LeafletMapContainer>
     </div>
   );
 };

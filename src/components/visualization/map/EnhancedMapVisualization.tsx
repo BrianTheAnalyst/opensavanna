@@ -3,9 +3,9 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import MapContainerComponent from './MapContainer';
-import { MapContainerProps } from './types';
+import { MapVisualizationContainerProps } from './types';
 
-interface EnhancedMapVisualizationProps extends MapContainerProps {
+interface EnhancedMapVisualizationProps extends MapVisualizationContainerProps {
   title?: string;
   demographicData?: Array<{ name: string; value: number; color: string }>;
   ageDistributionData?: Array<{ name: string; value: number }>;
@@ -33,9 +33,33 @@ const EnhancedMapVisualization: React.FC<EnhancedMapVisualizationProps> = ({
     { name: 'pharmacy_chemist', value: 90 },
     { name: 'wine_spirit', value: 200 }
   ],
-  ...mapProps
+  defaultCenter,
+  defaultZoom,
+  geoJSON,
+  points = [],
+  visualizationType = 'standard',
+  category,
+  currentTimeIndex = 0,
+  activeLayers = ['base', 'data'],
+  anomalyDetection = false,
+  anomalyThreshold = 2.0,
+  onMapMove
 }) => {
   const COLORS = ['#E8E8E8', '#C4C4C4', '#00C49F', '#8DD1E1', '#FFBB28', '#FF8042'];
+
+  const mapProps = {
+    defaultCenter,
+    defaultZoom,
+    geoJSON,
+    points,
+    visualizationType,
+    category,
+    currentTimeIndex,
+    activeLayers,
+    anomalyDetection,
+    anomalyThreshold,
+    onMapMove
+  };
 
   return (
     <div className="w-full space-y-4">
