@@ -6,6 +6,7 @@ import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import DataInsightsResult from './DataInsightsResult';
 import VisualHistory from './VisualHistory';
+import NoResultsPlaceholder from './NoResultsPlaceholder';
 import { toast } from 'sonner';
 
 interface DataQuerySectionProps {
@@ -17,6 +18,7 @@ const DataQuerySection = ({ initialQuery }: DataQuerySectionProps) => {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<DataInsightResult | null>(null);
   const [showHistory, setShowHistory] = useState(false);
+  const [lastQuery, setLastQuery] = useState<string>('');
 
   useEffect(() => {
     if (initialQuery) {
@@ -25,9 +27,19 @@ const DataQuerySection = ({ initialQuery }: DataQuerySectionProps) => {
   }, [initialQuery]);
 
   const handleSearch = async (query: string) => {
+    // Handle empty search - show suggestions instead of processing
+    if (!query.trim()) {
+      setResult(null);
+      setError(null);
+      setIsSearching(false);
+      setShowHistory(false);
+      return;
+    }
+
     setIsSearching(true);
     setError(null);
     setShowHistory(false);
+    setLastQuery(query);
     
     try {
       const data = await processDataQuery(query);
@@ -39,6 +51,7 @@ const DataQuerySection = ({ initialQuery }: DataQuerySectionProps) => {
       window.history.pushState({}, '', url);
     } catch (err: any) {
       setError(err.message || 'Failed to process your question');
+      setResult(null); // Clear any previous results
       toast.error('Failed to process your question');
     } finally {
       setIsSearching(false);
@@ -100,11 +113,18 @@ const DataQuerySection = ({ initialQuery }: DataQuerySectionProps) => {
         )}
 
         {error && !isSearching && (
-          <Alert variant="destructive" className="max-w-lg mx-auto">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
+          <NoResultsPlaceholder 
+            isEmptySearch={false}
+            searchQuery={lastQuery}
+            onSuggestionClick={handleFollowUpClick}
+          />
+        )}
+
+        {!result && !error && !isSearching && (
+          <NoResultsPlaceholder 
+            isEmptySearch={true}
+            onSuggestionClick={handleFollowUpClick}
+          />
         )}
 
         {result && !isSearching && (

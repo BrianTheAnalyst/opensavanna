@@ -35,10 +35,15 @@ const QuerySearchBar = ({ onSearch, isSearching, suggestedQuestions = [], classN
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (query.trim()) {
-      onSearch(query.trim());
+    const trimmedQuery = query.trim();
+    
+    if (trimmedQuery) {
+      onSearch(trimmedQuery);
       setShowSuggestions(false);
       setSelectedSuggestionIndex(-1);
+    } else {
+      // Handle empty search - trigger a callback for showing suggestions
+      onSearch(''); // This will trigger the empty search handling in parent
     }
   };
 
@@ -110,7 +115,7 @@ const QuerySearchBar = ({ onSearch, isSearching, suggestedQuestions = [], classN
           <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Button 
             type="submit" 
-            disabled={isSearching || !query.trim()} 
+            disabled={isSearching} 
             className="absolute right-2 top-1/2 transform -translate-y-1/2 rounded-full h-10"
           >
             {isSearching ? (
