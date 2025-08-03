@@ -18,11 +18,13 @@ export const getDatasetVisualization = async (id: string): Promise<any> => {
     
     if (fetchError) {
       console.error('Error fetching dataset:', fetchError);
+      console.log('Adding debug info for dataset fetch failure:', { id, fetchError });
       toast.error('Failed to load dataset');
       return [];
     }
     
     if (!rawDataset) {
+      console.log('Dataset not found for ID:', id);
       toast.error('Dataset not found');
       return [];
     }
@@ -53,10 +55,14 @@ export const getDatasetVisualization = async (id: string): Promise<any> => {
     
     // If no processed data, try to parse from file
     if (dataset.file) {
-      return await parseDataFromFile(dataset);
+      console.log('Parsing data from file for dataset:', dataset.title);
+      const fileData = await parseDataFromFile(dataset);
+      console.log('File data parsed, length:', fileData.length);
+      return fileData;
     }
     
     // No file available
+    console.log('No file available for dataset:', dataset.title);
     return [];
   } catch (error) {
     console.error('Error fetching visualization data:', error);

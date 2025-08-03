@@ -197,7 +197,12 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
     if (!isDataReady || getCurrentItems.length === 0) {
       return (
         <div className="h-full flex items-center justify-center">
-          <p className="text-muted-foreground">No data available for visualization</p>
+          <div className="text-center space-y-2">
+            <p className="text-muted-foreground">No data found for this visualization</p>
+            <p className="text-sm text-muted-foreground/70">
+              The dataset may be empty or failed to load properly
+            </p>
+          </div>
         </div>
       );
     }

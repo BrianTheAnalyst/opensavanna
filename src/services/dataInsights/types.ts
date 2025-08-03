@@ -10,10 +10,12 @@ export interface DataInsightResult {
     title: string;
     type: 'bar' | 'line' | 'pie' | 'area' | 'radar' | 'map';
     category: string;
-    data: any[];
+    data: any[] | null;
     geoJSON?: any;
     timeAxis?: string;
     valueLabel?: string;
+    hasData?: boolean;
+    error?: string;
   }[];
   insights: string[];
   comparisonResult?: {

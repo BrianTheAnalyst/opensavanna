@@ -64,6 +64,7 @@ const InsightCard = ({
   xAxisLabel,
   yAxisLabel
 }: InsightCardProps) => {
+  // Enhanced empty state handling
   if (!data || data.length === 0) {
     return (
       <Card className={className}>
@@ -73,7 +74,12 @@ const InsightCard = ({
         </CardHeader>
         <CardContent>
           <div className="flex h-48 items-center justify-center bg-muted/30 rounded-lg">
-            <p className="text-muted-foreground">No data available</p>
+            <div className="text-center space-y-2">
+              <p className="text-muted-foreground">No data found for this query</p>
+              <p className="text-sm text-muted-foreground/70">
+                Try refining your search or check if the dataset contains data
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -74,16 +74,31 @@ const VisualizationsSection: React.FC<VisualizationsSectionProps> = ({ visualiza
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <InsightCard
-                title=""
-                data={viz.data || []}
-                type={viz.type}
-                dataKey="value"
-                nameKey="name"
-                xAxisLabel={xAxisLabel}
-                yAxisLabel={yAxisLabel}
-                tooltipFormatter={(value, name) => [`${value}`, viz.valueLabel || 'Value']}
-              />
+              {viz.data === null || (Array.isArray(viz.data) && viz.data.length === 0) ? (
+                <div className="h-48 flex items-center justify-center bg-muted/30 rounded-lg">
+                  <div className="text-center space-y-2">
+                    <p className="text-muted-foreground">
+                      {viz.error ? 'Failed to load data' : 'No data found for this query'}
+                    </p>
+                    <p className="text-sm text-muted-foreground/70">
+                      {viz.error 
+                        ? 'There was an error loading the dataset. Please try again.' 
+                        : 'Try refining your search or check if the dataset contains relevant data'}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <InsightCard
+                  title=""
+                  data={viz.data || []}
+                  type={viz.type}
+                  dataKey="value"
+                  nameKey="name"
+                  xAxisLabel={xAxisLabel}
+                  yAxisLabel={yAxisLabel}
+                  tooltipFormatter={(value, name) => [`${value}`, viz.valueLabel || 'Value']}
+                />
+              )}
             </CardContent>
           </Card>
         );

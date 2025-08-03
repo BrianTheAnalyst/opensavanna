@@ -66,10 +66,11 @@ export const processDataQuery = async (query: string): Promise<DataInsightResult
             category: dataset.category,
             data: visualizationData && visualizationData.length > 0 
               ? visualizationData 
-              : transformSampleDataForCategory(dataset.category, []),
+              : null, // Use null instead of empty fallback data to indicate no data
             geoJSON: geoJSON,
             timeAxis: visType === 'line' ? 'Time Period' : undefined,
-            valueLabel: `${dataset.category} Value`
+            valueLabel: `${dataset.category} Value`,
+            hasData: visualizationData && visualizationData.length > 0
           };
 
           console.log(`Processed dataset ${dataset.title} with visualization type: ${visType}`);
@@ -81,9 +82,11 @@ export const processDataQuery = async (query: string): Promise<DataInsightResult
             title: dataset.title,
             type: 'bar' as const,
             category: dataset.category,
-            data: transformSampleDataForCategory(dataset.category, []),
+            data: null, // Indicate failed data loading
             timeAxis: undefined,
-            valueLabel: `${dataset.category} Value`
+            valueLabel: `${dataset.category} Value`,
+            hasData: false,
+            error: 'Failed to load dataset'
           };
         }
       })
