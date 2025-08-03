@@ -12,15 +12,19 @@ export const parseDataFromFile = async (dataset: Dataset): Promise<any[]> => {
       throw new Error(`Failed to fetch file: ${response.statusText}`);
     }
     
+    // Clone the response before processing for GeoJSON storage
+    let responseForStorage: Response | null = null;
+    if (dataset.format.toLowerCase() === 'geojson' && dataset.id) {
+      responseForStorage = response.clone();
+    }
+    
     // Process based on format
     const data = await parseDataByFormat(dataset, response);
     
     // Handle GeoJSON storage for map visualizations
-    if (dataset.format.toLowerCase() === 'geojson' && dataset.id) {
+    if (dataset.format.toLowerCase() === 'geojson' && dataset.id && responseForStorage) {
       try {
-        // Clone the response for additional processing
-        const responseClone = response.clone();
-        const json = await responseClone.json();
+        const json = await responseForStorage.json();
         
         // First, check if the JSON is valid GeoJSON
         if (!json.type || !json.features) {

@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { MapContainer as LeafletMapContainer, TileLayer, ZoomControl } from 'react-leaflet';
+import type { LatLngExpression } from 'leaflet';
 import VisualizationLayerRenderer from './VisualizationLayerRenderer';
 import { MapVisualizationContainerProps } from './types';
 
@@ -28,13 +29,15 @@ const MapContainerComponent: React.FC<MapVisualizationContainerProps> = ({
   return (
     <div className="h-full w-full relative">
       <LeafletMapContainer
-        center={defaultCenter}
-        zoom={defaultZoom}
-        style={{ height: '100%', width: '100%' }}
-        className="rounded-none"
-        scrollWheelZoom={true}
-        doubleClickZoom={true}
-        zoomControl={false}
+        {...({
+          center: defaultCenter,
+          zoom: defaultZoom,
+          style: { height: '100%', width: '100%' },
+          className: "rounded-none",
+          scrollWheelZoom: true,
+          doubleClickZoom: true,
+          zoomControl: false
+        } as any)}
       >
         {/* Base Layer */}
         {activeLayers.includes('base') && (
