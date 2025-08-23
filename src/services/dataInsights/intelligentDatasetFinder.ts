@@ -25,12 +25,32 @@ export const extractEnhancedKeywords = (query: string): {
   domain: string 
 } => {
   const stopWords = new Set([
-    'a', 'an', 'the', 'and', 'or', 'but', 'is', 'are', 'in', 
-    'on', 'at', 'for', 'with', 'about', 'between', 'into', 
-    'to', 'from', 'by', 'as', 'of', 'show', 'me', 'give', 
-    'what', 'when', 'where', 'which', 'who', 'whom', 'whose',
-    'how', 'why', 'i', 'you', 'he', 'she', 'it', 'we', 'they'
+    'a', 'an', 'the', 'and', 'or', 'but', 'is', 'are', 'in', 'on', 'at',
+    'for', 'with', 'about', 'against', 'between', 'into', 'through', 'during',
+    'before', 'after', 'above', 'below', 'to', 'from', 'up', 'down', 'out',
+    'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here', 'there',
+    'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each', 'few', 'more',
+    'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same',
+    'so', 'than', 'too', 'very', 's', 't', 'can', 'will', 'just', 'don',
+    'should', 'now', 'd', 'll', 'm', 'o', 're', 've', 'y', 'ain', 'aren',
+    'couldn', 'didn', 'doesn', 'hadn', 'hasn', 'haven', 'isn', 'ma', 'mightn',
+    'mustn', 'needn', 'shan', 'shouldn', 'wasn', 'weren', 'won', 'wouldn',
+    'show', 'me', 'give', 'what', 'which', 'who', 'whom', 'whose', 'i',
+    'you', 'he', 'she', 'it', 'we', 'they'
   ]);
+
+  const stemmingMap: Record<string, string> = {
+    'running': 'run',
+    'runs': 'run',
+    'ran': 'run',
+    'studies': 'study',
+    'studying': 'study',
+    'countries': 'country',
+    'cities': 'city',
+    'development': 'develop',
+    'developing': 'develop',
+    'developed': 'develop',
+  };
 
   const queryLower = query.toLowerCase();
   
@@ -43,25 +63,26 @@ export const extractEnhancedKeywords = (query: string): {
 
   // Domain detection
   let domain = 'general';
-  if (queryLower.includes('health') || queryLower.includes('medical')) domain = 'health';
-  else if (queryLower.includes('economic') || queryLower.includes('gdp')) domain = 'economics';
-  else if (queryLower.includes('education') || queryLower.includes('school')) domain = 'education';
-  else if (queryLower.includes('transport') || queryLower.includes('traffic')) domain = 'transport';
-  else if (queryLower.includes('environment') || queryLower.includes('climate')) domain = 'environment';
+  if (queryLower.includes('health') || queryLower.includes('medical') || queryLower.includes('disease')) domain = 'health';
+  else if (queryLower.includes('economic') || queryLower.includes('gdp') || queryLower.includes('finance')) domain = 'economics';
+  else if (queryLower.includes('education') || queryLower.includes('school') || queryLower.includes('student')) domain = 'education';
+  else if (queryLower.includes('transport') || queryLower.includes('traffic') || queryLower.includes('travel')) domain = 'transport';
+  else if (queryLower.includes('environment') || queryLower.includes('climate') || queryLower.includes('pollution')) domain = 'environment';
 
-  // Extract keywords
+  // Extract and stem keywords
   const words = queryLower
     .replace(/[.,?!;:(){}[\]]/g, '')
     .split(/\s+/)
-    .filter(word => word.length > 2 && !stopWords.has(word));
+    .filter(word => word.length > 2 && !stopWords.has(word))
+    .map(word => stemmingMap[word] || word);
 
   // Category-specific keyword expansion
   const categoryMappings: Record<string, string[]> = {
-    'economic': ['economics', 'economy', 'gdp', 'inflation', 'trade', 'finance', 'income'],
-    'health': ['healthcare', 'medical', 'hospital', 'disease', 'patient', 'mortality', 'wellness'],
-    'education': ['school', 'university', 'student', 'learning', 'academic', 'literacy', 'enrollment'],
-    'transport': ['transportation', 'vehicle', 'traffic', 'road', 'travel', 'mobility', 'logistics'],
-    'environment': ['environmental', 'climate', 'pollution', 'energy', 'sustainability', 'emissions']
+    'economics': ['economics', 'economy', 'gdp', 'inflation', 'trade', 'finance', 'income', 'market'],
+    'health': ['healthcare', 'medical', 'hospital', 'disease', 'patient', 'mortality', 'wellness', 'life expectancy'],
+    'education': ['school', 'university', 'student', 'learning', 'academic', 'literacy', 'enrollment', 'graduation rate'],
+    'transport': ['transportation', 'vehicle', 'traffic', 'road', 'travel', 'mobility', 'logistics', 'commute'],
+    'environment': ['environmental', 'climate', 'pollution', 'energy', 'sustainability', 'emissions', 'global warming']
   };
 
   const expandedWords = [...words];
@@ -74,7 +95,7 @@ export const extractEnhancedKeywords = (query: string): {
   // Separate primary (high importance) and secondary (contextual) keywords
   const primary = expandedWords.filter(word => 
     query.toLowerCase().indexOf(word) < query.length / 2 || 
-    categoryMappings[domain].includes(word)
+    (categoryMappings[domain] && categoryMappings[domain].includes(word))
   );
   
   const secondary = expandedWords.filter(word => !primary.includes(word));
@@ -90,23 +111,29 @@ export const extractEnhancedKeywords = (query: string): {
 // Calculate semantic relevance score
 const calculateSemanticScore = (dataset: Dataset, keywords: any): number => {
   let score = 0;
-  
+  const title = dataset.title.toLowerCase();
+  const description = dataset.description.toLowerCase();
+  const category = dataset.category.toLowerCase();
+
   // Exact matches get highest score
   keywords.primary.forEach((keyword: string) => {
-    if (dataset.title.toLowerCase().includes(keyword)) score += 5;
-    if (dataset.description.toLowerCase().includes(keyword)) score += 3;
-    if (dataset.category.toLowerCase().includes(keyword)) score += 4;
+    if (title.includes(keyword)) score += 10;
+    if (description.includes(keyword)) score += 2; // Lower score for description
+    if (category.includes(keyword)) score += 8;
   });
 
   // Secondary keywords get moderate score
   keywords.secondary.forEach((keyword: string) => {
-    if (dataset.title.toLowerCase().includes(keyword)) score += 2;
-    if (dataset.description.toLowerCase().includes(keyword)) score += 1;
+    if (title.includes(keyword)) score += 5;
+    if (description.includes(keyword)) score += 1;
   });
 
   // Domain alignment
-  if (dataset.category.toLowerCase().includes(keywords.domain)) {
-    score += 3;
+  if (category.includes(keywords.domain)) {
+    score += 5;
+  } else {
+    // Penalty for domain mismatch
+    score -= 5;
   }
 
   return score;
@@ -134,7 +161,7 @@ export const findRelevantDatasetsIntelligent = async (
   const keywords = extractEnhancedKeywords(query);
   
   // Score each dataset
-  const scoredDatasets: DatasetScore[] = allDatasets.map(dataset => {
+  let scoredDatasets: DatasetScore[] = allDatasets.map(dataset => {
     const titleMatches: string[] = [];
     const descriptionMatches: string[] = [];
     
@@ -149,19 +176,19 @@ export const findRelevantDatasetsIntelligent = async (
     });
 
     // Calculate category relevance
-    const categoryRelevance = dataset.category.toLowerCase().includes(keywords.domain) ? 4 : 
-                             keywords.primary.some(k => dataset.category.toLowerCase().includes(k.toLowerCase())) ? 3 : 
-                             keywords.secondary.some(k => dataset.category.toLowerCase().includes(k.toLowerCase())) ? 1 : 0;
+    const categoryRelevance = category.toLowerCase().includes(keywords.domain) ? 5 :
+                             keywords.primary.some(k => category.toLowerCase().includes(k.toLowerCase())) ? 3 :
+                             0; // No points for secondary keyword match in category
 
     // Context boost from conversation history
     let contextBoost = 0;
     if (context?.currentDatasets?.includes(dataset.id)) {
-      contextBoost += 5; // High boost for current conversation datasets
+      contextBoost += 10; // High boost for current conversation datasets
     } else if (context?.history) {
       context.history.forEach((historyItem, index) => {
         const recencyWeight = (context.history.length - index) / context.history.length;
         if (historyItem.datasetIds.includes(dataset.id)) {
-          contextBoost += 2 * recencyWeight;
+          contextBoost += 3 * recencyWeight;
         }
       });
     }
@@ -171,12 +198,12 @@ export const findRelevantDatasetsIntelligent = async (
 
     // Calculate total relevance score
     const relevanceScore = 
-      titleMatches.length * 3 +
-      descriptionMatches.length * 2 +
+      titleMatches.length * 5 + // Increased weight for title
+      descriptionMatches.length * 1 + // Decreased weight for description
       categoryRelevance +
       contextBoost +
       semanticScore +
-      (dataset.featured ? 1 : 0); // Small boost for featured datasets
+      (dataset.featured ? 2 : 0); // Slightly higher boost for featured
 
     return {
       dataset,
@@ -191,21 +218,21 @@ export const findRelevantDatasetsIntelligent = async (
     };
   });
 
+  // Normalize scores
+  const maxScore = Math.max(...scoredDatasets.map(d => d.relevanceScore));
+  if (maxScore > 0) {
+    scoredDatasets = scoredDatasets.map(d => ({
+      ...d,
+      relevanceScore: d.relevanceScore / maxScore * 100
+    }));
+  }
+
   // Sort by relevance and take top results
   const relevantDatasets = scoredDatasets
-    .filter(item => item.relevanceScore > 0)
+    .filter(item => item.relevanceScore > 20) // Increased threshold
     .sort((a, b) => b.relevanceScore - a.relevanceScore)
     .slice(0, 3)
     .map(item => item.dataset);
-
-  // Fallback to featured/recent datasets if no matches
-  if (relevantDatasets.length === 0) {
-    const featuredDatasets = allDatasets.filter(d => d.featured);
-    const fallbackDatasets = featuredDatasets.length > 0 ? featuredDatasets : allDatasets;
-    const result = fallbackDatasets.slice(0, 3);
-    datasetCache.set(cacheKey, result, { context: context?.currentDatasets });
-    return result;
-  }
 
   // Cache the results
   datasetCache.set(cacheKey, relevantDatasets, { context: context?.currentDatasets });
