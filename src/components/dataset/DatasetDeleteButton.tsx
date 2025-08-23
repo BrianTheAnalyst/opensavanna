@@ -1,7 +1,8 @@
 
-import { useState } from 'react';
 import { Trash2, AlertCircle, Loader2 } from 'lucide-react';
-import { Button } from "@/components/ui/button";
+import { useState } from 'react';
+import { toast } from "sonner";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,7 +13,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { deleteDataset } from '@/services/datasetAdminService';
 
 interface DatasetDeleteButtonProps {
@@ -89,7 +90,7 @@ const DatasetDeleteButton = ({
         variant="destructive"
         size={variant === 'compact' ? 'sm' : 'default'}
         className={`${getButtonStyle()} ${className}`}
-        onClick={() => setIsOpen(true)}
+        onClick={() => { setIsOpen(true); }}
         disabled={isDeleting}
       >
         {isDeleting ? (

@@ -1,6 +1,7 @@
 
-import { Dataset } from '@/types/dataset';
 import { Info, Calendar, FileText, MapPin, Database, Download } from 'lucide-react';
+
+import { Dataset } from '@/types/dataset';
 
 interface DatasetMetadataProps {
   dataset: Dataset;
@@ -13,7 +14,7 @@ const DatasetMetadata = ({ dataset }: DatasetMetadataProps) => {
     { name: 'region', description: 'Geographic region', type: 'String' }
   ];
 
-  const dataFields = dataset?.dataFields || defaultDataFields;
+  const dataFields = dataset.dataFields || defaultDataFields;
 
   return (
     <div className="space-y-6">

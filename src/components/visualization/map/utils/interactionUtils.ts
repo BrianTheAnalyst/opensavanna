@@ -1,5 +1,6 @@
 
 import L from 'leaflet';
+
 import { formatPropertiesForDisplay } from './formatUtils';
 
 // Function to handle interaction with GeoJSON features

@@ -1,5 +1,6 @@
 
 import React from 'react';
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { DatasetWithEmail } from '@/types/dataset';
@@ -20,7 +21,7 @@ const FeedbackTabs: React.FC<FeedbackTabsProps> = ({
   setNotes
 }) => {
   return (
-    <Tabs value={feedbackTab} onValueChange={(v) => setFeedbackTab(v as 'notes' | 'email')}>
+    <Tabs value={feedbackTab} onValueChange={(v) => { setFeedbackTab(v as 'notes' | 'email'); }}>
       <TabsList className="mb-2">
         <TabsTrigger value="notes">Add Notes</TabsTrigger>
         <TabsTrigger value="email">Email Contributor</TabsTrigger>
@@ -32,7 +33,7 @@ const FeedbackTabs: React.FC<FeedbackTabsProps> = ({
         </label>
         <Textarea
           value={notes}
-          onChange={(e) => setNotes(e.target.value)}
+          onChange={(e) => { setNotes(e.target.value); }}
           placeholder="Add notes for improvement..."
           rows={4}
         />
@@ -47,7 +48,7 @@ const FeedbackTabs: React.FC<FeedbackTabsProps> = ({
         </label>
         <Textarea
           value={notes}
-          onChange={(e) => setNotes(e.target.value)}
+          onChange={(e) => { setNotes(e.target.value); }}
           placeholder="Write feedback to send to the contributor..."
           rows={4}
         />

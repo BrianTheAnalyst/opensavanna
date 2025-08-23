@@ -1,6 +1,6 @@
 
-import React from 'react';
 import { Check, X, MessageSquare } from "lucide-react";
+import React from 'react';
 
 interface DialogTitleProps {
   action: 'approve' | 'reject' | 'feedback';

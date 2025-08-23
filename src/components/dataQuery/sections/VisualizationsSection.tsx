@@ -1,15 +1,17 @@
 
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, Info } from 'lucide-react';
+import React from 'react';
+
 import InsightCard from '@/components/InsightCard';
-import MapVisualization from '@/components/visualization/MapVisualization';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import ConfidenceIndicator from '@/components/ui/confidence-indicator';
 import DataSourceBadge from '@/components/ui/data-source-badge';
-import { prepareGeoJSONForMap } from '../utils/geoJsonUtils';
+import MapVisualization from '@/components/visualization/MapVisualization';
 import { DataInsightResult } from '@/services/dataInsights/types';
+
+import { prepareGeoJSONForMap } from '../utils/geoJsonUtils';
 
 interface VisualizationsSectionProps {
   visualizations: DataInsightResult['visualizations'];
@@ -97,13 +99,13 @@ const VisualizationsSection: React.FC<VisualizationsSectionProps> = ({ visualiza
           if (viz.type === 'line') {
             xAxisLabel = viz.timeAxis || 'Time Period';
             yAxisLabel = viz.valueLabel || 'Value';
-          } else if (viz.category?.toLowerCase().includes('economic')) {
+          } else if (viz.category.toLowerCase().includes('economic')) {
             xAxisLabel = 'Economic Indicator';
             yAxisLabel = 'Economic Value';
-          } else if (viz.category?.toLowerCase().includes('health')) {
+          } else if (viz.category.toLowerCase().includes('health')) {
             xAxisLabel = 'Health Metric';
             yAxisLabel = 'Health Value';
-          } else if (viz.category?.toLowerCase().includes('education')) {
+          } else if (viz.category.toLowerCase().includes('education')) {
             xAxisLabel = 'Education Metric';
             yAxisLabel = 'Education Value';
           }
@@ -151,7 +153,7 @@ const VisualizationsSection: React.FC<VisualizationsSectionProps> = ({ visualiza
                     <div className="space-y-2">
                       <p className="font-semibold">Unable to display visualization</p>
                       <p className="text-sm">{viz.error}</p>
-                      {viz.validation?.recommendations?.length > 0 && (
+                      {viz.validation?.recommendations.length > 0 && (
                         <div className="text-sm">
                           <p className="font-medium">Suggestions:</p>
                           <ul className="list-disc list-inside space-y-1">

@@ -1,7 +1,8 @@
 
 import { Dataset } from "@/types/dataset";
-import { determineOptimalVisualizationType, recommendCharts } from "./smartChartSelector";
+
 import { visualizationCache } from "./intelligentCache";
+import { determineOptimalVisualizationType, recommendCharts } from "./smartChartSelector";
 
 // Enhanced visualization type determination with smart recommendations
 export const determineVisualizationType = (

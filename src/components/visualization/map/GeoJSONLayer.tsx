@@ -1,9 +1,10 @@
 
 import React from 'react';
 import { GeoJSON } from 'react-leaflet';
-import { styleFeature } from './utils/styleUtils';
-import { onEachFeature } from './utils/interactionUtils';
+
 import { detectGeoJSONAnomalies } from './utils/anomalyDetection';
+import { onEachFeature } from './utils/interactionUtils';
+import { styleFeature } from './utils/styleUtils';
 
 interface GeoJSONLayerProps {
   geoJSON: any;

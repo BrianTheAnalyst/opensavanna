@@ -1,36 +1,35 @@
 
-import React from "react";
-import { Toaster } from "@/components/ui/toaster";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import React, { JSX } from "react";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+
 import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { 
-  QueryClient, 
-  QueryClientProvider 
-} from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
-import Index from "./pages/Index";
+
+import About from "./pages/About";
+import Api from "./pages/Api";
+import Auth from "./pages/Auth";
 import Datasets from "./pages/Datasets";
+import Index from "./pages/Index";
+import NotFound from "./pages/NotFound";
+import UploadPage from "./pages/Upload";
+import DatasetVerificationPage from "./pages/admin/DatasetVerification";
 import DatasetDetail from "./pages/dataset-detail";
 import DatasetEditPage from "./pages/dataset-edit";
-import UploadPage from "./pages/Upload";
-import Api from "./pages/Api";
-import About from "./pages/About";
-import Auth from "./pages/Auth";
-import NotFound from "./pages/NotFound";
-import DatasetVerificationPage from "./pages/admin/DatasetVerification";
 
 // Create a client with proper configuration
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
-      retry: 1
-    }
-  }
+      retry: 1,
+    },
+  },
 });
 
-const App = () => {
+const App = (): JSX.Element => {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>

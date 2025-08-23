@@ -1,7 +1,8 @@
 
 import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+
 import InsightCard from '@/components/InsightCard';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataInsightResult } from '@/services/dataInsights/types';
 
 interface ComparisonSectionProps {

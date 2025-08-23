@@ -1,8 +1,10 @@
 
 import React from 'react';
+
 import { Dataset } from '@/types/dataset';
-import EmptyChartState from './charts/EmptyChartState';
+
 import ChartRenderer from './charts/ChartRenderer';
+import EmptyChartState from './charts/EmptyChartState';
 import { getChartConfigsForCategory } from './charts/chartConfigs';
 
 interface DatasetChartsProps {

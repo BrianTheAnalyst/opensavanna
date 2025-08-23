@@ -1,9 +1,12 @@
 
-import { useState, useMemo, useCallback } from 'react';
 import { LatLngExpression } from 'leaflet';
-import { GeoDataInfo } from './types';
+import { useState, useMemo, useCallback } from 'react';
+
+
 import { useGeoJsonProcessing } from '../hooks/useGeoJsonProcessing';
 import { usePointDataProcessing } from '../hooks/usePointDataProcessing';
+
+import { GeoDataInfo } from './types';
 
 export function useMapData(data: any, geoJSON: any, isLoading: boolean): GeoDataInfo & {
   pointsData: { validPoints: any[] };

@@ -1,48 +1,127 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { 
-  ResponsiveContainer, ComposedChart, Bar, Line, Area, XAxis, YAxis, 
-  CartesianGrid, Tooltip, Legend, Scatter, Cell, PieChart, Pie, Radar, 
-  RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis
-} from 'recharts';
-import { Dataset } from '@/types/dataset';
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertTriangle } from "lucide-react";
-import { Pagination } from "@/components/ui/pagination"
-import { Button } from "@/components/ui/button"
 import {
+  AlertTriangle,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
-} from "lucide-react"
+} from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  Area,
+  Bar,
+  CartesianGrid,
+  Cell,
+  ComposedChart,
+  Legend,
+  Line,
+  Pie,
+  PieChart,
+  PolarAngleAxis,
+  PolarGrid,
+  PolarRadiusAxis,
+  Radar,
+  RadarChart,
+  ResponsiveContainer,
+  Scatter,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Pagination } from "@/components/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dataset } from "@/types/dataset";
+
+interface DataItem {
+  name: string;
+  value: number;
+  [key: string]: string | number | null | undefined;
+}
 
 interface AdvancedVisualizationProps {
   dataset: Dataset;
-  data: any[];
+  data: DataItem[];
 }
 
 const COLORS = [
-  '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef', '#ec4899', 
+  '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef', '#ec4899',
   '#f43f5e', '#f97316', '#eab308', '#22c55e', '#06b6d4'
 ];
 
 // Number of items to show per page
 const ITEMS_PER_PAGE = 15;
 
-const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) => {
+const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps): React.JSX.Element => {
   const [selectedTab, setSelectedTab] = useState('bar');
   const [dataKey, setDataKey] = useState('value');
   const [nameKey, setNameKey] = useState('name');
   const [isDataReady, setIsDataReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [processedData, setProcessedData] = useState<any[]>([]);
-  
+  const [processedData, setProcessedData] = useState<DataItem[]>([]);
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Fallback data if no data is provided
+  const getFallbackData = (): DataItem[] => {
+    return [
+      { name: 'Category A', value: 400 },
+      { name: 'Category B', value: 300 },
+      { name: 'Category C', value: 200 },
+      { name: 'Category D', value: 500 },
+      { name: 'Category E', value: 350 }
+    ];
+  };
+
+  // Available data keys from the first data item
+  const getDataKeys = useMemo((): ((dataArray?: DataItem[]) => string[]) => (dataArray: DataItem[] = processedData): string[] => {
+    if (processedData.length > 0 && processedData[0]) {
+      return Object.keys(processedData[0]).filter(key =>
+        typeof processedData[0]?.[key] === 'number' ||
+        !isNaN(Number(processedData[0]?.[key]))
+      );
+    }
+    return ['value'];
+  }, [processedData]);
+
+  // Available name keys from the first data item
+  const getNameKeys = useMemo((): ((dataArray?: DataItem[]) => string[]) => (dataArray: DataItem[] = processedData): string[] => {
+    if (processedData.length > 0 && processedData[0]) {
+      return Object.keys(processedData[0]).filter(key =>
+        typeof processedData[0]?.[key] === 'string' &&
+        key !== dataKey
+      );
+    }
+    return ['name'];
+  }, [processedData, dataKey]);
   
+    // Determine if the data is suitable for time series visualization
+  const isTimeSeriesData = useMemo((): ((dataArray?: DataItem[]) => boolean) => (dataArray: DataItem[] = processedData): boolean => {
+    if (processedData.length > 0 && processedData[0]) {
+      // Check if the first item has a date-like string property
+      const firstItem = processedData[0];
+      return Object.keys(firstItem).some(key => {
+        const value = firstItem[key];
+        return typeof value === 'string' &&
+               (value.includes('Jan') || value.includes('Feb') || value.includes('Mar') ||
+                value.includes('Apr') || value.includes('May') || value.includes('Jun') ||
+                value.includes('Jul') || value.includes('Aug') || value.includes('Sep') ||
+                value.includes('Oct') || value.includes('Nov') || value.includes('Dec'));
+      });
+    }
+    return false;
+  }, [processedData]);
+
   // Ensure we have valid data at initialization
   useEffect(() => {
     console.log("AdvancedVisualization received data:", data);
@@ -97,63 +176,17 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
         setProcessedData(getFallbackData());
         setIsDataReady(true);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error processing visualization data:", err);
-      setError(err.message || "Failed to process visualization data");
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Failed to process visualization data");
+      }
       setProcessedData(getFallbackData());
       setIsDataReady(true);
     }
-  }, [data]);
-  
-  // Available data keys from the first data item
-  const getDataKeys = (dataArray: any[] = processedData) => {
-    if (dataArray && dataArray.length > 0) {
-      return Object.keys(dataArray[0]).filter(key => 
-        typeof dataArray[0][key] === 'number' || 
-        !isNaN(Number(dataArray[0][key]))
-      );
-    }
-    return ['value'];
-  };
-  
-  // Available name keys from the first data item
-  const getNameKeys = (dataArray: any[] = processedData) => {
-    if (dataArray && dataArray.length > 0) {
-      return Object.keys(dataArray[0]).filter(key => 
-        typeof dataArray[0][key] === 'string' && 
-        key !== dataKey
-      );
-    }
-    return ['name'];
-  };
-  
-  // Determine if the data is suitable for time series visualization
-  const isTimeSeriesData = (dataArray: any[] = processedData) => {
-    if (dataArray && dataArray.length > 0) {
-      // Check if the first item has a date-like string property
-      const firstItem = dataArray[0];
-      return Object.keys(firstItem).some(key => {
-        const value = firstItem[key];
-        return typeof value === 'string' && 
-               (value.includes('Jan') || value.includes('Feb') || value.includes('Mar') || 
-                value.includes('Apr') || value.includes('May') || value.includes('Jun') || 
-                value.includes('Jul') || value.includes('Aug') || value.includes('Sep') || 
-                value.includes('Oct') || value.includes('Nov') || value.includes('Dec'));
-      });
-    }
-    return false;
-  };
-
-  // Fallback data if no data is provided
-  const getFallbackData = () => {
-    return [
-      { name: 'Category A', value: 400 },
-      { name: 'Category B', value: 300 },
-      { name: 'Category C', value: 200 },
-      { name: 'Category D', value: 500 },
-      { name: 'Category E', value: 350 }
-    ];
-  };
+  }, [data, getDataKeys, getNameKeys, isTimeSeriesData]);
   
   // Calculate total pages
   const totalPages = Math.ceil(processedData.length / ITEMS_PER_PAGE);
@@ -193,7 +226,7 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
   });
 
   // Render the appropriate chart based on selected tab
-  const renderChart = () => {
+  const renderChart = (): React.JSX.Element => {
     if (!isDataReady || getCurrentItems.length === 0) {
       return (
         <div className="h-full flex items-center justify-center">
@@ -216,35 +249,35 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
               margin={{ top: 20, right: 20, bottom: 60, left: 20 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey={nameKey} 
+              <XAxis
+                dataKey={nameKey}
                 tick={{ fontSize: 12 }}
                 angle={-45}
                 textAnchor="end"
                 height={60}
               />
               <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip 
-                contentStyle={{ 
+              <Tooltip
+                contentStyle={{
                   borderRadius: '8px',
                   boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
                   border: 'none'
-                }} 
+                }}
               />
               <Legend />
-              <Bar 
-                dataKey={dataKey} 
-                fill="#6366f1" 
+              <Bar
+                dataKey={dataKey}
+                fill="#6366f1"
                 radius={[4, 4, 0, 0]}
               >
-                {getCurrentItems.map((entry, index) => (
+                {getCurrentItems.map((_entry: DataItem, index: number) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Bar>
             </ComposedChart>
           </ResponsiveContainer>
         );
-      
+
       case 'line':
         return (
           <ResponsiveContainer width="100%" height="100%">
@@ -253,25 +286,25 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
               margin={{ top: 20, right: 20, bottom: 60, left: 20 }}
             >
               <CartesianGrid stroke="#f5f5f5" />
-              <XAxis 
-                dataKey={nameKey} 
+              <XAxis
+                dataKey={nameKey}
                 tick={{ fontSize: 12 }}
                 angle={-45}
                 textAnchor="end"
                 height={60}
               />
               <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip 
-                contentStyle={{ 
+              <Tooltip
+                contentStyle={{
                   borderRadius: '8px',
                   boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
                   border: 'none'
-                }} 
+                }}
               />
               <Legend />
-              <Line 
-                type="monotone" 
-                dataKey={dataKey} 
+              <Line
+                type="monotone"
+                dataKey={dataKey}
                 stroke="#6366f1"
                 strokeWidth={2}
                 dot={{ r: 5, strokeWidth: 1 }}
@@ -280,7 +313,7 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
             </ComposedChart>
           </ResponsiveContainer>
         );
-      
+
       case 'pie':
         return (
           <ResponsiveContainer width="100%" height="100%">
@@ -294,27 +327,27 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
                 fill="#8884d8"
                 dataKey={dataKey}
                 nameKey={nameKey}
-                label={({ name, value, percent }) => 
+                label={({ name, value, percent }: { name: string, value: number, percent: number }) =>
                   `${name}: ${value} (${(percent * 100).toFixed(0)}%)`
                 }
                 labelLine={false}
               >
-                {getCurrentItems.map((entry, index) => (
+                {getCurrentItems.map((_entry: DataItem, index: number) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip 
-                contentStyle={{ 
+              <Tooltip
+                contentStyle={{
                   borderRadius: '8px',
                   boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
                   border: 'none'
-                }} 
+                }}
               />
               <Legend layout="vertical" verticalAlign="middle" align="right" />
             </PieChart>
           </ResponsiveContainer>
         );
-      
+
       case 'radar':
         return (
           <ResponsiveContainer width="100%" height="100%">
@@ -322,25 +355,25 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
               <PolarGrid />
               <PolarAngleAxis dataKey={nameKey} />
               <PolarRadiusAxis angle={30} domain={[0, 'auto']} />
-              <Radar 
-                name={dataKey} 
-                dataKey={dataKey} 
-                stroke="#6366f1" 
-                fill="#6366f1" 
-                fillOpacity={0.5} 
+              <Radar
+                name={dataKey}
+                dataKey={dataKey}
+                stroke="#6366f1"
+                fill="#6366f1"
+                fillOpacity={0.5}
               />
-              <Tooltip 
-                contentStyle={{ 
+              <Tooltip
+                contentStyle={{
                   borderRadius: '8px',
                   boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
                   border: 'none'
-                }} 
+                }}
               />
               <Legend />
             </RadarChart>
           </ResponsiveContainer>
         );
-      
+
       case 'area':
         return (
           <ResponsiveContainer width="100%" height="100%">
@@ -349,26 +382,26 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
               margin={{ top: 20, right: 20, bottom: 60, left: 20 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey={nameKey} 
+              <XAxis
+                dataKey={nameKey}
                 tick={{ fontSize: 12 }}
                 angle={-45}
                 textAnchor="end"
                 height={60}
               />
               <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip 
-                contentStyle={{ 
+              <Tooltip
+                contentStyle={{
                   borderRadius: '8px',
                   boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
                   border: 'none'
-                }} 
+                }}
               />
               <Legend />
-              <Area 
-                type="monotone" 
-                dataKey={dataKey} 
-                fill="#6366f1" 
+              <Area
+                type="monotone"
+                dataKey={dataKey}
+                fill="#6366f1"
                 stroke="#6366f1"
                 fillOpacity={0.8}
               />
@@ -376,7 +409,7 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
             </ComposedChart>
           </ResponsiveContainer>
         );
-      
+
       case 'composed':
         return (
           <ResponsiveContainer width="100%" height="100%">
@@ -385,21 +418,21 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
               margin={{ top: 20, right: 20, bottom: 60, left: 20 }}
             >
               <CartesianGrid stroke="#f5f5f5" />
-              <XAxis 
-                dataKey={nameKey} 
-                scale="band" 
+              <XAxis
+                dataKey={nameKey}
+                scale="band"
                 tick={{ fontSize: 12 }}
                 angle={-45}
                 textAnchor="end"
                 height={60}
               />
               <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip 
-                contentStyle={{ 
+              <Tooltip
+                contentStyle={{
                   borderRadius: '8px',
                   boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
                   border: 'none'
-                }} 
+                }}
               />
               <Legend />
               <Bar dataKey={dataKey} barSize={20} fill="#6366f1" />
@@ -407,7 +440,7 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
             </ComposedChart>
           </ResponsiveContainer>
         );
-      
+
       default:
         return (
           <div className="h-full flex items-center justify-center">
@@ -438,7 +471,7 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
         Interactive data visualization with multiple view options
       </p>
       
-      {error && (
+      {error !== null && (
         <Alert variant="destructive" className="mb-4">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
@@ -503,13 +536,13 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
           <p className="text-sm text-muted-foreground">
             Showing {Math.min((currentPage - 1) * ITEMS_PER_PAGE + 1, processedData.length)} to {Math.min(currentPage * ITEMS_PER_PAGE, processedData.length)} of {processedData.length} entries
           </p>
-          
+
           <div className="flex items-center space-x-2">
             <Pagination>
               <Button
                 variant="outline"
                 size="icon"
-                onClick={() => setCurrentPage(1)}
+                onClick={() => { setCurrentPage(1); }}
                 disabled={currentPage === 1}
               >
                 <ChevronsLeft className="h-4 w-4" />
@@ -518,26 +551,26 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
               <Button
                 variant="outline"
                 size="icon"
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                onClick={() => { setCurrentPage(prev => Math.max(prev - 1, 1)); }}
                 disabled={currentPage === 1}
               >
                 <ChevronLeft className="h-4 w-4" />
                 <span className="sr-only">Previous</span>
               </Button>
-              
+
               <div className="flex items-center gap-1">
                 {Array.from({ length: Math.min(3, totalPages) }, (_, i) => {
-                  const pageNumber = currentPage === 1 ? i + 1 : 
-                                     currentPage === totalPages ? totalPages - 2 + i : 
+                  const pageNumber = currentPage === 1 ? i + 1 :
+                                     currentPage === totalPages ? totalPages - 2 + i :
                                      currentPage - 1 + i;
-                  
+
                   if (pageNumber > 0 && pageNumber <= totalPages) {
                     return (
                       <Button
                         key={pageNumber}
                         variant={currentPage === pageNumber ? "default" : "outline"}
                         size="icon"
-                        onClick={() => setCurrentPage(pageNumber)}
+                        onClick={() => { setCurrentPage(pageNumber); }}
                         className="w-8 h-8"
                       >
                         {pageNumber}
@@ -547,11 +580,11 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
                   return null;
                 })}
               </div>
-              
+
               <Button
                 variant="outline"
                 size="icon"
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                onClick={() => { setCurrentPage(prev => Math.min(prev + 1, totalPages)); }}
                 disabled={currentPage === totalPages}
               >
                 <ChevronRight className="h-4 w-4" />
@@ -560,7 +593,7 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
               <Button
                 variant="outline"
                 size="icon"
-                onClick={() => setCurrentPage(totalPages)}
+                onClick={() => { setCurrentPage(totalPages); }}
                 disabled={currentPage === totalPages}
               >
                 <ChevronsRight className="h-4 w-4" />
@@ -572,7 +605,7 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
       )}
       
       <div className="text-xs text-muted-foreground mt-4">
-        <p>This visualization is generated based on the data in {dataset.title}. Use the controls above to change the visualization type and data fields.</p>
+        <p>This visualization is generated based on the data in {dataset.title ?? ''}. Use the controls above to change the visualization type and data fields.</p>
       </div>
     </div>
   );

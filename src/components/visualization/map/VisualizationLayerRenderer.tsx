@@ -1,9 +1,10 @@
 
 import React from 'react';
-import GeoJSONLayer from './GeoJSONLayer';
-import PointMarkers from './PointMarkers';
-import HeatmapLayer from './HeatmapLayer';
+
 import ClusterMarkers from './ClusterMarkers';
+import GeoJSONLayer from './GeoJSONLayer';
+import HeatmapLayer from './HeatmapLayer';
+import PointMarkers from './PointMarkers';
 import { MapPoint } from './types';
 import { detectAnomalies } from './utils/anomalyDetection';
 

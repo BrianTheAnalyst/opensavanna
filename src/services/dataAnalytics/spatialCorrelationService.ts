@@ -1,5 +1,6 @@
 
 import { toast } from "sonner";
+
 import { MapPoint } from "@/components/visualization/map/types";
 
 /**

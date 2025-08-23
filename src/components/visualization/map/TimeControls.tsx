@@ -1,8 +1,10 @@
 
-import React from 'react';
-import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Play, Pause } from 'lucide-react';
+import React from 'react';
+
+import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
+
 import { TimeControlsProps } from './visualization/types';
 
 const TimeControls: React.FC<TimeControlsProps> = ({ 
@@ -91,7 +93,7 @@ const TimeControls: React.FC<TimeControlsProps> = ({
         min={0} 
         max={maxIndex} 
         step={1} 
-        onValueChange={(value) => setCurrentIndex(value[0])}
+        onValueChange={(value) => { setCurrentIndex(value[0]); }}
         className="w-full"
       />
     </div>

@@ -1,6 +1,7 @@
 
-import { useState, useEffect, useMemo } from 'react';
 import { LatLngExpression } from 'leaflet';
+import { useState, useEffect, useMemo } from 'react';
+
 import { findGeoPoints } from '../mapUtils';
 import { calculateCenterFromPoints } from '../utils/pointDataUtils';
 

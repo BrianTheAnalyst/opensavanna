@@ -1,13 +1,16 @@
 
+import { AlertCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
+
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent } from '@/components/ui/card';
 import { DataInsightResult, processDataQuery } from '@/services/dataInsightsService';
-import { AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+
 import DataInsightsResult from './DataInsightsResult';
-import VisualHistory from './VisualHistory';
 import NoResultsPlaceholder from './NoResultsPlaceholder';
-import { toast } from 'sonner';
+import VisualHistory from './VisualHistory';
+
 
 interface DataQuerySectionProps {
   initialQuery?: string;

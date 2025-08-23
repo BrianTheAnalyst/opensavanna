@@ -1,22 +1,25 @@
+import { PieChart, Map, FileText, Database } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
-import { PieChart, Map, FileText, Database } from 'lucide-react';
-import Navbar from '@/components/Navbar';
-import Hero from '@/components/Hero';
+import { toast } from 'sonner';
+
 import Footer from '@/components/Footer';
-import { getDatasets, getCategoryCounts } from '@/services/datasetService';
-import { Dataset } from '@/types/dataset';
+import Hero from '@/components/Hero';
+import Navbar from '@/components/Navbar';
 import DataQuerySection from '@/components/dataQuery/DataQuerySection';
 import ExampleQueriesSection from '@/components/dataQuery/ExampleQueriesSection';
-import { toast } from 'sonner';
-import { processDataQuery } from '@/services/dataInsightsService';
-
-// Import the components
-import FeaturedDatasetsSection from '@/components/home/FeaturedDatasetsSection';
-import CategoriesSection from '@/components/home/CategoriesSection';
-import DataVisualizationSection from '@/components/home/DataVisualizationSection';
 import ApiDeveloperSection from '@/components/home/ApiDeveloperSection';
 import CallToActionSection from '@/components/home/CallToActionSection';
+import CategoriesSection from '@/components/home/CategoriesSection';
+import DataVisualizationSection from '@/components/home/DataVisualizationSection';
+import FeaturedDatasetsSection from '@/components/home/FeaturedDatasetsSection';
+import { processDataQuery } from '@/services/dataInsightsService';
+import { getDatasets, getCategoryCounts } from '@/services/datasetService';
+import { Dataset } from '@/types/dataset';
+
+
+
+// Import the components
 
 const Index = () => {
   const [isLoaded, setIsLoaded] = useState(false);

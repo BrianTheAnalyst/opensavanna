@@ -1,13 +1,15 @@
 
 import { useState } from 'react';
-import { DataInsightResult } from '@/services/dataInsights/types';
+
 import { generateCategorizedFollowUpQuestions } from '@/services/dataInsights/followUpQuestions';
-import HeaderSection from './sections/HeaderSection';
-import VisualizationsSection from './sections/VisualizationsSection';
+import { DataInsightResult } from '@/services/dataInsights/types';
+
+import FollowUpQuestions from './FollowUpQuestions';
 import ComparisonSection from './sections/ComparisonSection';
 import DatasetsSection from './sections/DatasetsSection';
+import HeaderSection from './sections/HeaderSection';
 import InsightsSection from './sections/InsightsSection';
-import FollowUpQuestions from './FollowUpQuestions';
+import VisualizationsSection from './sections/VisualizationsSection';
 
 interface DataInsightsResultProps {
   result: DataInsightResult;
@@ -46,7 +48,7 @@ const DataInsightsResult = ({ result, onFollowUpClick }: DataInsightsResultProps
       <InsightsSection 
         insights={result.insights} 
         expanded={expandedInsights}
-        onToggleExpanded={() => setExpandedInsights(!expandedInsights)}
+        onToggleExpanded={() => { setExpandedInsights(!expandedInsights); }}
       />
       
       {/* Main visualizations */}

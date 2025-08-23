@@ -1,11 +1,14 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { Dataset } from '@/types/dataset';
+
+import { simplifyGeometry } from '@/services/visualization/processors/geoJsonProcessor';
 import { getGeoJSONForDataset } from '@/services/visualization/storage/geoJsonStorage';
+import { Dataset } from '@/types/dataset';
+
 import { createSimplifiedGeoJSON } from './geojsonUtils';
 import { storeInIndexedDB, getFromIndexedDB } from './storage/indexedDbStorage';
 import { storeInLocalStorage, getFromLocalStorage } from './storage/localStorageUtils';
-import { simplifyGeometry } from '@/services/visualization/processors/geoJsonProcessor';
+
 
 interface UseGeoJsonStorageOptions {
   preferIndexedDB?: boolean;

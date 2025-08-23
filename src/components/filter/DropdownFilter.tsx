@@ -1,6 +1,6 @@
 
-import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { useState } from 'react';
 
 interface FilterOption {
   label: string;

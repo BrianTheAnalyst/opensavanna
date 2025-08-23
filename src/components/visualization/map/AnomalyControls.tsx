@@ -1,11 +1,13 @@
 
+import { AlertCircle } from 'lucide-react';
 import React from 'react';
-import { Slider } from '@/components/ui/slider';
-import { Switch } from '@/components/ui/switch';
+
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { AlertCircle } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Slider } from '@/components/ui/slider';
+import { Switch } from '@/components/ui/switch';
+
 import { AnomalyControlsProps } from './types';
 
 const AnomalyControls: React.FC<AnomalyControlsProps> = ({ 
@@ -54,7 +56,7 @@ const AnomalyControls: React.FC<AnomalyControlsProps> = ({
                   max={4}
                   step={0.1}
                   value={[anomalyThreshold]}
-                  onValueChange={(value) => onThresholdChange(value[0])}
+                  onValueChange={(value) => { onThresholdChange(value[0]); }}
                   className="mt-2"
                 />
                 <div className="flex justify-between mt-1">

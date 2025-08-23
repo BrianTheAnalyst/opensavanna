@@ -1,5 +1,6 @@
 
 import { toast } from "sonner";
+
 import { supabase } from "@/integrations/supabase/client";
 import { DatasetWithEmail, Dataset } from "@/types/dataset";
 
@@ -22,7 +23,7 @@ export const fetchDatasetsWithVerificationStatus = async (): Promise<DatasetWith
       return [];
     }
     
-    console.log(`Fetched ${data?.length || 0} datasets`);
+    console.log(`Fetched ${data.length || 0} datasets`);
     
     // Convert to DatasetWithEmail type and ensure verification properties exist
     const datasetsWithEmail = data.map(dataset => {

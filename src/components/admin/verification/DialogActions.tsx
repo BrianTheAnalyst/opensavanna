@@ -1,5 +1,6 @@
 
 import React from 'react';
+
 import { Button } from "@/components/ui/button";
 
 interface DialogActionsProps {
@@ -50,7 +51,7 @@ const DialogActions: React.FC<DialogActionsProps> = ({
       <Button
         onClick={onSubmit}
         disabled={isSubmitting || isDisabled}
-        variant={getActionButtonVariant() as "default" | "destructive"}
+        variant={getActionButtonVariant()}
       >
         {getActionButtonText()}
       </Button>

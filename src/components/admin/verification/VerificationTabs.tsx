@@ -1,10 +1,12 @@
 
+import { RefreshCw } from 'lucide-react';
 import { useState, useEffect } from 'react';
+
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDatasetVerification } from '@/hooks/useDatasetVerification';
+
 import DatasetVerificationList from './DatasetVerificationList';
-import { Button } from '@/components/ui/button';
-import { RefreshCw } from 'lucide-react';
 
 const VerificationTabs = () => {
   const [activeTab, setActiveTab] = useState('pending');
@@ -58,7 +60,7 @@ const VerificationTabs = () => {
     <Tabs 
       defaultValue="pending" 
       value={activeTab}
-      onValueChange={(value) => setActiveTab(value)}
+      onValueChange={(value) => { setActiveTab(value); }}
       className="w-full"
     >
       <div className="flex justify-between items-center mb-6">

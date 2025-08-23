@@ -1,6 +1,6 @@
 
-import { useEffect } from 'react';
 import L from 'leaflet';
+import { useEffect } from 'react';
 
 /**
  * This hook fixes the issue with Leaflet marker icons when using webpack

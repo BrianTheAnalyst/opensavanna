@@ -1,11 +1,13 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Clock, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
-import { getConversationContext, clearConversationHistory } from '@/services/dataInsights/conversationContext';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import React, { useState } from 'react';
 import { toast } from 'sonner';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { getConversationContext, clearConversationHistory } from '@/services/dataInsights/conversationContext';
+
 
 interface VisualHistoryProps {
   onHistoryItemClick?: (question: string) => void;
@@ -140,7 +142,7 @@ const VisualHistory: React.FC<VisualHistoryProps> = ({ onHistoryItemClick }) => 
                       variant="outline" 
                       size="sm" 
                       className="text-xs"
-                      onClick={() => handleItemClick(item.question)}
+                      onClick={() => { handleItemClick(item.question); }}
                     >
                       View Results Again
                     </Button>

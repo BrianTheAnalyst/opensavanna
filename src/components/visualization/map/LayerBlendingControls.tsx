@@ -1,12 +1,13 @@
 
+import { Layers, MoveHorizontal } from 'lucide-react';
 import React from 'react';
-import { Slider } from '@/components/ui/slider';
+
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Layers, MoveHorizontal } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
+import { Slider } from '@/components/ui/slider';
 
 interface LayerBlendingControlsProps {
   primaryLayer: string;
@@ -43,14 +44,14 @@ const LayerBlendingControls: React.FC<LayerBlendingControlsProps> = ({
   onBlendOpacityChange
 }) => {
   // Group layers by category
-  const layersByCategory = availableLayers.reduce((acc, layer) => {
+  const layersByCategory = availableLayers.reduce<Record<string, typeof availableLayers>>((acc, layer) => {
     const category = layer.category || 'Other';
     if (!acc[category]) {
       acc[category] = [];
     }
     acc[category].push(layer);
     return acc;
-  }, {} as Record<string, typeof availableLayers>);
+  }, {});
 
   const categories = Object.keys(layersByCategory);
 
@@ -146,7 +147,7 @@ const LayerBlendingControls: React.FC<LayerBlendingControlsProps> = ({
             max={1}
             step={0.01}
             value={[blendOpacity]}
-            onValueChange={values => onBlendOpacityChange(values[0])}
+            onValueChange={values => { onBlendOpacityChange(values[0]); }}
             className="cursor-pointer"
           />
         </div>

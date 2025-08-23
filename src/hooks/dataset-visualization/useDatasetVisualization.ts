@@ -1,9 +1,11 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
+
+import { getGeoJSONForDataset, clearGeoJSONForDataset } from '@/services/visualization/storage/geoJsonStorage';
 import { Dataset } from '@/types/dataset';
+
 import { fetchDatasetAndVisualization, processPropsData } from './dataFetcher';
 import { UseDatasetVisualizationProps, UseDatasetVisualizationResult } from './types';
-import { getGeoJSONForDataset, clearGeoJSONForDataset } from '@/services/visualization/storage/geoJsonStorage';
 
 export function useDatasetVisualization({
   id,

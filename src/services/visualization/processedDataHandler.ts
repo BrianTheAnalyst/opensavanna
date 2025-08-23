@@ -30,7 +30,7 @@ export const generateVisualizationDataFromSummary = (summary: any, category: str
       if (fieldInfo.distribution) {
         // Only take top 10 values for visualization
         const entries = Object.entries(fieldInfo.distribution)
-          .sort(([, countA]: [string, number], [, countB]: [string, number]) => (countB as number) - (countA as number))
+          .sort(([, countA]: [string, number], [, countB]: [string, number]) => (countB) - (countA))
           .slice(0, 10);
         
         entries.forEach(([value, count]: [string, any]) => {

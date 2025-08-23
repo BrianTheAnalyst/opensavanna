@@ -1,10 +1,13 @@
 
+import { DownloadCloud, Eye } from 'lucide-react';
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { DownloadCloud, Eye } from 'lucide-react';
+
 import { Button } from "@/components/ui/button";
-import { BaseDatasetCardProps, FormatIconsType } from './DatasetCardTypes';
+
 import DatasetDeleteButton from '../DatasetDeleteButton';
+
+import { BaseDatasetCardProps, FormatIconsType } from './DatasetCardTypes';
 
 interface FeaturedDatasetCardProps extends BaseDatasetCardProps {
   formatIcons: FormatIconsType;

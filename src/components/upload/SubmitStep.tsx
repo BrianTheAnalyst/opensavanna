@@ -1,8 +1,10 @@
 
-import React from 'react';
 import { UploadCloud } from 'lucide-react';
-import { Button } from "@/components/ui/button";
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
+
+import { Button } from "@/components/ui/button";
+
 
 const SubmitStep: React.FC = () => {
   const navigate = useNavigate();
@@ -16,7 +18,7 @@ const SubmitStep: React.FC = () => {
       <p className="text-foreground/70 mb-6">
         Your dataset has been submitted for review. We'll notify you once it's approved and available to the community.
       </p>
-      <Button onClick={() => navigate('/datasets')}>
+      <Button onClick={() => { navigate('/datasets'); }}>
         View All Datasets
       </Button>
     </div>

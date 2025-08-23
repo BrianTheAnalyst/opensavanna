@@ -1,11 +1,13 @@
 
+import { ArrowLeft, Save, AlertCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
+
 import { Button } from '@/components/ui/button';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -13,10 +15,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Dataset } from '@/types/dataset';
+import { Textarea } from '@/components/ui/textarea';
 import { updateDataset } from '@/services/datasetService';
-import { toast } from 'sonner';
+import { Dataset } from '@/types/dataset';
+
 
 interface DatasetEditFormProps {
   dataset: Dataset;
@@ -71,7 +73,7 @@ const DatasetEditForm = ({ dataset }: DatasetEditFormProps) => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <Button variant="ghost" onClick={() => navigate(`/datasets/${dataset.id}`)}>
+        <Button variant="ghost" onClick={() => { navigate(`/datasets/${dataset.id}`); }}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Dataset
         </Button>
@@ -195,7 +197,7 @@ const DatasetEditForm = ({ dataset }: DatasetEditFormProps) => {
                     <input
                       type="checkbox"
                       checked={field.value}
-                      onChange={(e) => field.onChange(e.target.checked)}
+                      onChange={(e) => { field.onChange(e.target.checked); }}
                       className="h-4 w-4 mt-1"
                     />
                   </FormControl>

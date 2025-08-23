@@ -24,7 +24,7 @@ export default tseslint.config(
         React: "readonly",
       },
       parserOptions: {
-        project: "./tsconfig.json",
+        project: ["./tsconfig.app.json", "./tsconfig.node.json"],
       },
     },
     plugins: {
@@ -72,6 +72,10 @@ export default tseslint.config(
       ],
     },
     settings: {
+      "import/resolver": {
+        typescript: true,
+        node: true,
+      },
       react: {
         version: "detect"
       },

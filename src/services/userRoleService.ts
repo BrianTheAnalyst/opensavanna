@@ -1,6 +1,7 @@
 
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+import { supabase } from "@/integrations/supabase/client";
 
 export type UserRole = 'admin' | 'editor' | 'viewer';
 

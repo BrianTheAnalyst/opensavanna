@@ -1,7 +1,9 @@
 
-import React from 'react';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { MapIcon, Layers, Thermometer, Crosshair } from 'lucide-react';
+import React from 'react';
+
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+
 import MapContainerComponent from '../MapContainer';
 import TimeControls from '../TimeControls';
 
@@ -39,28 +41,28 @@ const MapVisualizationTabs: React.FC<MapVisualizationTabsProps> = ({
       <TabsList className="mx-4 mt-4 bg-muted/60 grid w-full grid-cols-4">
         <TabsTrigger 
           value="standard" 
-          onClick={() => handleVisualizationTypeChange('standard')}
+          onClick={() => { handleVisualizationTypeChange('standard'); }}
           className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200"
         >
           <MapIcon className="h-4 w-4 mr-2" /> Standard
         </TabsTrigger>
         <TabsTrigger 
           value="choropleth" 
-          onClick={() => handleVisualizationTypeChange('choropleth')}
+          onClick={() => { handleVisualizationTypeChange('choropleth'); }}
           className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200"
         >
           <Layers className="h-4 w-4 mr-2" /> Choropleth
         </TabsTrigger>
         <TabsTrigger 
           value="heatmap" 
-          onClick={() => handleVisualizationTypeChange('heatmap')}
+          onClick={() => { handleVisualizationTypeChange('heatmap'); }}
           className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200"
         >
           <Thermometer className="h-4 w-4 mr-2" /> Heatmap
         </TabsTrigger>
         <TabsTrigger 
           value="cluster" 
-          onClick={() => handleVisualizationTypeChange('cluster')}
+          onClick={() => { handleVisualizationTypeChange('cluster'); }}
           className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200"
         >
           <Crosshair className="h-4 w-4 mr-2" /> Clusters

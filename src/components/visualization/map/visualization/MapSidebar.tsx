@@ -1,12 +1,15 @@
 
 import React from 'react';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
+
 import AnomalyControls from '../AnomalyControls';
 import CorrelationPanel from '../CorrelationPanel';
-import SpatialFilterPanel from '../SpatialFilterPanel';
-import LayerBlendingControls from '../LayerBlendingControls';
 import InsightSuggestionPanel from '../InsightSuggestionPanel';
+import LayerBlendingControls from '../LayerBlendingControls';
+import SpatialFilterPanel from '../SpatialFilterPanel';
+
 import { Insight } from './types';
 
 interface MapSidebarProps {

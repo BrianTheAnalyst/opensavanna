@@ -1,9 +1,10 @@
 
-import { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { useState } from 'react';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { QuestionCategory } from '@/services/dataInsights/followUpQuestions';
 
 interface FollowUpQuestionsProps {
@@ -55,7 +56,7 @@ const FollowUpQuestions = ({ categories, onQuestionClick }: FollowUpQuestionsPro
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => toggleCategory(category.type)}
+                      onClick={() => { toggleCategory(category.type); }}
                       className="h-6 w-6 p-0"
                     >
                       {isExpanded ? (
@@ -74,7 +75,7 @@ const FollowUpQuestions = ({ categories, onQuestionClick }: FollowUpQuestionsPro
                       variant="outline"
                       size="sm"
                       className="w-full justify-start text-left h-auto py-2 px-3 border-primary/20 hover:border-primary hover:bg-primary/5"
-                      onClick={() => onQuestionClick(question)}
+                      onClick={() => { onQuestionClick(question); }}
                     >
                       <span className="text-sm">{question}</span>
                     </Button>

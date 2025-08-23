@@ -1,6 +1,7 @@
 
-import { useState, useEffect, createContext, useContext } from 'react';
 import { Session, User } from '@supabase/supabase-js';
+import { useState, useEffect, createContext, useContext } from 'react';
+
 import { supabase } from '@/integrations/supabase/client';
 
 type AuthContextType = {
@@ -42,7 +43,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => { subscription.unsubscribe(); };
   }, []);
 
   const signOut = async () => {

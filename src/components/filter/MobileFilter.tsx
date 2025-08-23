@@ -1,7 +1,8 @@
 
-import { useState } from 'react';
-import { Button } from "@/components/ui/button";
 import { Filter, X } from 'lucide-react';
+import { useState } from 'react';
+
+import { Button } from "@/components/ui/button";
 
 interface FilterOption {
   label: string;
@@ -44,7 +45,7 @@ const MobileFilter = ({
         variant="outline"
         size="sm"
         className="w-full flex items-center justify-center cursor-pointer"
-        onClick={() => setShowMobileFilters(!showMobileFilters)}
+        onClick={() => { setShowMobileFilters(!showMobileFilters); }}
       >
         <Filter className="mr-2 h-4 w-4" />
         {showMobileFilters ? 'Hide Filters' : 'Show Filters'}
@@ -58,7 +59,7 @@ const MobileFilter = ({
             <select
               className="w-full p-2 rounded-md border border-border bg-background cursor-pointer"
               value={selectedCategory}
-              onChange={(e) => onCategoryChange(e.target.value)}
+              onChange={(e) => { onCategoryChange(e.target.value); }}
             >
               <option value="">All Categories</option>
               {categories.map(category => (
@@ -75,7 +76,7 @@ const MobileFilter = ({
             <select
               className="w-full p-2 rounded-md border border-border bg-background cursor-pointer"
               value={selectedFormat}
-              onChange={(e) => onFormatChange(e.target.value)}
+              onChange={(e) => { onFormatChange(e.target.value); }}
             >
               <option value="">All Formats</option>
               {formats.map(format => (
@@ -92,7 +93,7 @@ const MobileFilter = ({
             <select
               className="w-full p-2 rounded-md border border-border bg-background cursor-pointer"
               value={selectedRegion}
-              onChange={(e) => onRegionChange(e.target.value)}
+              onChange={(e) => { onRegionChange(e.target.value); }}
             >
               <option value="">All Regions</option>
               {regions.map(region => (

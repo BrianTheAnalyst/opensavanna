@@ -1,8 +1,9 @@
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Search, Lightbulb, BarChart, Map, TrendingUp } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Search, Lightbulb, BarChart, Map, TrendingUp } from 'lucide-react';
+import React from 'react';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface NoResultsPlaceholderProps {
   isEmptySearch?: boolean;
@@ -84,7 +85,7 @@ const NoResultsPlaceholder: React.FC<NoResultsPlaceholderProps> = ({
                 <Button
                   variant="outline"
                   className="w-full h-auto p-4 justify-start hover:border-primary/50 hover:bg-primary/5 group"
-                  onClick={() => onSuggestionClick(suggestion.text)}
+                  onClick={() => { onSuggestionClick(suggestion.text); }}
                 >
                   <div className="flex items-center gap-3 w-full">
                     <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">

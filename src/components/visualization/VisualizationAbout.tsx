@@ -1,7 +1,8 @@
 
-import React from 'react';
-import { Dataset } from '@/types/dataset';
 import { ChartBar, LineChart } from 'lucide-react';
+import React from 'react';
+
+import { Dataset } from '@/types/dataset';
 
 interface VisualizationAboutProps {
   dataset: Dataset;

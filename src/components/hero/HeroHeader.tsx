@@ -1,7 +1,8 @@
 
 import { ArrowRight } from 'lucide-react';
-import { Button } from "@/components/ui/button";
 import { Link } from 'react-router-dom';
+
+import { Button } from "@/components/ui/button";
 
 interface HeroHeaderProps {
   isLoaded: boolean;

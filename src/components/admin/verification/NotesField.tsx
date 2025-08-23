@@ -1,5 +1,6 @@
 
 import React from 'react';
+
 import { Textarea } from "@/components/ui/textarea";
 
 interface NotesFieldProps {
@@ -18,7 +19,7 @@ const NotesField: React.FC<NotesFieldProps> = ({ action, notes, setNotes }) => {
       </label>
       <Textarea
         value={notes}
-        onChange={(e) => setNotes(e.target.value)}
+        onChange={(e) => { setNotes(e.target.value); }}
         placeholder={action === 'approve' 
           ? 'Add any notes or comments...' 
           : 'Reason for rejection...'}

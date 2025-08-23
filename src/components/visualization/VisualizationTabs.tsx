@@ -1,11 +1,13 @@
 
+import { AreaChart, BarChart3, LineChart, Map, PieChart } from 'lucide-react';
 import React from 'react';
+
+import InsightDashboard from "@/components/InsightDashboard";
+import Visualization from "@/components/Visualization";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dataset } from "@/types/dataset";
-import Visualization from "@/components/Visualization";
-import InsightDashboard from "@/components/InsightDashboard";
+
 import MapVisualization from "./MapVisualization";
-import { AreaChart, BarChart3, LineChart, Map, PieChart } from 'lucide-react';
 
 interface VisualizationTabsProps {
   dataset: Dataset;

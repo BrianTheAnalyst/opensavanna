@@ -1,10 +1,11 @@
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Lightbulb, ArrowRight, Map, BarChart2, RefreshCw, Clock, AlertCircle } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
+import React from 'react';
+
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 
 interface Insight {
   id: string;
@@ -123,7 +124,7 @@ const InsightSuggestionPanel: React.FC<InsightSuggestionPanelProps> = ({
                     size="sm"
                     variant={insight.applied ? "outline" : "default"}
                     className="text-xs h-7 transition-all"
-                    onClick={() => onInsightApply(insight.id)}
+                    onClick={() => { onInsightApply(insight.id); }}
                   >
                     {insight.applied ? "Applied" : "Apply"}
                     {!insight.applied && <ArrowRight className="h-3 w-3 ml-1" />}

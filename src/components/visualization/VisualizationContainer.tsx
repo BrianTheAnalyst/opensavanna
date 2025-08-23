@@ -1,12 +1,14 @@
 
-import React from 'react';
-import { Dataset } from '@/types/dataset';
-import VisualizationTabs from './VisualizationTabs';
-import VisualizationHeader from './VisualizationHeader';
-import VisualizationFooter from './VisualizationFooter';
 import { AlertCircle } from 'lucide-react';
+import React from 'react';
+
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
+import { Dataset } from '@/types/dataset';
+
+import VisualizationFooter from './VisualizationFooter';
+import VisualizationHeader from './VisualizationHeader';
+import VisualizationTabs from './VisualizationTabs';
 
 interface VisualizationContainerProps {
   dataset: Dataset;

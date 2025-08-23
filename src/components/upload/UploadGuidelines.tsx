@@ -1,6 +1,6 @@
 
-import React from 'react';
 import { Info, FileType } from 'lucide-react';
+import React from 'react';
 
 const UploadGuidelines: React.FC = () => {
   return (

@@ -2,12 +2,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
-import { supabase } from '@/integrations/supabase/client';
+
 import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { supabase } from '@/integrations/supabase/client';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -83,7 +84,7 @@ const Auth = () => {
                     type="email" 
                     placeholder="your@email.com" 
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => { setEmail(e.target.value); }}
                     required
                   />
                 </div>
@@ -96,7 +97,7 @@ const Auth = () => {
                     type="password" 
                     placeholder="••••••••" 
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => { setPassword(e.target.value); }}
                     required
                   />
                 </div>
@@ -119,7 +120,7 @@ const Auth = () => {
                     type="email" 
                     placeholder="your@email.com" 
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => { setEmail(e.target.value); }}
                     required
                   />
                 </div>
@@ -130,7 +131,7 @@ const Auth = () => {
                     type="password" 
                     placeholder="••••••••" 
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => { setPassword(e.target.value); }}
                     required
                   />
                   <p className="text-xs text-muted-foreground">

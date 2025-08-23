@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
-import UploadHeader from '@/components/upload/UploadHeader';
+
+import Footer from '@/components/Footer';
+import Navbar from '@/components/Navbar';
 import UploadForm from '@/components/upload/UploadForm';
 import UploadGuidelines from '@/components/upload/UploadGuidelines';
+import UploadHeader from '@/components/upload/UploadHeader';
+import { supabase } from '@/integrations/supabase/client';
 
 const UploadPage = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);

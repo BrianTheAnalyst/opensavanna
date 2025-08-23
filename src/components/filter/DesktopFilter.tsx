@@ -1,6 +1,8 @@
 
-import { Button } from "@/components/ui/button";
 import { X } from 'lucide-react';
+
+import { Button } from "@/components/ui/button";
+
 import DropdownFilter from './DropdownFilter';
 
 interface FilterOption {
@@ -55,7 +57,7 @@ const DesktopFilter = ({
           selectedValue={selectedCategory}
           onSelect={onCategoryChange}
           isOpen={dropdownStates.category}
-          onToggle={() => onToggleDropdown('category')}
+          onToggle={() => { onToggleDropdown('category'); }}
         />
         
         <DropdownFilter
@@ -64,7 +66,7 @@ const DesktopFilter = ({
           selectedValue={selectedFormat}
           onSelect={onFormatChange}
           isOpen={dropdownStates.format}
-          onToggle={() => onToggleDropdown('format')}
+          onToggle={() => { onToggleDropdown('format'); }}
         />
         
         <DropdownFilter
@@ -73,7 +75,7 @@ const DesktopFilter = ({
           selectedValue={selectedRegion}
           onSelect={onRegionChange}
           isOpen={dropdownStates.region}
-          onToggle={() => onToggleDropdown('region')}
+          onToggle={() => { onToggleDropdown('region'); }}
         />
       </div>
       

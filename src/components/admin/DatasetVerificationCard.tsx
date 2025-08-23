@@ -1,10 +1,12 @@
 
 import { useState } from 'react';
-import { DatasetWithEmail } from '@/types/dataset';
-import DatasetReviewDialog from './DatasetReviewDialog';
-import DatasetInfo from './verification/DatasetInfo';
-import DatasetActionButtons from './verification/DatasetActionButtons';
 import { toast } from "sonner";
+
+import { DatasetWithEmail } from '@/types/dataset';
+
+import DatasetReviewDialog from './DatasetReviewDialog';
+import DatasetActionButtons from './verification/DatasetActionButtons';
+import DatasetInfo from './verification/DatasetInfo';
 
 interface DatasetVerificationCardProps {
   dataset: DatasetWithEmail;

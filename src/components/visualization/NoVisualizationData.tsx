@@ -1,10 +1,11 @@
 
-import React from 'react';
 import { AlertTriangle, FileText, Upload, RefreshCw, Info } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
+
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from '@/components/ui/button';
 
 interface NoVisualizationDataProps {
   onRetry?: () => void;

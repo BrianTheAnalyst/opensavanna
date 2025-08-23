@@ -1,11 +1,12 @@
 
-import { useState } from 'react';
-import { Dataset } from '@/types/dataset';
 import { Download, Info, Calendar, FileText, Globe } from 'lucide-react';
-import { Button } from "@/components/ui/button";
-import { downloadDataset } from '@/services/datasetDownloadService';
+import { useState } from 'react';
+
 import AdminDatasetControls from '@/components/admin/AdminDatasetControls';
+import { Button } from "@/components/ui/button";
 import { useIsAdmin } from '@/hooks/useIsAdmin';
+import { downloadDataset } from '@/services/datasetDownloadService';
+import { Dataset } from '@/types/dataset';
 
 interface DatasetSidebarInfoProps {
   dataset: Dataset;

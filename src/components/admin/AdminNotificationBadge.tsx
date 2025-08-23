@@ -1,12 +1,13 @@
 
+import { Bell } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Bell } from 'lucide-react';
+
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { isUserAdmin } from '@/services/userRoleService';
 import { useDatasetPendingCount } from '@/hooks/useDatasetPendingCount';
+import { isUserAdmin } from '@/services/userRoleService';
 
 const AdminNotificationBadge = () => {
   const [isAdmin, setIsAdmin] = useState<boolean>(false);

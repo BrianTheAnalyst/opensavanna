@@ -1,13 +1,14 @@
 
+import { Filter } from 'lucide-react';
 import React, { useState } from 'react';
+
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Slider } from '@/components/ui/slider';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Filter } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Slider } from '@/components/ui/slider';
 
 interface SpatialFilterPanelProps {
   onFilterChange: (filters: SpatialFilter) => void;
@@ -88,7 +89,7 @@ const SpatialFilterPanel: React.FC<SpatialFilterPanelProps> = ({
             max={500}
             step={5}
             value={[radius]}
-            onValueChange={values => setRadius(values[0])}
+            onValueChange={values => { setRadius(values[0]); }}
             className="mt-2"
           />
         </div>
@@ -97,7 +98,7 @@ const SpatialFilterPanel: React.FC<SpatialFilterPanelProps> = ({
           <Checkbox
             id="include-outliers"
             checked={includeOutliers}
-            onCheckedChange={(checked) => setIncludeOutliers(checked === true)}
+            onCheckedChange={(checked) => { setIncludeOutliers(checked === true); }}
           />
           <Label htmlFor="include-outliers" className="text-sm">Include outliers</Label>
         </div>

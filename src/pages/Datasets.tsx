@@ -1,11 +1,12 @@
 
+import { PieChart, Map, FileText, Database, BarChart3, Plus } from 'lucide-react';
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { PieChart, Map, FileText, Database, BarChart3, Plus } from 'lucide-react';
-import Navbar from '@/components/Navbar';
-import FilterBar from '@/components/FilterBar';
+
 import DatasetGrid from '@/components/DatasetGrid';
+import FilterBar from '@/components/FilterBar';
 import Footer from '@/components/Footer';
+import Navbar from '@/components/Navbar';
 import { Button } from "@/components/ui/button";
 import { getDatasets, Dataset } from '@/services/api';
 

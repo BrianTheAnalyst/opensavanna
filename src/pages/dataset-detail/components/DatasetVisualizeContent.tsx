@@ -1,9 +1,10 @@
 
 import React from 'react';
-import { Dataset } from '@/types/dataset';
-import VisualizationContainer from '@/components/visualization/VisualizationContainer';
+
 import DatasetAnalyticsSection from '@/components/dataset/DatasetAnalyticsSection';
 import VisualizationAbout from '@/components/visualization/VisualizationAbout';
+import VisualizationContainer from '@/components/visualization/VisualizationContainer';
+import { Dataset } from '@/types/dataset';
 
 interface DatasetVisualizeContentProps {
   dataset: Dataset;

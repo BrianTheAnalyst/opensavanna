@@ -1,6 +1,7 @@
 
-import { Link } from 'react-router-dom';
 import { ArrowRight, Database } from 'lucide-react';
+import { Link } from 'react-router-dom';
+
 import { Button } from "@/components/ui/button";
 
 const CallToActionSection = () => {

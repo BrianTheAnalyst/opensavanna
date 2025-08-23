@@ -1,13 +1,15 @@
 
 import { toast } from "sonner";
-import { DatasetWithEmail } from '@/types/dataset';
+
+import { supabase } from "@/integrations/supabase/client";
 import { 
   fetchDatasetsWithVerificationStatus,
   updateDatasetVerificationStatus,
   sendDatasetFeedback,
   publishDataset as publishDatasetService
 } from '@/services/verification';
-import { supabase } from "@/integrations/supabase/client";
+import { DatasetWithEmail } from '@/types/dataset';
+
 import { normalizeDataset } from './datasetVerificationUtils';
 
 /**

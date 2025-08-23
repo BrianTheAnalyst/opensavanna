@@ -1,10 +1,12 @@
 
 import { toast } from "sonner";
+
 import { supabase } from "@/integrations/supabase/client";
 import { Dataset } from "@/types/dataset";
+
+import { transformSampleDataForCategory } from "./visualization/dataTransformer";
 import { parseDataFromFile } from "./visualization/datasetProcessor";
 import { getProcessedDataForDataset } from "./visualization/processedDataHandler";
-import { transformSampleDataForCategory } from "./visualization/dataTransformer";
 
 // Get dataset visualization data
 export const getDatasetVisualization = async (id: string): Promise<any> => {

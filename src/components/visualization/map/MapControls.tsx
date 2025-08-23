@@ -1,7 +1,8 @@
 
-import React from 'react';
-import { Button } from '@/components/ui/button';
 import { Map, PieChart, Activity, Layers } from 'lucide-react';
+import React from 'react';
+
+import { Button } from '@/components/ui/button';
 
 interface MapControlsProps {
   currentType: 'standard' | 'choropleth' | 'heatmap' | 'cluster';

@@ -1,6 +1,7 @@
 
-import React from 'react';
 import { Loader2 } from 'lucide-react';
+import React from 'react';
+
 import { Progress } from '@/components/ui/progress';
 
 const LoadingVisualization: React.FC = () => {
@@ -17,7 +18,7 @@ const LoadingVisualization: React.FC = () => {
       });
     }, 500);
     
-    return () => clearInterval(interval);
+    return () => { clearInterval(interval); };
   }, []);
   
   return (

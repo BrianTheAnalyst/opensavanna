@@ -1,9 +1,11 @@
 
-import { useState, useRef, useEffect } from 'react';
+import { AnimatePresence, motion } from "framer-motion";
 import { Search, ArrowRight } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { AnimatePresence, motion } from "framer-motion";
+
 
 interface QuerySearchBarProps {
   onSearch: (query: string) => void;
@@ -107,9 +109,9 @@ const QuerySearchBar = ({ onSearch, isSearching, suggestedQuestions = [], classN
             placeholder="Ask a question about our datasets..."
             className="w-full h-14 pl-12 pr-20 text-lg rounded-full shadow-md focus:ring-2 focus:ring-primary/50"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onFocus={() => setShowSuggestions(true)}
-            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+            onChange={(e) => { setQuery(e.target.value); }}
+            onFocus={() => { setShowSuggestions(true); }}
+            onBlur={() => setTimeout(() => { setShowSuggestions(false); }, 200)}
             onKeyDown={handleKeyDown}
           />
           <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -144,7 +146,7 @@ const QuerySearchBar = ({ onSearch, isSearching, suggestedQuestions = [], classN
                     <li key={index}>
                       <button
                         type="button"
-                        onClick={() => handleSuggestionClick(suggestion)}
+                        onClick={() => { handleSuggestionClick(suggestion); }}
                         className={`w-full px-4 py-2 text-left hover:bg-muted/50 focus:bg-muted/50 focus:outline-none ${
                           index === selectedSuggestionIndex ? 'bg-muted' : ''
                         }`}

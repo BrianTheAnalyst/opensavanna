@@ -1,6 +1,7 @@
 
-import { extractKeywords } from './datasetFinder';
 import { generateInsights } from '@/utils/datasetVisualizationUtils';
+
+import { extractKeywords } from './datasetFinder';
 import { detectPatterns } from './patternDetection';
 
 // Generate insights based on the visualizations

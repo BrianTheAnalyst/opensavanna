@@ -1,9 +1,11 @@
 
+import { ShieldCheck } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { isUserAdmin } from '@/services/userRoleService';
+
 import { Button } from '@/components/ui/button';
-import { ShieldCheck } from 'lucide-react';
+import { isUserAdmin } from '@/services/userRoleService';
+
 import AdminNotificationBadge from './AdminNotificationBadge';
 
 const NavbarAdminControls = () => {

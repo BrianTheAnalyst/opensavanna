@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
+
 import { colorRanges, getColorScaleForCategory } from './utils/colorUtils';
 
 interface MapLegendProps {

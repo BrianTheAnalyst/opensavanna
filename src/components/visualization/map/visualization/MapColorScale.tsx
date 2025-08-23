@@ -1,5 +1,6 @@
 
 import { useMemo } from 'react';
+
 import { ColorScaleInfo } from './types';
 
 export function useColorScale(geoJSON: any | null): ColorScaleInfo {

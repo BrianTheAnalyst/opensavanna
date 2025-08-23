@@ -1,5 +1,6 @@
 
 import { Search } from 'lucide-react';
+
 import { Input } from "@/components/ui/input";
 
 interface SearchInputProps {
@@ -17,7 +18,7 @@ const SearchInput = ({ value, onChange, onSubmit }: SearchInputProps) => {
         placeholder="Search datasets by keyword..."
         className="w-full pl-10 pr-4 py-2 rounded-full bg-background focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all"
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => { onChange(e.target.value); }}
       />
     </form>
   );

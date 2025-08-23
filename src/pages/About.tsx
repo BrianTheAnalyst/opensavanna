@@ -1,10 +1,12 @@
 
-import React, { useEffect, useState } from 'react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import { Button } from "@/components/ui/button";
-import { Link } from 'react-router-dom';
 import { ArrowRight, Leaf, Database, Users, Globe } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+
+import Footer from '@/components/Footer';
+import Navbar from '@/components/Navbar';
+import { Button } from "@/components/ui/button";
+
 
 const About = () => {
   const [isLoaded, setIsLoaded] = useState(false);

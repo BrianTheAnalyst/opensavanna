@@ -1,9 +1,10 @@
 
-import { Dataset } from '@/types/dataset';
-import Visualization from '@/components/Visualization';
-import { sampleVisData } from '@/services';
 import { Info } from 'lucide-react';
+
+import Visualization from '@/components/Visualization';
 import DatasetSidebarInfo from '@/components/dataset/DatasetSidebarInfo';
+import { sampleVisData } from '@/services';
+import { Dataset } from '@/types/dataset';
 
 interface DatasetOverviewProps {
   dataset: Dataset;

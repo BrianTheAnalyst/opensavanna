@@ -1,6 +1,7 @@
 
-import { Dataset } from '@/types/dataset';
 import { getGeoJSONForDataset } from '@/services/visualization/datasetProcessor';
+import { Dataset } from '@/types/dataset';
+
 import { createSimplifiedGeoJSON } from './geojsonUtils';
 
 /**

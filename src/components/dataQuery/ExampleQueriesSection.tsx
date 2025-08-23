@@ -1,10 +1,12 @@
 
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ArrowRight, BarChart, Map, PieChart, LineChart, ChevronDown } from 'lucide-react';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { motion } from 'framer-motion';
+import { ArrowRight, BarChart, Map, PieChart, LineChart, ChevronDown } from 'lucide-react';
+import { useState } from 'react';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+
 
 interface ExampleQuery {
   question: string;
@@ -85,13 +87,13 @@ const ExampleQueriesSection: React.FC<ExampleQueriesSectionProps> = ({ onQuerySe
               <Collapsible
                 key={index}
                 open={isOpen}
-                onOpenChange={() => toggleItem(index)}
+                onOpenChange={() => { toggleItem(index); }}
                 className="col-span-1"
               >
                 <Card 
                   className={`transition-all duration-300 ${hoveredIndex === index ? 'transform scale-[1.02] shadow-lg' : ''} hover:border-primary/50 h-full flex flex-col`}
-                  onMouseEnter={() => setHoveredIndex(index)}
-                  onMouseLeave={() => setHoveredIndex(null)}
+                  onMouseEnter={() => { setHoveredIndex(index); }}
+                  onMouseLeave={() => { setHoveredIndex(null); }}
                 >
                   <CardHeader className={`${query.background} border-b relative`}>
                     <div className="flex items-center justify-between">
@@ -145,7 +147,7 @@ const ExampleQueriesSection: React.FC<ExampleQueriesSectionProps> = ({ onQuerySe
                     <Button 
                       variant="ghost" 
                       className="w-full justify-start group hover:text-primary"
-                      onClick={() => onQuerySelect(query.question)}
+                      onClick={() => { onQuerySelect(query.question); }}
                     >
                       <span>Explore this question</span>
                       <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />

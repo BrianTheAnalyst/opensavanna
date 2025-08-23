@@ -1,11 +1,14 @@
 
-import { useParams } from 'react-router-dom';
-import { Dataset } from '@/types/dataset';
-import LoadingVisualization from '@/components/visualization/LoadingVisualization';
-import { useDatasetVisualization } from '@/hooks/useDatasetVisualization';
-import { useDatasetDetail } from '@/hooks/useDatasetDetail';
 import { useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { toast } from "sonner";
+
+import LoadingVisualization from '@/components/visualization/LoadingVisualization';
+import { useDatasetDetail } from '@/hooks/useDatasetDetail';
+import { useDatasetVisualization } from '@/hooks/useDatasetVisualization';
+import { Dataset } from '@/types/dataset';
+
+
 import DatasetVisualizeContent from './components/DatasetVisualizeContent';
 import DatasetVisualizeError from './components/DatasetVisualizeError';
 

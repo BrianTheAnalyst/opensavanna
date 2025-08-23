@@ -1,7 +1,8 @@
 
+import type { LatLngExpression } from 'leaflet';
 import React from 'react';
 import { MapContainer as LeafletMapContainer, TileLayer, ZoomControl } from 'react-leaflet';
-import type { LatLngExpression } from 'leaflet';
+
 import VisualizationLayerRenderer from './VisualizationLayerRenderer';
 import { MapVisualizationContainerProps } from './types';
 

@@ -1,6 +1,7 @@
 
-import { Dataset } from "@/types/dataset";
 import { getDatasets } from "@/services";
+import { Dataset } from "@/types/dataset";
+
 import { ConversationContext } from "./conversationContext";
 import { datasetCache } from "./intelligentCache";
 
@@ -73,7 +74,7 @@ export const extractEnhancedKeywords = (query: string): {
   // Separate primary (high importance) and secondary (contextual) keywords
   const primary = expandedWords.filter(word => 
     query.toLowerCase().indexOf(word) < query.length / 2 || 
-    categoryMappings[domain]?.includes(word)
+    categoryMappings[domain].includes(word)
   );
   
   const secondary = expandedWords.filter(word => !primary.includes(word));

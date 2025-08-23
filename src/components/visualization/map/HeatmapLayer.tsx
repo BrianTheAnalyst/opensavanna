@@ -1,7 +1,7 @@
 
+import L from 'leaflet';
 import React, { useEffect, useState } from 'react';
 import { useMap } from 'react-leaflet';
-import L from 'leaflet';
 import 'leaflet.heat';
 // Fix TypeScript error by using declaration merging
 // instead of module augmentation (which was causing the error)

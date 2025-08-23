@@ -30,7 +30,7 @@ export const calculateBounds = (geoJSON: any) => {
       if (depth > 0 && typeof coords[0] === 'number') {
         processCoordinate(coords);
       } else {
-        coords.forEach(coord => processCoordinatesArray(coord, depth + 1));
+        coords.forEach(coord => { processCoordinatesArray(coord, depth + 1); });
       }
     };
     

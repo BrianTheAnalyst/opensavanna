@@ -144,7 +144,7 @@ export const calculateGeoBounds = (geoJson: any): any => {
       if (depth > 0 && typeof coords[0] === 'number') {
         processCoord(coords);
       } else {
-        coords.forEach(c => processCoordinates(c, depth + 1));
+        coords.forEach(c => { processCoordinates(c, depth + 1); });
       }
     }
   };

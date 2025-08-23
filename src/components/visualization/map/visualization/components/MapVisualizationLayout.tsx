@@ -1,6 +1,8 @@
 
 import React from 'react';
+
 import { Card, CardContent } from '@/components/ui/card';
+
 import MapContainerComponent from '../../MapContainer';
 import MapControls from '../../MapControls';
 import MapSidebar from '../MapSidebar';

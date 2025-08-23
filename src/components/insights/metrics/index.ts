@@ -1,12 +1,13 @@
 
 import { Dataset } from '@/types/dataset';
-import type { Metric, MetricGenerationData } from './types';
+
 import { generateBaseMetrics } from './baseMetrics';
 import { generateEconomicsMetrics } from './economicsMetrics';
-import { generateHealthMetrics } from './healthMetrics';
 import { generateEducationMetrics } from './educationMetrics';
-import { generateTransportMetrics } from './transportMetrics';
 import { generateEnvironmentMetrics } from './environmentMetrics';
+import { generateHealthMetrics } from './healthMetrics';
+import { generateTransportMetrics } from './transportMetrics';
+import type { Metric, MetricGenerationData } from './types';
 
 // Main function to generate dataset metrics
 export const generateDatasetMetrics = (dataset: Dataset, visualizationData: any[]): Metric[] => {

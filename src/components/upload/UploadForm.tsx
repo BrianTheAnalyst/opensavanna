@@ -1,18 +1,20 @@
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import React, { useState } from 'react';
+import { useForm } from "react-hook-form";
 import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
+
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { addDataset } from '@/services/datasetUploadService';
+
+import FileUploader from './FileUploader';
+import FormFields from './FormFields';
+import SubmitStep from './SubmitStep';
 import { formSchema, FormValues } from './uploadFormSchema';
 
 // Import our new components
-import FormFields from './FormFields';
-import FileUploader from './FileUploader';
-import SubmitStep from './SubmitStep';
 
 interface UploadFormProps {
   isLoggedIn: boolean;

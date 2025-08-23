@@ -1,7 +1,9 @@
 
 import { toast } from "sonner";
+
 import { supabase } from "@/integrations/supabase/client";
 import { Dataset } from "@/types/dataset";
+
 import { processDatasetFile } from "./processing/datasetProcessor";
 
 // Add a new dataset
@@ -81,11 +83,11 @@ export const addDataset = async (
       if (uploadError) {
         console.error('Error uploading file:', uploadError);
         // Check if the error is related to file size
-        if (uploadError.message?.includes('size')) {
+        if (uploadError.message.includes('size')) {
           toast.error('File exceeds the maximum upload size limit of 100MB');
-        } else if (uploadError.message?.includes('permission')) {
+        } else if (uploadError.message.includes('permission')) {
           toast.error('Storage permission denied. You may need to log in again.');
-        } else if (uploadError.message?.includes('bucket')) {
+        } else if (uploadError.message.includes('bucket')) {
           toast.error('Storage bucket not found. Please contact support.');
         } else {
           toast.error(`Dataset added but file upload failed: ${uploadError.message}`);

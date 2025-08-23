@@ -29,7 +29,7 @@ export const enhanceGeoJSON = (geoJSON: any, category?: string): void => {
     for (const field of priorityFields) {
       const value = feature.properties[field];
       if (value !== undefined && (typeof value === 'number' || (typeof value === 'string' && !isNaN(+value)))) {
-        const numValue = typeof value === 'string' ? +value : value as number;
+        const numValue = typeof value === 'string' ? +value : value;
         if (!numericFields[field]) {
           numericFields[field] = { min: numValue, max: numValue };
         } else {
@@ -43,7 +43,7 @@ export const enhanceGeoJSON = (geoJSON: any, category?: string): void => {
     Object.entries(feature.properties).forEach(([key, value]) => {
       if (!priorityFields.includes(key) && 
           (typeof value === 'number' || (typeof value === 'string' && !isNaN(+value)))) {
-        const numValue = typeof value === 'string' ? +value : value as number;
+        const numValue = typeof value === 'string' ? +value : value;
         if (!numericFields[key]) {
           numericFields[key] = { min: numValue, max: numValue };
         } else {

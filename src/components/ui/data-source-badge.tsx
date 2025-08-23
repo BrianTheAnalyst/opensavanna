@@ -3,9 +3,10 @@
  * Clear indicators for data authenticity
  */
 
-import React from 'react';
-import { Badge } from '@/components/ui/badge';
 import { Database, TestTube, AlertTriangle } from 'lucide-react';
+import React from 'react';
+
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 interface DataSourceBadgeProps {

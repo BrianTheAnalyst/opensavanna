@@ -1,9 +1,10 @@
 
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
+import React from 'react';
+
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 
 interface MapLayerControlsProps {
   activeLayers: string[];

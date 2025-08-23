@@ -1,15 +1,16 @@
 
-import React, { useState } from 'react';
-import { Dataset } from '@/types/dataset';
 import { Share, Download, ExternalLink } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React, { useState } from 'react';
 import { toast } from 'sonner';
+
+import { Button } from '@/components/ui/button';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Dataset } from '@/types/dataset';
 
 interface VisualizationHeaderProps {
   dataset: Dataset;

@@ -140,7 +140,7 @@ const generateQuestionsFromTopics = (topics: string[], history: ConversationItem
   
   // Collect recent visualization types
   history.forEach(item => {
-    item.visualizations?.forEach(viz => {
+    item.visualizations.forEach(viz => {
       if (viz.type) recentVisualizationTypes.add(viz.type);
     });
   });

@@ -1,9 +1,11 @@
 
+import { Layers, Landmark, Building, Mountain } from 'lucide-react';
 import React from 'react';
-import { Switch } from '@/components/ui/switch';
+
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Layers, Landmark, Building, Mountain } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+
 import { TileLayerConfig } from './types';
 
 interface LayerControlsProps {
@@ -80,7 +82,7 @@ const LayerControls: React.FC<LayerControlsProps> = ({ onTileLayerChange }) => {
               <Switch
                 id={`layer-${layer.id}`}
                 checked={layer.enabled}
-                onCheckedChange={(checked) => handleLayerToggle(layer.id, checked)}
+                onCheckedChange={(checked) => { handleLayerToggle(layer.id, checked); }}
               />
             </div>
           );

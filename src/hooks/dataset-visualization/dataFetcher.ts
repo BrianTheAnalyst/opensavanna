@@ -1,9 +1,11 @@
 
 import { toast } from 'sonner';
-import { Dataset } from '@/types/dataset';
+
 import { getDatasetById } from '@/services/datasetService';
 import { getDatasetVisualization } from '@/services/datasetVisualizationService';
+import { Dataset } from '@/types/dataset';
 import { generateSampleData } from '@/utils/datasetVisualizationUtils';
+
 import { generateInsightsForData } from './insightsProcessor';
 import { useGeoJsonStorage } from './useGeoJsonStorage';
 

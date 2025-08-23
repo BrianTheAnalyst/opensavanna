@@ -1,21 +1,23 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Navbar from '@/components/Navbar';
+import { toast } from 'sonner';
+
 import Footer from '@/components/Footer';
+import Navbar from '@/components/Navbar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getDatasetById, getDatasetVisualization, downloadDataset } from '@/services';
 import { Dataset } from '@/types/dataset';
 
 // Import our newly created components
-import DatasetHeader from './DatasetHeader';
-import DatasetOverview from './DatasetOverview';
-import DatasetMetadata from './DatasetMetadata';
-import DatasetVisualize from './DatasetVisualize';
 import DatasetApiAccess from './DatasetApiAccess';
-import RelatedDatasets from './RelatedDatasets';
+import DatasetHeader from './DatasetHeader';
+import DatasetMetadata from './DatasetMetadata';
+import DatasetOverview from './DatasetOverview';
+import DatasetVisualize from './DatasetVisualize';
 import { LoadingState, NotFoundState } from './LoadingState';
-import { toast } from 'sonner';
+import RelatedDatasets from './RelatedDatasets';
+
 
 const DatasetDetail = () => {
   const { id } = useParams();

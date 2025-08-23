@@ -1,8 +1,10 @@
 
 import React from 'react';
+
 import MapHeader from '../MapHeader';
-import MapVisualizationLayout from './MapVisualizationLayout';
 import { MapVisualizationContentProps } from '../types';
+
+import MapVisualizationLayout from './MapVisualizationLayout';
 
 const MapVisualizationContent: React.FC<MapVisualizationContentProps> = ({
   title,

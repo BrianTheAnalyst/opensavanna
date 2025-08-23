@@ -1,11 +1,13 @@
 
 import { useState } from 'react';
+
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DatasetWithEmail } from '@/types/dataset';
+
+import DialogActions from './verification/DialogActions';
 import DialogTitleContent from './verification/DialogTitle';
 import FeedbackTabs from './verification/FeedbackTabs';
 import NotesField from './verification/NotesField';
-import DialogActions from './verification/DialogActions';
 
 interface DatasetReviewDialogProps {
   open: boolean;
@@ -93,7 +95,7 @@ const DatasetReviewDialog = ({
           <DialogActions 
             action={action}
             isSubmitting={isSubmitting}
-            onCancel={() => onOpenChange(false)}
+            onCancel={() => { onOpenChange(false); }}
             onSubmit={handleSubmit}
             isDisabled={isSubmitDisabled()}
           />

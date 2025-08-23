@@ -1,10 +1,12 @@
 
-import React from 'react';
 import { Copy, Code, ExternalLink } from 'lucide-react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import { Button } from "@/components/ui/button";
+import React from 'react';
 import { toast } from "sonner";
+
+import Footer from '@/components/Footer';
+import Navbar from '@/components/Navbar';
+import { Button } from "@/components/ui/button";
+
 
 const Api = () => {
   const copyToClipboard = (text: string) => {
@@ -177,7 +179,7 @@ const data = response.data;
                   <Button 
                     variant="ghost" 
                     size="sm"
-                    onClick={() => copyToClipboard('https://api.opendata.africa')}
+                    onClick={() => { copyToClipboard('https://api.opendata.africa'); }}
                   >
                     <Copy className="h-4 w-4" />
                   </Button>
@@ -197,7 +199,7 @@ const data = response.data;
                       <Button 
                         variant="ghost" 
                         size="sm"
-                        onClick={() => copyToClipboard('Authorization: Bearer YOUR_API_KEY')}
+                        onClick={() => { copyToClipboard('Authorization: Bearer YOUR_API_KEY'); }}
                       >
                         <Copy className="h-4 w-4" />
                       </Button>
@@ -212,7 +214,7 @@ const data = response.data;
                         variant="ghost" 
                         size="sm"
                         className="flex-shrink-0 ml-2"
-                        onClick={() => copyToClipboard(authInstructions)}
+                        onClick={() => { copyToClipboard(authInstructions); }}
                       >
                         <Copy className="h-4 w-4" />
                       </Button>
@@ -245,7 +247,7 @@ const data = response.data;
                       <Button 
                         variant="ghost" 
                         size="sm"
-                        onClick={() => copyToClipboard(endpoint.path)}
+                        onClick={() => { copyToClipboard(endpoint.path); }}
                       >
                         <Copy className="h-4 w-4" />
                       </Button>
@@ -314,7 +316,7 @@ const data = response.data;
                             variant="ghost" 
                             size="sm"
                             className="flex-shrink-0 ml-2"
-                            onClick={() => copyToClipboard(endpoint.response.example)}
+                            onClick={() => { copyToClipboard(endpoint.response.example); }}
                           >
                             <Copy className="h-4 w-4" />
                           </Button>

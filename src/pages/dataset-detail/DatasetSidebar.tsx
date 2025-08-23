@@ -1,7 +1,8 @@
 
 import React from 'react';
-import { Dataset } from '@/types/dataset';
+
 import DatasetSidebarInfo from '@/components/dataset/DatasetSidebarInfo';
+import { Dataset } from '@/types/dataset';
 
 interface DatasetSidebarProps {
   dataset: Dataset;

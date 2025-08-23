@@ -1,6 +1,8 @@
 
 import React from 'react';
+
 import InsightCard from '../../InsightCard';
+
 import { ChartConfig } from './types';
 
 interface ChartRendererProps {

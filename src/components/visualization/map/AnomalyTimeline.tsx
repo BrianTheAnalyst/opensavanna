@@ -1,8 +1,10 @@
 
-import React from 'react';
 import { Clock, Circle, AlertCircle } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import React from 'react';
+
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+
 import { MapPoint } from './types';
 
 interface AnomalyTimelineProps {
@@ -76,7 +78,7 @@ const AnomalyTimeline: React.FC<AnomalyTimelineProps> = ({
                 flex-shrink-0 rounded-full px-3
                 ${item.hasAnomalies && item.index !== currentIndex ? 'border-red-300 text-red-600 dark:border-red-800 dark:text-red-400' : ''}
               `}
-              onClick={() => onIndexChange(item.index)}
+              onClick={() => { onIndexChange(item.index); }}
             >
               {item.hasAnomalies ? (
                 <AlertCircle className="h-3 w-3 mr-1 text-red-500" />

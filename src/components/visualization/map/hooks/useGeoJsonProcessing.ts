@@ -1,10 +1,12 @@
 
-import { useState, useEffect } from 'react';
-import { calculateBounds } from '../utils/geometryUtils';
-import { calculateMapCenter, calculateZoomLevel } from '../utils/boundsUtils';
-import { useGeoJsonWorker } from '@/hooks/dataset-visualization/useGeoJsonWorker';
-import { extractTimeSeriesInfo } from '../utils/timeSeriesDataUtils';
 import { LatLngExpression } from 'leaflet';
+import { useState, useEffect } from 'react';
+
+import { useGeoJsonWorker } from '@/hooks/dataset-visualization/useGeoJsonWorker';
+
+import { calculateMapCenter, calculateZoomLevel } from '../utils/boundsUtils';
+import { calculateBounds } from '../utils/geometryUtils';
+import { extractTimeSeriesInfo } from '../utils/timeSeriesDataUtils';
 
 interface GeoJsonProcessingResult {
   processedGeoJSON: any | null;

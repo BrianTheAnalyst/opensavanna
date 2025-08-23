@@ -1,17 +1,19 @@
 
 import React from 'react';
+
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
-import MapLoadingState from './MapLoadingState';
-import { useMapData } from './useMapData';
-import { MapVisualizationProps } from './types';
-import MapVisualizationContent from './components/MapVisualizationContent';
 import EnhancedMapVisualization from '../EnhancedMapVisualization';
-import { useMapState } from './hooks/useMapState';
+
+import MapLoadingState from './MapLoadingState';
+import MapVisualizationContent from './components/MapVisualizationContent';
+import { generateSampleGeoData, sampleInsights, sampleRegions, availableLayers } from './data/sampleData';
 import { useCorrelationState } from './hooks/useCorrelationState';
 import { useLayerBlending } from './hooks/useLayerBlending';
-import { generateSampleGeoData, sampleInsights, sampleRegions, availableLayers } from './data/sampleData';
+import { useMapState } from './hooks/useMapState';
+import { MapVisualizationProps } from './types';
+import { useMapData } from './useMapData';
 
 export const MapVisualization: React.FC<MapVisualizationProps> = ({
   data = [],
@@ -62,7 +64,7 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
   }
   
   const mapData = useMapData(dataToUse, geoJSON, isLoading);
-  const points = mapData.pointsData?.validPoints || [];
+  const points = mapData.pointsData.validPoints || [];
   
   // Default center and zoom level
   const defaultCenter = mapData.mapCenter || [20, 0];

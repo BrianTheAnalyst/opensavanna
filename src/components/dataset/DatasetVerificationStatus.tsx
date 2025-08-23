@@ -1,14 +1,15 @@
 
-import React from 'react';
-import { Dataset } from '@/types/dataset';
-import { Badge } from '@/components/ui/badge';
 import { AlertCircle, Check, X } from 'lucide-react';
+import React from 'react';
+
+import { Badge } from '@/components/ui/badge';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { Dataset } from '@/types/dataset';
 
 interface DatasetVerificationStatusProps {
   dataset: Dataset;

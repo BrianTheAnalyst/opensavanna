@@ -42,7 +42,7 @@ export async function storeInIndexedDB(datasetId: string, geoJSON: any): Promise
     
     // Use the oncomplete event
     return new Promise((resolve) => {
-      tx.oncomplete = () => resolve(true);
+      tx.oncomplete = () => { resolve(true); };
       tx.onerror = () => {
         console.warn('Failed to store in IndexedDB');
         resolve(false);
@@ -64,8 +64,8 @@ export async function getFromIndexedDB(datasetId: string): Promise<any | null> {
     // Use a proper Promise to handle IDBRequest
     const result = await new Promise<any>((resolve, reject) => {
       const request = store.get(datasetId);
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
+      request.onsuccess = () => { resolve(request.result); };
+      request.onerror = () => { reject(request.error); };
     });
     
     return result && result.data ? result.data : null;

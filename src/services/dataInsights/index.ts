@@ -1,24 +1,26 @@
 
 import { toast } from "sonner";
-import { Dataset } from "@/types/dataset";
+
 import { getDatasetVisualization } from "@/services";
 import { transformSampleDataForCategory } from "@/services/visualization/dataTransformer";
 import { getGeoJSONForDataset } from "@/services/visualization/datasetProcessor";
-import { DataInsightResult } from "./types";
-import { findRelevantDatasetsIntelligent } from "./intelligentDatasetFinder";
-import { determineVisualizationType, generateComparison } from "./enhancedVisualizationUtils";
-import { generateInsightsForQuery, generateAnswerFromData } from "./insightGenerator";
-import { getSuggestedQuestions, DEFAULT_QUESTIONS } from "./suggestedQueries";
+import { Dataset } from "@/types/dataset";
+
 import { 
   addToConversationHistory, 
   getConversationContext
 } from "./conversationContext";
-import { insightsCache, performCacheCleanup } from "./intelligentCache";
 import { 
   validateDataset, 
   generateActionableErrorMessage, 
   type ValidationResult 
 } from "./dataValidation";
+import { determineVisualizationType, generateComparison } from "./enhancedVisualizationUtils";
+import { generateInsightsForQuery, generateAnswerFromData } from "./insightGenerator";
+import { insightsCache, performCacheCleanup } from "./intelligentCache";
+import { findRelevantDatasetsIntelligent } from "./intelligentDatasetFinder";
+import { getSuggestedQuestions, DEFAULT_QUESTIONS } from "./suggestedQueries";
+import { DataInsightResult } from "./types";
 
 // Main function to process a user question and generate insights with enhanced intelligence
 export const processDataQuery = async (query: string): Promise<DataInsightResult> => {

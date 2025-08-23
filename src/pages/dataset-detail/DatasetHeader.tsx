@@ -1,9 +1,10 @@
 
 import React from 'react';
-import { Dataset } from '@/types/dataset';
-import { Separator } from "@/components/ui/separator";
+
 import DatasetSidebarInfo from '@/components/dataset/DatasetSidebarInfo';
 import DatasetVerificationStatus from '@/components/dataset/DatasetVerificationStatus';
+import { Separator } from "@/components/ui/separator";
+import { Dataset } from '@/types/dataset';
 
 interface DatasetHeaderProps {
   dataset: Dataset;

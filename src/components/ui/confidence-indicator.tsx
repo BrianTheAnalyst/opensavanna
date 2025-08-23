@@ -3,9 +3,10 @@
  * Shows users the reliability of insights and data sources
  */
 
-import React from 'react';
-import { Badge } from '@/components/ui/badge';
 import { AlertCircle, CheckCircle, AlertTriangle, Info } from 'lucide-react';
+import React from 'react';
+
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 interface ConfidenceIndicatorProps {
