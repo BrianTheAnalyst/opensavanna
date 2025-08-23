@@ -1,8 +1,13 @@
 
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle, Info } from 'lucide-react';
 import InsightCard from '@/components/InsightCard';
 import MapVisualization from '@/components/visualization/MapVisualization';
+import ConfidenceIndicator from '@/components/ui/confidence-indicator';
+import DataSourceBadge from '@/components/ui/data-source-badge';
 import { prepareGeoJSONForMap } from '../utils/geoJsonUtils';
 import { DataInsightResult } from '@/services/dataInsights/types';
 
@@ -23,11 +28,45 @@ const VisualizationsSection: React.FC<VisualizationsSectionProps> = ({ visualiza
           
           return (
             <Card key={index} className="md:col-span-2">
-              <CardHeader>
-                <CardTitle>{viz.title}</CardTitle>
+              <CardHeader className="space-y-3">
+                <div className="flex items-start justify-between">
+                  <CardTitle>{viz.title}</CardTitle>
+                  <Badge variant="secondary">{viz.category}</Badge>
+                </div>
+                
+                {/* Data Source and Confidence Indicators */}
+                <div className="flex flex-col gap-2">
+                  <DataSourceBadge 
+                    dataSource={viz.dataSource || 'empty'}
+                    recordCount={viz.data?.length}
+                  />
+                  
+                  {viz.validation && (
+                    <ConfidenceIndicator
+                      confidence={viz.confidence || 0}
+                      dataSource={viz.dataSource || 'empty'}
+                      showDetails={false}
+                      issues={viz.validation.issues}
+                      recommendations={viz.validation.recommendations}
+                    />
+                  )}
+                </div>
+                
                 <CardDescription>Geographic visualization of data</CardDescription>
               </CardHeader>
               <CardContent>
+                {viz.error && (
+                  <Alert className="mb-4">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      <div className="space-y-2">
+                        <p className="font-semibold">Unable to display map</p>
+                        <p className="text-sm">{viz.error}</p>
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+                )}
+                
                 <div className="h-[400px]">
                   <MapVisualization
                     data={viz.data || []}
@@ -36,6 +75,15 @@ const VisualizationsSection: React.FC<VisualizationsSectionProps> = ({ visualiza
                     geoJSON={geoJSON}
                   />
                 </div>
+                
+                {viz.dataSource === 'sample' && (
+                  <div className="mt-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-3 text-center">
+                    <p className="text-sm text-orange-800 dark:text-orange-200">
+                      <strong>Note:</strong> Sample geographic data is being displayed. 
+                      Upload a dataset with location information for real map insights.
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           );
@@ -67,37 +115,93 @@ const VisualizationsSection: React.FC<VisualizationsSectionProps> = ({ visualiza
         
         return (
           <Card key={index} className={viz.type === 'line' ? "md:col-span-2" : ""}>
-            <CardHeader>
-              <CardTitle>{viz.title}</CardTitle>
+            <CardHeader className="space-y-3">
+              <div className="flex items-start justify-between">
+                <CardTitle>{viz.title}</CardTitle>
+                <Badge variant="secondary">{viz.category}</Badge>
+              </div>
+              
+              {/* Data Source and Confidence Indicators */}
+              <div className="flex flex-col gap-2">
+                <DataSourceBadge 
+                  dataSource={viz.dataSource || 'empty'}
+                  recordCount={viz.data?.length}
+                />
+                
+                {viz.validation && (
+                  <ConfidenceIndicator
+                    confidence={viz.confidence || 0}
+                    dataSource={viz.dataSource || 'empty'}
+                    showDetails={false}
+                    issues={viz.validation.issues}
+                    recommendations={viz.validation.recommendations}
+                  />
+                )}
+              </div>
+              
               <CardDescription>
                 Visualization based on {viz.data?.length || 0} data points
               </CardDescription>
             </CardHeader>
             <CardContent>
+              {viz.error && (
+                <Alert className="mb-4">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    <div className="space-y-2">
+                      <p className="font-semibold">Unable to display visualization</p>
+                      <p className="text-sm">{viz.error}</p>
+                      {viz.validation?.recommendations?.length > 0 && (
+                        <div className="text-sm">
+                          <p className="font-medium">Suggestions:</p>
+                          <ul className="list-disc list-inside space-y-1">
+                            {viz.validation.recommendations.map((rec, index) => (
+                              <li key={index}>{rec}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              )}
+
               {viz.data === null || (Array.isArray(viz.data) && viz.data.length === 0) ? (
-                <div className="h-48 flex items-center justify-center bg-muted/30 rounded-lg">
-                  <div className="text-center space-y-2">
-                    <p className="text-muted-foreground">
-                      {viz.error ? 'Failed to load data' : 'No data found for this query'}
-                    </p>
-                    <p className="text-sm text-muted-foreground/70">
-                      {viz.error 
-                        ? 'There was an error loading the dataset. Please try again.' 
-                        : 'Try refining your search or check if the dataset contains relevant data'}
-                    </p>
-                  </div>
-                </div>
+                <Alert className="mb-4">
+                  <Info className="h-4 w-4" />
+                  <AlertDescription>
+                    <div className="space-y-2">
+                      <p className="font-semibold">No data available</p>
+                      <p className="text-sm">
+                        {viz.error 
+                          ? 'There was an error loading the dataset. Please try again.' 
+                          : 'Try refining your search or check if the dataset contains relevant data'}
+                      </p>
+                    </div>
+                  </AlertDescription>
+                </Alert>
               ) : (
-                <InsightCard
-                  title=""
-                  data={viz.data || []}
-                  type={viz.type}
-                  dataKey="value"
-                  nameKey="name"
-                  xAxisLabel={xAxisLabel}
-                  yAxisLabel={yAxisLabel}
-                  tooltipFormatter={(value, name) => [`${value}`, viz.valueLabel || 'Value']}
-                />
+                <div className="space-y-4">
+                  <InsightCard
+                    title=""
+                    data={viz.data || []}
+                    type={viz.type}
+                    dataKey="value"
+                    nameKey="name"
+                    xAxisLabel={xAxisLabel}
+                    yAxisLabel={yAxisLabel}
+                    tooltipFormatter={(value, name) => [`${value}`, viz.valueLabel || 'Value']}
+                  />
+                  
+                  {viz.dataSource === 'sample' && (
+                    <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-3 text-center">
+                      <p className="text-sm text-orange-800 dark:text-orange-200">
+                        <strong>Note:</strong> Sample data is being displayed for demonstration purposes. 
+                        Upload a file with this dataset to see actual data visualizations.
+                      </p>
+                    </div>
+                  )}
+                </div>
               )}
             </CardContent>
           </Card>

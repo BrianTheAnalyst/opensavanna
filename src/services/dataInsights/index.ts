@@ -14,6 +14,11 @@ import {
   getConversationContext
 } from "./conversationContext";
 import { insightsCache, performCacheCleanup } from "./intelligentCache";
+import { 
+  validateDataset, 
+  generateActionableErrorMessage, 
+  type ValidationResult 
+} from "./dataValidation";
 
 // Main function to process a user question and generate insights with enhanced intelligence
 export const processDataQuery = async (query: string): Promise<DataInsightResult> => {
@@ -36,11 +41,14 @@ export const processDataQuery = async (query: string): Promise<DataInsightResult
 
     console.log('Found relevant datasets:', relevantDatasets.map(d => d.title));
 
-    // 2. Process each dataset to extract visualization data with enhanced chart selection
+    // 2. Process each dataset to extract visualization data with enhanced validation
     const visualizations = await Promise.all(
       relevantDatasets.map(async (dataset) => {
         try {
           const visualizationData = await getDatasetVisualization(dataset.id);
+          
+          // IMMEDIATE FIX: Validate data before processing
+          const validation = validateDataset(visualizationData);
           
           // Use enhanced visualization type determination
           const visType = determineVisualizationType(query, dataset.category, visualizationData);
@@ -58,7 +66,7 @@ export const processDataQuery = async (query: string): Promise<DataInsightResult
             }
           }
 
-          // Add enhanced properties for better visualization control
+          // Add enhanced properties with validation results
           const result = {
             datasetId: dataset.id,
             title: dataset.title,
@@ -66,14 +74,19 @@ export const processDataQuery = async (query: string): Promise<DataInsightResult
             category: dataset.category,
             data: visualizationData && visualizationData.length > 0 
               ? visualizationData 
-              : null, // Use null instead of empty fallback data to indicate no data
+              : null,
             geoJSON: geoJSON,
             timeAxis: visType === 'line' ? 'Time Period' : undefined,
             valueLabel: `${dataset.category} Value`,
-            hasData: visualizationData && visualizationData.length > 0
+            hasData: validation.isValid && visualizationData && visualizationData.length > 0,
+            // NEW: Add validation metadata
+            validation: validation,
+            confidence: validation.confidence,
+            dataSource: validation.dataSource,
+            error: !validation.isValid ? generateActionableErrorMessage(validation, query) : undefined
           };
 
-          console.log(`Processed dataset ${dataset.title} with visualization type: ${visType}`);
+          console.log(`Processed dataset ${dataset.title} with validation confidence: ${validation.confidence}%`);
           return result;
         } catch (error) {
           console.error(`Error processing dataset ${dataset.title}:`, error);
@@ -82,11 +95,21 @@ export const processDataQuery = async (query: string): Promise<DataInsightResult
             title: dataset.title,
             type: 'bar' as const,
             category: dataset.category,
-            data: null, // Indicate failed data loading
+            data: null,
             timeAxis: undefined,
             valueLabel: `${dataset.category} Value`,
             hasData: false,
-            error: 'Failed to load dataset'
+            validation: { 
+              isValid: false, 
+              confidence: 0, 
+              dataSource: 'empty' as const,
+              issues: ['Failed to load dataset'],
+              recommendations: ['Try refreshing or contact support'],
+              dataQuality: { completeness: 0, consistency: 0, accuracy: 0 }
+            },
+            confidence: 0,
+            dataSource: 'empty' as const,
+            error: `Failed to load dataset: ${error.message}`
           };
         }
       })

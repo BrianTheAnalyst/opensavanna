@@ -1,5 +1,6 @@
 
 import { Dataset } from "@/types/dataset";
+import { ValidationResult } from "./dataValidation";
 
 export interface DataInsightResult {
   question: string;
@@ -16,6 +17,10 @@ export interface DataInsightResult {
     valueLabel?: string;
     hasData?: boolean;
     error?: string;
+    // NEW: Validation and confidence data
+    validation?: ValidationResult;
+    confidence?: number;
+    dataSource?: 'real' | 'sample' | 'empty';
   }[];
   insights: string[];
   comparisonResult?: {
