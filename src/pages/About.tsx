@@ -42,7 +42,7 @@ const About = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       
-      <main className="flex-grow pt-20">
+      <main className="flex-grow">
         {/* Hero Section */}
         <section className="bg-muted/30 py-16">
           <div className="container px-4 mx-auto">

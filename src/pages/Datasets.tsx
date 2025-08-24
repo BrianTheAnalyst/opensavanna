@@ -96,7 +96,7 @@ const Datasets = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       
-      <main className="flex-grow pt-20">
+      <main className="flex-grow">
         {/* Header */}
         <section className="bg-muted/30 py-12">
           <div className="container px-4 mx-auto">
