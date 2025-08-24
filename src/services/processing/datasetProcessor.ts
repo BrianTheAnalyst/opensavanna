@@ -7,7 +7,7 @@ import {
   getFileTypeHandler
 } from './fileProcessingManager';
 import { createProcessedFileRecord, updateProcessedFileRecord } from './processedFileRecords';
-import { processingLogger } from './processingLogger';
+import { logger } from '../logging/logger';
 
 /**
  * Process an uploaded dataset file, extracting real data and insights
@@ -29,7 +29,7 @@ export const processDatasetFile = async (file: File, datasetId: string): Promise
 
     // Process file based on its type
     const fileHandler = getFileTypeHandler(file);
-    processingLogger.debug(`Processing ${file.name} using ${fileHandler.name} handler`);
+    logger.debug(`Processing ${file.name} using ${fileHandler.name} handler`);
     
     const result = await fileHandler.processFile(file);
     
@@ -43,11 +43,13 @@ export const processDatasetFile = async (file: File, datasetId: string): Promise
         processing_status: 'completed',
         summary: result.summary
       });
+      // Also update the dataset table
+      await supabase.from('datasets').update({ summary: result.summary, quality_report: result.quality_report }).eq('id', datasetId);
     }
 
-    return result.data;
+    return result;
   } catch (error) {
-    processingLogger.error('Error processing dataset file:', error);
+    logger.error('Error processing dataset file:', error);
     toast.error('Failed to process dataset file');
     return null;
   }

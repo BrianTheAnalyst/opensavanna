@@ -1,8 +1,7 @@
-
 /**
  * Logger for dataset processing operations
  */
-export const processingLogger = {
+export const consoleLogger = {
   debug: (message: string, ...args: any[]) => {
     console.log(`[DatasetProcessing] DEBUG: ${message}`, ...args);
   },
@@ -18,14 +17,4 @@ export const processingLogger = {
   error: (message: string, ...args: any[]) => {
     console.error(`[DatasetProcessing] ERROR: ${message}`, ...args);
   }
-};
-
-export const logProcessingEvent = (
-  datasetId: string,
-  eventType: 'start' | 'complete' | 'error',
-  details?: any
-) => {
-  processingLogger.info(`Processing event: ${eventType} for dataset ${datasetId}`, details);
-  
-  // This could be extended in the future to log events to a database or analytics service
 };

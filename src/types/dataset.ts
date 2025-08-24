@@ -1,7 +1,13 @@
 
 // Dataset related types
+export interface QualityReport {
+  missing_values: { [key: string]: number };
+  data_type_inconsistencies: { [key: string]: { [type: string]: number } };
+  duplicate_records: number;
+}
+
 export interface Dataset {
-  id: string;
+  id:string;
   title: string;
   description: string;
   category: string;

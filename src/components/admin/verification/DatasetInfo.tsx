@@ -64,6 +64,43 @@ const DatasetInfo = ({ dataset }: DatasetInfoProps) => {
         </div>
       </div>
 
+      {dataset.summary && (
+        <div className="bg-muted/40 p-3 rounded-md mb-4 text-sm">
+          <p className="font-medium mb-2">Summary</p>
+          <pre className="text-xs whitespace-pre-wrap">
+            {JSON.stringify(dataset.summary, null, 2)}
+          </pre>
+        </div>
+      )}
+
+      {dataset.quality_report && (
+        <div className="bg-muted/40 p-3 rounded-md mb-4 text-sm">
+          <p className="font-medium mb-2">Data Quality Report</p>
+          <div className="space-y-2">
+            <div>
+              <p className="font-semibold">Missing Values:</p>
+              <ul className="list-disc list-inside">
+                {Object.entries(dataset.quality_report.missing_values).map(([key, value]) => (
+                  <li key={key}>{key}: {value.toFixed(2)}%</li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <p className="font-semibold">Data Type Inconsistencies:</p>
+              <ul className="list-disc list-inside">
+                {Object.entries(dataset.quality_report.data_type_inconsistencies).map(([key, value]) => (
+                  <li key={key}>{key}: {Object.entries(value).map(([type, count]) => `${type} (${count})`).join(', ')}</li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <p className="font-semibold">Duplicate Records:</p>
+              <p>{dataset.quality_report.duplicate_records}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {dataset.verificationNotes && (
         <div className="bg-muted/40 p-3 rounded-md mb-4 text-sm">
           <p className="font-medium mb-1">Notes:</p>

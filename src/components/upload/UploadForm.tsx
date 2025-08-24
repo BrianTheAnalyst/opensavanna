@@ -71,7 +71,7 @@ const UploadForm: React.FC<UploadFormProps> = ({ isLoggedIn }) => {
       }
       
       // Send to Supabase
-      const result = await addDataset({
+      const { dataset, error } = await addDataset({
         title: data.title,
         description: data.description,
         category: data.category,
@@ -80,10 +80,10 @@ const UploadForm: React.FC<UploadFormProps> = ({ isLoggedIn }) => {
         featured: false
       }, selectedFile || undefined);
       
-      if (result) {
+      if (dataset) {
         setUploadStep(2);
       } else {
-        setUploadError("Failed to upload dataset. Please check the console for more details.");
+        setUploadError(error || "Failed to upload dataset. Please check the console for more details.");
       }
     } catch (error) {
       console.error('Upload form error:', error);

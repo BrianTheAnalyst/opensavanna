@@ -1,5 +1,10 @@
 
 import * as Papa from "papaparse";
+import {
+  calculateMissingValues,
+  detectDataTypeInconsistencies,
+  findDuplicateRecords
+} from '../dataQualityService';
 
 /**
  * Process a CSV file and extract data and summary statistics
@@ -22,10 +27,18 @@ export const processCSVFile = async (file: File): Promise<{ data: any[], summary
 
           // Generate summary statistics
           const summary = generateDataSummary(data);
+
+          // Perform data quality checks
+          const quality_report = {
+            missing_values: calculateMissingValues(data),
+            data_type_inconsistencies: detectDataTypeInconsistencies(data),
+            duplicate_records: findDuplicateRecords(data)
+          };
           
           resolve({
             data: data.slice(0, 1000), // Limit to first 1000 rows for performance
-            summary
+            summary,
+            quality_report
           });
         } catch (error) {
           reject(error);
@@ -53,9 +66,17 @@ export const processJSONFile = async (file: File): Promise<{ data: any[], summar
         // Generate summary statistics
         const summary = generateDataSummary(data);
         
+        // Perform data quality checks
+        const quality_report = {
+          missing_values: calculateMissingValues(data),
+          data_type_inconsistencies: detectDataTypeInconsistencies(data),
+          duplicate_records: findDuplicateRecords(data)
+        };
+
         resolve({
           data: data.slice(0, 1000), // Limit to first 1000 rows for performance
-          summary
+          summary,
+          quality_report
         });
       } catch (error) {
         reject(error);
@@ -104,10 +125,18 @@ export const processGeoJSONFile = async (file: File): Promise<{ data: any[], sum
           property_fields: Object.keys(geoJson.features[0]?.properties || {}),
           bounds: calculateGeoBounds(geoJson)
         };
+
+        // Perform data quality checks
+        const quality_report = {
+          missing_values: calculateMissingValues(data),
+          data_type_inconsistencies: detectDataTypeInconsistencies(data),
+          duplicate_records: findDuplicateRecords(data)
+        };
         
         resolve({
           data: data.slice(0, 1000), // Limit to first 1000 features for performance
-          summary
+          summary,
+          quality_report
         });
       } catch (error) {
         reject(error);

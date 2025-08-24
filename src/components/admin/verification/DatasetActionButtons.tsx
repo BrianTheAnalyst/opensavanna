@@ -48,18 +48,34 @@ const DatasetActionButtons = ({
         <Button
           variant="outline"
           className="flex-1 border-green-300 text-green-800 hover:bg-green-100"
-          onClick={onApprove}
+          onClick={() => updateStatus(datasetId, 'approved')}
         >
           <Check className="w-4 h-4 mr-2" />
-          Approve
+          Quick Approve
         </Button>
         <Button
           variant="outline"
           className="flex-1 border-destructive text-destructive hover:bg-destructive/10"
+          onClick={() => updateStatus(datasetId, 'rejected')}
+        >
+          <X className="w-4 h-4 mr-2" />
+          Quick Reject
+        </Button>
+        <Button
+          variant="outline"
+          className="flex-1"
+          onClick={onApprove}
+        >
+          <Check className="w-4 h-4 mr-2" />
+          Approve with Notes
+        </Button>
+        <Button
+          variant="outline"
+          className="flex-1"
           onClick={onReject}
         >
           <X className="w-4 h-4 mr-2" />
-          Reject
+          Reject with Notes
         </Button>
         <Button
           variant="outline"
