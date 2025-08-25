@@ -17,10 +17,11 @@ export interface DataInsightResult {
     valueLabel?: string;
     hasData?: boolean;
     error?: string;
-    // NEW: Validation and confidence data
+    // Enhanced validation and confidence data
     validation?: ValidationResult;
     confidence?: number;
     dataSource?: 'real' | 'sample' | 'empty';
+    aiRelevanceScore?: number; // AI-calculated relevance score
   }[];
   insights: string[];
   comparisonResult?: {
@@ -28,5 +29,16 @@ export interface DataInsightResult {
     description: string;
     data: any[];
   };
-  followUpQuestions?: string[]; // New field for follow-up questions
+  followUpQuestions?: string[];
+  // NEW: AI Analysis metadata
+  aiAnalysis?: {
+    confidence: number;
+    interpretation: {
+      intent: string;
+      domain: string;
+      keywords: string[];
+      synonyms: string[];
+    };
+    recommendations: string[];
+  };
 }

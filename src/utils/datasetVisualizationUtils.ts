@@ -112,51 +112,50 @@ export const generateCategoryData = (baseData: any[], category: string) => {
   ];
 };
 
-// Generate insights based on the data and category
+// DEPRECATED: Legacy function - use calculateDataDrivenInsights instead
 export const generateInsights = (data: any[], category: string, title: string) => {
+  console.warn('⚠️ DEPRECATED: generateInsights() uses static templates. Use calculateDataDrivenInsights() for real analysis.');
+  
+  // Fallback for backward compatibility - generate basic real insights
+  if (!data || data.length === 0) {
+    return [`No data available for ${title}. Please upload a dataset to see real insights.`];
+  }
+
   const insights: string[] = [];
   
-  // Special case for Transaction History
-  if (title.toLowerCase().includes('transaction') || title.toLowerCase().includes('financial')) {
-    insights.push('Your highest spending category is Dining, accounting for 21% of your total expenses.');
-    insights.push('Groceries and Shopping together make up 37% of your monthly expenditure.');
-    insights.push('Healthcare represents your lowest spending category at just 9% of the total.');
-    insights.push('Your spending has increased by approximately 12% in the last quarter compared to the previous period.');
-    insights.push('Your monthly expenditure shows a slight upward trend, with peaks typically occurring in November and December.');
-    return insights;
+  // Calculate actual statistics from the data
+  const values = data.map(item => Number(item.value) || 0).filter(v => !isNaN(v) && v > 0);
+  
+  if (values.length === 0) {
+    return [`Dataset "${title}" contains no numeric values for analysis.`];
+  }
+
+  // Real calculations
+  const total = values.reduce((sum, val) => sum + val, 0);
+  const average = total / values.length;
+  const max = Math.max(...values);
+  const min = Math.min(...values);
+  
+  // Find actual highest and lowest items
+  const highestItem = data.find(item => Number(item.value) === max);
+  const lowestItem = data.find(item => Number(item.value) === min);
+  
+  // Generate real insights based on actual data
+  if (highestItem) {
+    insights.push(`Highest value: ${highestItem.name} (${max.toLocaleString()})`);
   }
   
-  // Generate insights based on category
-  switch (category.toLowerCase()) {
-    case 'economics':
-      insights.push('East Africa shows the highest economic growth rate at 8.2%, outperforming all other regions.');
-      insights.push('Southern Africa has the lowest growth rate at 3.2%, suggesting potential economic challenges.');
-      insights.push('The average growth rate across all regions is approximately 5.5%.');
-      insights.push('Economic growth appears to correlate with infrastructure development in key regions.');
-      insights.push('Monthly economic indicators show consistent growth with seasonal variations.');
-      break;
-    case 'health':
-      insights.push('Vaccination rates are highest at 81%, indicating strong preventative healthcare measures.');
-      insights.push('Healthcare spending (48%) shows room for improvement compared to access levels (72%).');
-      insights.push('Infant mortality rate at 43 suggests a need for enhanced maternal and child healthcare services.');
-      insights.push('Urban areas show 23% better healthcare outcomes compared to rural regions.');
-      insights.push('Life expectancy shows a positive correlation with healthcare access levels.');
-      break;
-    case 'education':
-      insights.push('Primary education enrollment (92%) is significantly higher than tertiary enrollment (34%).');
-      insights.push('The literacy rate at 76% suggests room for improvement in educational outcomes.');
-      insights.push('Education spending (41%) may need to be increased to improve enrollment at higher education levels.');
-      insights.push('There is a 36% gap between urban and rural educational achievement.');
-      insights.push('The data shows a positive trend in enrollment rates over the past decade.');
-      break;
-    default:
-      insights.push('The highest value category in your dataset is ' + (data && data.length > 0 ? data[0].name : 'Category A') + '.');
-      insights.push('Your data shows variations across different categories that suggest patterns worth exploring further.');
-      insights.push('The average value across all categories is ' + (data ? Math.round(data.reduce((sum, item) => sum + item.value, 0) / data.length) : '100') + '.');
-      insights.push('There appears to be a seasonal pattern in the data with peaks in later months.');
-      insights.push('Comparing similar data points reveals a consistent trend over time.');
-      break;
+  if (lowestItem && min !== max) {
+    insights.push(`Lowest value: ${lowestItem.name} (${min.toLocaleString()})`);
   }
   
-  return insights;
+  insights.push(`Average value: ${average.toLocaleString(undefined, { maximumFractionDigits: 1 })}`);
+  
+  // Calculate percentage distribution for top item
+  if (highestItem && total > 0) {
+    const percentage = ((max / total) * 100).toFixed(1);
+    insights.push(`${highestItem.name} represents ${percentage}% of the total`);
+  }
+  
+  return insights.slice(0, 4); // Limit to most important insights
 };

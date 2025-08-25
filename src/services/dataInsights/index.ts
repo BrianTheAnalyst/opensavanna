@@ -8,6 +8,7 @@ import { DataInsightResult } from "./types";
 import { findRelevantDatasetsIntelligent } from "./intelligentDatasetFinder";
 import { determineVisualizationType, generateComparison } from "./enhancedVisualizationUtils";
 import { generateInsightsForQuery, generateAnswerFromData } from "./insightGenerator";
+import { processQueryWithAI } from "./aiInsightEngine";
 import { getSuggestedQuestions, DEFAULT_QUESTIONS } from "./suggestedQueries";
 import { 
   addToConversationHistory, 
@@ -115,25 +116,50 @@ export const processDataQuery = async (query: string): Promise<DataInsightResult
       })
     );
 
-    // 3. Generate insights based on the data
-    const allInsights = generateInsightsForQuery(query, relevantDatasets, visualizations);
+    // 3. Enhanced AI-powered insight generation
+    const visualizationDataMap = visualizations.reduce((acc, viz) => {
+      acc[viz.datasetId] = viz.data || [];
+      return acc;
+    }, {} as Record<string, any[]>);
     
-    // 4. Generate enhanced comparison if multiple datasets are available
+    const aiResult = await processQueryWithAI(query, relevantDatasets, visualizationDataMap);
+    
+    // 4. Generate traditional insights as fallback/supplement
+    const traditionalInsights = generateInsightsForQuery(query, relevantDatasets, visualizations);
+    
+    // 5. Combine AI insights with traditional ones
+    const allInsights = [
+      ...aiResult.insights.map(insight => insight.description),
+      ...traditionalInsights.slice(0, 2) // Add a few traditional insights as backup
+    ].slice(0, 8); // Limit total insights
+    
+    // 6. Generate enhanced comparison if multiple datasets are available
     const comparisonResult = relevantDatasets.length > 1 
       ? generateComparison(relevantDatasets, visualizations)
       : undefined;
 
-    // 5. Generate an answer to the question
-    const answer = generateAnswerFromData(query, relevantDatasets, visualizations, allInsights);
+    // 7. Generate an enhanced answer using AI analysis
+    const answer = generateEnhancedAnswer(query, aiResult, allInsights);
 
-    // Store this interaction in conversation history
+    // Store enhanced result with AI analysis
     const result: DataInsightResult = {
       question: query,
       answer,
       datasets: relevantDatasets,
-      visualizations,
+      visualizations: visualizations.map(viz => ({
+        ...viz,
+        // Add AI confidence and data source information
+        confidence: aiResult.datasets.find(d => d.dataset.id === viz.datasetId)?.dataQuality || viz.confidence || 0,
+        aiRelevanceScore: aiResult.datasets.find(d => d.dataset.id === viz.datasetId)?.relevanceScore || 0
+      })),
       insights: allInsights,
-      comparisonResult
+      comparisonResult,
+      // Add AI analysis metadata
+      aiAnalysis: {
+        confidence: aiResult.confidence,
+        interpretation: aiResult.interpretation,
+        recommendations: aiResult.recommendations
+      }
     };
     
     // Cache the complete result
@@ -155,10 +181,54 @@ setInterval(() => {
   performCacheCleanup();
 }, 5 * 60 * 1000); // Every 5 minutes
 
+/**
+ * Generate enhanced answer using AI analysis
+ */
+const generateEnhancedAnswer = (query: string, aiResult: any, insights: string[]): string => {
+  const { interpretation, confidence, datasets } = aiResult;
+  
+  // Start with query interpretation
+  let answer = `Based on analysis of ${datasets.length} ${datasets.length === 1 ? 'dataset' : 'datasets'} `;
+  
+  // Add confidence indicator
+  if (confidence >= 80) {
+    answer += `with high confidence (${confidence}%), `;
+  } else if (confidence >= 60) {
+    answer += `with moderate confidence (${confidence}%), `;
+  } else {
+    answer += `with limited confidence (${confidence}%) due to data quality issues, `;
+  }
+  
+  // Add domain context
+  if (interpretation.domain !== 'general') {
+    answer += `focusing on ${interpretation.domain} data, `;
+  }
+  
+  // Add key finding
+  if (insights.length > 0) {
+    const keyInsight = insights[0].toLowerCase().replace(/^[a-z]/, letter => letter.toUpperCase());
+    answer += `the analysis reveals that ${keyInsight.replace(/[.!?]$/, '')}. `;
+  }
+  
+  // Add data source transparency
+  const realDatasets = datasets.filter((d: any) => d.dataQuality > 70).length;
+  if (realDatasets === 0) {
+    answer += `Note: Results are based on sample data. Upload your own datasets for accurate, personalized insights. `;
+  } else if (realDatasets < datasets.length) {
+    answer += `Results combine real data analysis with sample data where gaps exist. `;
+  }
+  
+  // Add actionable closing
+  answer += `Explore the visualizations below for detailed patterns and consider the recommendations provided for deeper analysis.`;
+  
+  return answer;
+};
+
 // Re-export other functions
 export { 
   getSuggestedQuestions, 
   DEFAULT_QUESTIONS,
-  getConversationContext
+  getConversationContext,
+  processQueryWithAI
 };
 export type { DataInsightResult };

@@ -2,6 +2,7 @@
 import { extractKeywords } from './datasetFinder';
 import { generateInsights } from '@/utils/datasetVisualizationUtils';
 import { detectPatterns } from './patternDetection';
+import { calculateDataDrivenInsights } from './calculateInsights';
 
 // Generate insights based on the visualizations
 export const generateInsightsForQuery = (query: string, datasets: any[], visualizations: any[]): string[] => {
@@ -12,23 +13,39 @@ export const generateInsightsForQuery = (query: string, datasets: any[], visuali
     const visualization = visualizations.find(v => v.datasetId === dataset.id);
     if (visualization && visualization.data && visualization.data.length > 0) {
       try {
-        // Use the existing insight generation function
-        const datasetInsights = generateInsights(
+        // Use new data-driven insights calculation
+        const statisticalInsights = calculateDataDrivenInsights(
           visualization.data,
           dataset.category,
           dataset.title
         );
         
-        // Add relevant insights to the list
-        if (datasetInsights && datasetInsights.length > 0) {
-          // Take top 2 insights from each dataset
-          allInsights.push(...datasetInsights.slice(0, 2));
+        // Convert statistical insights to strings and add to list
+        if (statisticalInsights && statisticalInsights.length > 0) {
+          const topInsights = statisticalInsights
+            .filter(insight => insight.confidence > 60) // Only high-confidence insights
+            .slice(0, 2)
+            .map(insight => insight.description);
+          allInsights.push(...topInsights);
         }
         
-        // Add automatically detected patterns as insights
+        // Add pattern-based insights as secondary
         const patternInsights = detectPatterns(visualization.data, dataset.category);
         if (patternInsights.length > 0) {
-          allInsights.push(...patternInsights.slice(0, 2));
+          allInsights.push(...patternInsights.slice(0, 1)); // Reduced to 1 pattern insight
+        }
+        
+        // Fallback to legacy method if no statistical insights
+        if (statisticalInsights.length === 0) {
+          console.warn(`No statistical insights for ${dataset.title}, using fallback`);
+          const fallbackInsights = generateInsights(
+            visualization.data,
+            dataset.category, 
+            dataset.title
+          );
+          if (fallbackInsights.length > 0) {
+            allInsights.push(...fallbackInsights.slice(0, 1));
+          }
         }
       } catch (error) {
         console.error(`Error generating insights for ${dataset.title}:`, error);
