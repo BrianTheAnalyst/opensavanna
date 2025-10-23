@@ -106,6 +106,7 @@ const Api = () => {
   "category": "Health",
   "format": "CSV",
   "country": "Kenya",
+  "region": "Nairobi",
   "date": "Updated July 2023",
   "downloads": 0
 }`

@@ -13,7 +13,7 @@ const FeaturedDatasetCard = ({ isLoaded }: FeaturedDatasetCardProps) => {
   const [featuredDataset, setFeaturedDataset] = useState<any>({
     id: '1',
     title: 'Economic Indicators Dataset',
-    description: 'Comprehensive collection of economic indicators across different regions.',
+    description: 'Comprehensive collection of economic indicators across Kenya\'s counties and regions.',
     category: 'Economics',
     format: 'CSV',
     date: 'Updated Weekly'

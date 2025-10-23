@@ -63,7 +63,7 @@ print(data)`}
             <div>
               <h3 className="text-sm font-medium mb-1">Filtering</h3>
               <p className="text-sm text-foreground/70">
-                <code className="bg-muted px-1 py-0.5 rounded">?region=east-africa</code> - Filter by region
+                <code className="bg-muted px-1 py-0.5 rounded">?region=nairobi</code> - Filter by region
               </p>
               <p className="text-sm text-foreground/70">
                 <code className="bg-muted px-1 py-0.5 rounded">?year=2022</code> - Filter by year

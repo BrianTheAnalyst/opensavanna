@@ -89,7 +89,7 @@ export const getRelatedQuestions = async (query: string): Promise<string[]> => {
   const defaults = [
     "How has this changed over the past year?",
     "What factors are driving these trends?",
-    "How does this compare to other regions?",
+    "How does this compare to other counties?",
     "What are the implications for policy decisions?"
   ];
   
@@ -152,7 +152,7 @@ const generateQuestionsFromTopics = (topics: string[], history: ConversationItem
   
   // Generate comparison questions
   if (topics.length > 0) {
-    questions.push(`How does ${topics[0]} compare across different regions?`);
+    questions.push(`How does ${topics[0]} compare across different counties?`);
   }
   
   // Generate correlation questions

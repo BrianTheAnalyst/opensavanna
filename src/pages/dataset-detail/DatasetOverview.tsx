@@ -24,7 +24,7 @@ const DatasetOverview = ({ dataset }: DatasetOverviewProps) => {
             
             <p>
               The collection methodology follows international standards for data collection, 
-              ensuring consistency and comparability across regions and time periods.
+              ensuring consistency and comparability across counties, regions and time periods.
               {dataset.dataPoints && 
                 ` This dataset contains approximately ${typeof dataset.dataPoints === 'number' 
                   ? dataset.dataPoints.toLocaleString() 

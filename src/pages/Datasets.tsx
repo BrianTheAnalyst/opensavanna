@@ -107,7 +107,7 @@ const Datasets = () => {
                 Explore Our Datasets
               </h1>
               <p className="text-foreground/70 mb-4">
-                Browse, filter, and discover our collection of open datasets covering various sectors, regions, and formats.
+                Browse, filter, and discover our collection of open datasets covering various sectors across Kenya's counties and regions.
               </p>
               <Link to="/upload">
                 <Button className="mt-2 cursor-pointer">

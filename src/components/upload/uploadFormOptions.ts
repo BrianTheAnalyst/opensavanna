@@ -12,16 +12,19 @@ export const categories = [
 ];
 
 export const countries = [
-  { label: 'East Africa', value: 'East Africa' },
-  { label: 'West Africa', value: 'West Africa' },
-  { label: 'South Africa', value: 'South Africa' },
-  { label: 'North Africa', value: 'North Africa' },
-  { label: 'Central Africa', value: 'Central Africa' },
-  { label: 'Global', value: 'Global' },
-  { label: 'Kenya', value: 'Kenya' },
-  { label: 'Nigeria', value: 'Nigeria' },
-  { label: 'Ghana', value: 'Ghana' },
-  { label: 'Ethiopia', value: 'Ethiopia' }
+  { label: 'Kenya (National)', value: 'Kenya' },
+  { label: 'Nairobi', value: 'Nairobi' },
+  { label: 'Mombasa', value: 'Mombasa' },
+  { label: 'Kisumu', value: 'Kisumu' },
+  { label: 'Nakuru', value: 'Nakuru' },
+  { label: 'Eldoret', value: 'Eldoret' },
+  { label: 'Coastal Region', value: 'Coastal Region' },
+  { label: 'Central Region', value: 'Central Region' },
+  { label: 'Eastern Region', value: 'Eastern Region' },
+  { label: 'North Eastern Region', value: 'North Eastern Region' },
+  { label: 'Nyanza Region', value: 'Nyanza Region' },
+  { label: 'Rift Valley Region', value: 'Rift Valley Region' },
+  { label: 'Western Region', value: 'Western Region' }
 ];
 
 export const formats = [

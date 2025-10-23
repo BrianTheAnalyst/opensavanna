@@ -3,7 +3,7 @@ import { getDatasets } from "@/services";
 
 // Default suggested questions if we can't generate dynamic ones
 export const DEFAULT_QUESTIONS = [
-  "What are the economic growth trends in Africa?",
+  "What are the economic growth trends in Kenya?",
   "How does healthcare access vary across different countries?",
   "What is the relationship between education and economic development?",
   "Show me visualizations of environmental data",
@@ -31,7 +31,7 @@ export const getSuggestedQuestions = async (): Promise<string[]> => {
     // Add category-specific questions
     Object.entries(categoriesMap).forEach(([category, count]) => {
       if (category === 'economics' || category === 'economy') {
-        questions.push("What are the economic growth trends in Africa?");
+        questions.push("What are the economic growth trends in Kenya?");
         questions.push("How do economic indicators compare across different regions?");
       } else if (category === 'health' || category === 'healthcare') {
         questions.push("What is the state of healthcare access across different countries?");

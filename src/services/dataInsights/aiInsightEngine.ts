@@ -154,7 +154,7 @@ const generateActionableRecommendations = (
       recommendations.push('For trend analysis, ensure your datasets include time-series data with consistent time intervals.');
       break;
     case 'compare':
-      recommendations.push('For effective comparisons, upload datasets with similar metrics across different regions or time periods.');
+      recommendations.push('For effective comparisons, upload datasets with similar metrics across different counties or time periods.');
       break;
     case 'correlate':
       recommendations.push('For correlation analysis, include multiple related variables in your datasets.');

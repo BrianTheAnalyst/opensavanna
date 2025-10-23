@@ -47,7 +47,7 @@ const Hero = ({ onSearch }: HeroProps) => {
           </h1>
           <p className={`text-xl text-foreground/80 mb-8 max-w-2xl mx-auto transition-all duration-700 delay-100 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
             Transform complex datasets into actionable intelligence. Use natural language to explore 
-            economics, health, education, and development data across Africa.
+            economics, health, education, and development data across Kenya.
           </p>
           
           <div className={`transition-all duration-700 delay-200 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>

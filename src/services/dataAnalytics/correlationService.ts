@@ -47,9 +47,9 @@ export function calculateCorrelation(x: number[], y: number[]): number | null {
 }
 
 /**
- * Calculate spatial correlation between two variables across geographic regions
+ * Calculate spatial correlation between two variables across geographic regions/counties
  * 
- * @param regions Array of region objects with properties containing variable values
+ * @param regions Array of region/county objects with properties containing variable values
  * @param var1 Property name for first variable
  * @param var2 Property name for second variable
  * @returns Correlation coefficient between -1 and 1, or null if calculation not possible

@@ -107,7 +107,7 @@ export const validateDataset = (
 const detectSampleData = (data: any[]): boolean => {
   const sampleIndicators = [
     'Category A', 'Category B', 'Category C', 'Category D', 'Category E',
-    'East Africa', 'West Africa', 'North Africa', 'Southern Africa', 'Central Africa',
+    'Coastal Region', 'Central Region', 'Eastern Region', 'North Eastern Region', 'Nyanza Region', 'Rift Valley Region', 'Western Region',
     'Healthcare Access', 'Infant Mortality', 'Life Expectancy',
     'Primary Enrollment', 'Secondary Enrollment', 'Tertiary Enrollment',
     'Groceries', 'Utilities', 'Entertainment'

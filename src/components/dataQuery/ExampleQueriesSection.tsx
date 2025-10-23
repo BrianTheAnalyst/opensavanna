@@ -26,7 +26,7 @@ const exampleQueries: ExampleQuery[] = [
   },
   {
     question: "What is the distribution of healthcare facilities by country?",
-    description: "Visualize healthcare access and availability across different countries",
+    description: "Visualize healthcare access and availability across different counties",
     icon: Map,
     category: "Health",
     background: "bg-red-50 dark:bg-red-900/20",

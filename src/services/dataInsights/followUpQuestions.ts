@@ -45,7 +45,7 @@ export const generateCategorizedFollowUpQuestions = (
     const comparisonQuestions: string[] = [];
     
     if (hasGeoData) {
-      comparisonQuestions.push("How do different regions compare?");
+      comparisonQuestions.push("How do different counties compare?");
       comparisonQuestions.push("Which areas show the strongest performance?");
     }
     

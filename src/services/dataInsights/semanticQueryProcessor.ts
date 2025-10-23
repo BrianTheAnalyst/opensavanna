@@ -13,7 +13,7 @@ export interface QueryIntent {
   geographic?: string;
 }
 
-// Comprehensive synonym mappings for African development context
+// Comprehensive synonym mappings for Kenya development context
 const SEMANTIC_MAPPINGS = {
   // Economics & Finance
   economic: ['economy', 'gdp', 'growth', 'finance', 'financial', 'trade', 'commerce', 'business', 'income', 'revenue', 'earnings'],
@@ -39,8 +39,9 @@ const SEMANTIC_MAPPINGS = {
   pollution: ['contamination', 'emissions', 'waste', 'toxic', 'environmental damage'],
   
   // Geographic regions
-  africa: ['african', 'continent', 'sub-saharan', 'maghreb', 'sahel'],
-  region: ['area', 'zone', 'territory', 'location', 'place', 'country', 'nation'],
+  kenya: ['kenyan', 'national', 'country'],
+  region: ['area', 'zone', 'territory', 'location', 'place', 'county', 'province'],
+  county: ['counties', 'devolution', 'local government'],
   
   // Social indicators
   population: ['people', 'demographic', 'citizens', 'residents', 'inhabitants'],
@@ -56,11 +57,17 @@ const TIME_PATTERNS = {
   comparative: ['compare', 'comparison', 'versus', 'vs', 'against', 'relative', 'between']
 };
 
-// Geographic keyword patterns
+// Geographic keyword patterns for Kenya
 const GEOGRAPHIC_PATTERNS = {
-  countries: ['kenya', 'nigeria', 'ghana', 'south africa', 'egypt', 'morocco', 'ethiopia', 'uganda', 'tanzania'],
-  regions: ['east africa', 'west africa', 'north africa', 'southern africa', 'central africa'],
-  cities: ['nairobi', 'lagos', 'cairo', 'johannesburg', 'accra', 'addis ababa', 'casablanca']
+  cities: ['nairobi', 'mombasa', 'kisumu', 'nakuru', 'eldoret', 'thika', 'malindi', 'kitale', 'garissa', 'kakamega'],
+  regions: ['coastal region', 'central region', 'eastern region', 'north eastern region', 'nyanza region', 'rift valley region', 'western region'],
+  counties: [
+    'nairobi', 'mombasa', 'kwale', 'kilifi', 'tana river', 'lamu', 'taita taveta', 'garissa', 'wajir', 'mandera',
+    'marsabit', 'isiolo', 'meru', 'tharaka nithi', 'embu', 'kitui', 'machakos', 'makueni', 'nyandarua', 'nyeri',
+    'kirinyaga', 'muranga', 'kiambu', 'turkana', 'west pokot', 'samburu', 'trans nzoia', 'uasin gishu', 'elgeyo marakwet',
+    'nandi', 'baringo', 'laikipia', 'nakuru', 'narok', 'kajiado', 'kericho', 'bomet', 'kakamega', 'vihiga', 'bungoma',
+    'busia', 'siaya', 'kisumu', 'homa bay', 'migori', 'kisii', 'nyamira'
+  ]
 };
 
 /**
@@ -207,13 +214,13 @@ const extractTimeframe = (query: string): string | undefined => {
 };
 
 /**
- * Extract geographic context from query
+ * Extract geographic context from query (Kenya-focused)
  */
 const extractGeographic = (query: string): string | undefined => {
-  // Check for specific countries
-  for (const country of GEOGRAPHIC_PATTERNS.countries) {
-    if (query.includes(country)) {
-      return country;
+  // Check for specific cities
+  for (const city of GEOGRAPHIC_PATTERNS.cities) {
+    if (query.includes(city)) {
+      return city;
     }
   }
   
@@ -224,10 +231,10 @@ const extractGeographic = (query: string): string | undefined => {
     }
   }
   
-  // Check for cities
-  for (const city of GEOGRAPHIC_PATTERNS.cities) {
-    if (query.includes(city)) {
-      return city;
+  // Check for counties
+  for (const county of GEOGRAPHIC_PATTERNS.counties) {
+    if (query.includes(county)) {
+      return county;
     }
   }
   

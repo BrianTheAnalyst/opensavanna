@@ -17,7 +17,7 @@ const About = () => {
     {
       name: 'Sarah Johnson',
       role: 'Founder & Data Scientist',
-      bio: 'Previously worked with international data initiatives across Africa. PhD in Data Science from MIT.'
+      bio: 'Previously worked with Kenya National Bureau of Statistics and international development initiatives. PhD in Data Science from MIT.'
     },
     {
       name: 'Emmanuel Okafor',
@@ -27,7 +27,7 @@ const About = () => {
     {
       name: 'Amina Nkosi',
       role: 'Partnerships Director',
-      bio: 'Former policy advisor with extensive connections to government and NGO data providers across the continent.'
+      bio: 'Former policy advisor with extensive connections to Kenya government ministries, county governments, and NGO data providers.'
     },
     {
       name: 'Daniel Mensah',
@@ -52,8 +52,8 @@ const About = () => {
                 About OpenSavanna
               </h1>
               <p className="text-foreground/70 mb-8 text-lg">
-                We're building Africa's premier open data platform to democratize access to valuable datasets, 
-                foster data-driven decision making, and support innovation across the continent.
+                We're building Kenya's premier open data platform to democratize access to valuable datasets, 
+                foster data-driven decision making, and support innovation across the nation.
               </p>
             </div>
           </div>
@@ -68,12 +68,12 @@ const About = () => {
                   Our Vision
                 </div>
                 <h2 className="text-3xl font-medium tracking-tight mb-4">
-                  Democratizing Data Access Across Africa
+                  Democratizing Data Access Across Kenya
                 </h2>
                 <p className="text-foreground/70 mb-6">
-                  OpenSavanna was founded on the belief that open data is essential for addressing the continent's 
+                  OpenSavanna was founded on the belief that open data is essential for addressing Kenya's 
                   most pressing challenges. By making high-quality datasets accessible and usable, we aim to empower 
-                  researchers, policymakers, journalists, and developers to drive positive change.
+                  researchers, policymakers, journalists, and developers to drive positive change across all 47 counties.
                 </p>
                 
                 <div className="space-y-4 mb-8">
@@ -116,7 +116,7 @@ const About = () => {
                   <div className="space-y-6">
                     {[
                       { value: '2,400+', label: 'Datasets Available' },
-                      { value: '54', label: 'African Countries Covered' },
+                      { value: '47', label: 'Counties Covered' },
                       { value: '120+', label: 'Partner Organizations' },
                       { value: '45,000+', label: 'Monthly Active Users' }
                     ].map((stat, i) => (
@@ -144,7 +144,7 @@ const About = () => {
               </h2>
               <p className="text-foreground/70 max-w-2xl mx-auto">
                 Our diverse team combines expertise in data science, software development, 
-                policy, and design to build a platform that serves the needs of data users across Africa.
+                policy, and design to build a platform that serves the needs of data users across Kenya.
               </p>
             </div>
             

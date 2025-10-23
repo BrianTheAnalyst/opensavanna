@@ -5,7 +5,7 @@ import { Insight } from '../types';
 export const generateSampleGeoData = (category: string) => {
   const categoryLower = category.toLowerCase();
   
-  if (categoryLower.includes('economic') || categoryLower.includes('africa')) {
+  if (categoryLower.includes('economic') || categoryLower.includes('kenya')) {
     return [
       { name: 'Lagos', lat: 6.5244, lng: 3.3792, value: 85, category: 'Major City' },
       { name: 'Cairo', lat: 30.0444, lng: 31.2357, value: 72, category: 'Capital' },

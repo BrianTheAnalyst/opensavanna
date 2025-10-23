@@ -12,7 +12,7 @@ interface NoResultsPlaceholderProps {
 
 const suggestions = [
   {
-    text: "population trends in Africa",
+    text: "population trends in Kenya",
     icon: TrendingUp,
     category: "Demographics"
   },
@@ -22,7 +22,7 @@ const suggestions = [
     category: "Environment"
   },
   {
-    text: "economic growth across regions",
+    text: "economic growth across counties",
     icon: BarChart,
     category: "Economics"
   },

@@ -20,11 +20,11 @@ export const generateSampleData = (category: string, title: string) => {
   switch (category.toLowerCase()) {
     case 'economics':
       return [
-        { name: 'East Africa', value: 8.2 },
-        { name: 'West Africa', value: 6.7 },
-        { name: 'North Africa', value: 4.5 },
-        { name: 'Southern Africa', value: 3.2 },
-        { name: 'Central Africa', value: 5.1 }
+        { name: 'Nairobi', value: 8.2 },
+        { name: 'Coastal Region', value: 6.7 },
+        { name: 'Central Region', value: 7.5 },
+        { name: 'Rift Valley', value: 5.8 },
+        { name: 'Western Region', value: 5.1 }
       ];
     case 'health':
       return [
