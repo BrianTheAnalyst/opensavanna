@@ -57,9 +57,18 @@ export const validateDataset = (
     };
   }
 
-  // Check if this is sample data
+  // STRICT: Check if this is sample data and REJECT it
   const isSampleData = detectSampleData(data);
-  const dataSource: 'real' | 'sample' | 'empty' = isSampleData ? 'sample' : 'real';
+  if (isSampleData) {
+    return {
+      isValid: false,
+      confidence: 0,
+      dataSource: 'sample',
+      issues: ['Sample/demo data detected - not acceptable for visualization'],
+      recommendations: ['Upload a real dataset with actual data for analysis'],
+      dataQuality: { completeness: 0, consistency: 0, accuracy: 0 }
+    };
+  }
 
   // Calculate data quality metrics
   const metrics = calculateDataMetrics(data);
@@ -69,17 +78,17 @@ export const validateDataset = (
   const structureValidation = validateDataStructure(data);
   issues.push(...structureValidation.issues);
   
-  // Calculate confidence score
-  let confidence = 100;
+  // Calculate confidence score based on quality
+  let confidence = 
+    quality.completeness * 0.4 +
+    quality.consistency * 0.3 +
+    quality.accuracy * 0.3;
   
-  if (isSampleData) {
-    confidence = 25; // Low confidence for sample data
-    issues.push('Using sample/demo data');
-    recommendations.push('Upload real dataset for accurate insights');
+  // STRICT: Require minimum 60% confidence
+  if (confidence < 60) {
+    issues.push(`Data quality too low (${Math.round(confidence)}% confidence, minimum 60% required)`);
+    recommendations.push('Improve data quality by ensuring complete, consistent records');
   }
-  
-  // Reduce confidence based on data quality
-  confidence = Math.max(confidence * (quality.completeness / 100), 10);
   
   if (quality.completeness < 80) {
     issues.push(`Dataset is ${(100 - quality.completeness).toFixed(0)}% incomplete`);
@@ -91,10 +100,13 @@ export const validateDataset = (
     recommendations.push('Standardize data formats across all records');
   }
 
+  // STRICT: Only accept data with 60%+ confidence
+  const isValid = confidence >= 60 && structureValidation.issues.length === 0;
+
   return {
-    isValid: confidence > 30,
+    isValid,
     confidence: Math.round(confidence),
-    dataSource,
+    dataSource: 'real',
     issues,
     recommendations,
     dataQuality: quality

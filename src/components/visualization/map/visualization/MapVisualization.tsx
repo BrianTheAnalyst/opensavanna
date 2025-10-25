@@ -54,11 +54,16 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
     setOpacity
   } = useLayerBlending();
   
-  // Determine what data to use for the map
+  // STRICT: Only use real data - no sample data fallback
   let dataToUse = data;
   if (!data || data.length === 0) {
-    console.log(`No geographic data provided for ${title}, using sample data`);
-    dataToUse = generateSampleGeoData(category);
+    console.warn('No geographic data provided for map visualization');
+    return (
+      <div className="glass border border-border/50 rounded-xl p-8 text-center">
+        <p className="text-muted-foreground">No geographic data available for visualization.</p>
+        <p className="text-sm text-muted-foreground mt-2">Please ensure your dataset contains location coordinates (latitude/longitude).</p>
+      </div>
+    );
   }
   
   const mapData = useMapData(dataToUse, geoJSON, isLoading);

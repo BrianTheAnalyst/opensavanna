@@ -73,42 +73,26 @@ export async function fetchDatasetAndVisualization(id: string): Promise<FetchDat
     } catch (dataError: any) {
       console.error("Error processing dataset:", dataError);
       
-      // Fall back to sample data
-      const fallbackData = generateSampleData(dataset.category, dataset.title);
-      
-      // Generate insights based on the fallback data
-      const generatedInsights = generateInsightsForData(fallbackData, dataset.category, dataset.title);
-      
-      // Use the GeoJSON if it was still retrieved successfully
-      const geoJSON = await geoJsonPromise.catch(() => null);
-      
-      toast.info("Using sample data for visualization");
+      // STRICT: No fallback to sample data - return error instead
+      toast.error("Failed to load dataset visualization");
       
       return {
         dataset,
-        visualizationData: fallbackData,
-        geoJSON,
-        insights: generatedInsights,
-        error: null
+        visualizationData: null,
+        geoJSON: null,
+        insights: [],
+        error: 'No visualization data available for this dataset. The dataset may need to be processed or may not contain visualizable data.'
       };
     }
   } catch (error: any) {
     console.error("Error fetching dataset for visualization:", error);
     
-    // Provide default data even in case of error
-    const defaultData = [
-      { name: 'Sample 1', value: 200 },
-      { name: 'Sample 2', value: 300 },
-      { name: 'Sample 3', value: 400 },
-      { name: 'Sample 4', value: 500 },
-      { name: 'Sample 5', value: 600 }
-    ];
-    
+    // STRICT: No default/sample data - return clear error
     toast.error("Failed to load visualization data");
     
     return {
       dataset: null,
-      visualizationData: defaultData,
+      visualizationData: null,
       geoJSON: null,
       insights: [],
       error: error?.message || "Failed to load visualization data"

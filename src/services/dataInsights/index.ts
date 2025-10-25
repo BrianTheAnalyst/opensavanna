@@ -34,10 +34,10 @@ export const processDataQuery = async (query: string): Promise<DataInsightResult
     // Get conversation context to enhance the search
     const context = getConversationContext();
     
-    // 1. Use intelligent dataset finder
+    // 1. Use intelligent dataset finder with strict relevance filtering
     const relevantDatasets = await findRelevantDatasetsIntelligent(query, context);
     if (!relevantDatasets.length) {
-      throw new Error("No relevant datasets found for your question.");
+      throw new Error("No relevant datasets found for your question. Please try refining your query or upload relevant datasets.");
     }
 
     console.log('Found relevant datasets:', relevantDatasets.map(d => d.title));
@@ -48,8 +48,14 @@ export const processDataQuery = async (query: string): Promise<DataInsightResult
         try {
           const visualizationData = await getDatasetVisualization(dataset.id);
           
-          // IMMEDIATE FIX: Validate data before processing
+          // STRICT: Validate data before processing - reject low quality data
           const validation = validateDataset(visualizationData);
+          
+          // Reject invalid or low-confidence data
+          if (!validation.isValid || validation.confidence < 60) {
+            console.warn(`Dataset ${dataset.title} rejected: confidence ${validation.confidence}%, issues:`, validation.issues);
+            throw new Error(`Data quality insufficient: ${validation.issues.join(', ')}`);
+          }
           
           // Use enhanced visualization type determination
           const visType = determineVisualizationType(query, dataset.category, visualizationData);
@@ -210,12 +216,10 @@ const generateEnhancedAnswer = (query: string, aiResult: any, insights: string[]
     answer += `the analysis reveals that ${keyInsight.replace(/[.!?]$/, '')}. `;
   }
   
-  // Add data source transparency
-  const realDatasets = datasets.filter((d: any) => d.dataQuality > 70).length;
-  if (realDatasets === 0) {
-    answer += `Note: Results are based on sample data. Upload your own datasets for accurate, personalized insights. `;
-  } else if (realDatasets < datasets.length) {
-    answer += `Results combine real data analysis with sample data where gaps exist. `;
+  // STRICT: All data must be real - no sample data allowed
+  const realDatasets = datasets.filter((d: any) => d.dataQuality > 60).length;
+  if (realDatasets < datasets.length) {
+    answer += `Note: Some datasets had insufficient quality and were excluded from analysis. `;
   }
   
   // Add actionable closing

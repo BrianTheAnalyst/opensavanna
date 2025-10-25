@@ -190,21 +190,15 @@ export const findRelevantDatasetsIntelligent = async (
     };
   });
 
-  // Sort by relevance and take top results
+  // STRICT: Require meaningful relevance (minimum score of 10 and semantic score > 3)
   const relevantDatasets = scoredDatasets
-    .filter(item => item.relevanceScore > 0)
+    .filter(item => item.relevanceScore >= 10 && item.matchDetails.semanticScore > 3)
     .sort((a, b) => b.relevanceScore - a.relevanceScore)
     .slice(0, 3)
     .map(item => item.dataset);
 
-  // Fallback to featured/recent datasets if no matches
-  if (relevantDatasets.length === 0) {
-    const featuredDatasets = allDatasets.filter(d => d.featured);
-    const fallbackDatasets = featuredDatasets.length > 0 ? featuredDatasets : allDatasets;
-    const result = fallbackDatasets.slice(0, 3);
-    datasetCache.set(cacheKey, result, { context: context?.currentDatasets });
-    return result;
-  }
+  // NO FALLBACK - If no relevant datasets found, return empty array
+  // This prevents showing irrelevant data to users
 
   // Cache the results
   datasetCache.set(cacheKey, relevantDatasets, { context: context?.currentDatasets });

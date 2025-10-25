@@ -92,16 +92,16 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
           setNameKey(availableNameKeys[0]);
         }
       } else {
-        console.log("No valid data for visualization, using fallback data");
+        console.warn("No valid data for visualization");
         setError("No valid data available for visualization");
-        setProcessedData(getFallbackData());
-        setIsDataReady(true);
+        setProcessedData([]);
+        setIsDataReady(false);
       }
     } catch (err: any) {
       console.error("Error processing visualization data:", err);
       setError(err.message || "Failed to process visualization data");
-      setProcessedData(getFallbackData());
-      setIsDataReady(true);
+      setProcessedData([]);
+      setIsDataReady(false);
     }
   }, [data]);
   
@@ -144,16 +144,8 @@ const AdvancedVisualization = ({ dataset, data }: AdvancedVisualizationProps) =>
     return false;
   };
 
-  // Fallback data if no data is provided
-  const getFallbackData = () => {
-    return [
-      { name: 'Category A', value: 400 },
-      { name: 'Category B', value: 300 },
-      { name: 'Category C', value: 200 },
-      { name: 'Category D', value: 500 },
-      { name: 'Category E', value: 350 }
-    ];
-  };
+  // REMOVED: No more fallback data generation
+  // All visualizations must use real data only
   
   // Calculate total pages
   const totalPages = Math.ceil(processedData.length / ITEMS_PER_PAGE);
