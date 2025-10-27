@@ -86,7 +86,62 @@ export const extractEnhancedKeywords = (query: string): {
   };
 };
 
-// Calculate semantic relevance score
+// Enhanced domain scoring with better category matching
+const calculateDomainScore = (dataset: Dataset, keywords: any): number => {
+  let score = 0;
+  const categoryLower = dataset.category.toLowerCase();
+  const titleLower = dataset.title.toLowerCase();
+  const descLower = dataset.description.toLowerCase();
+  
+  // Direct domain match in category (highest priority)
+  if (categoryLower === keywords.domain || categoryLower.includes(keywords.domain)) {
+    score += 8;
+  }
+  
+  // Domain-related keywords in title/description
+  const domainKeywords = categoryMappings[keywords.domain] || [];
+  domainKeywords.forEach(keyword => {
+    if (titleLower.includes(keyword)) score += 3;
+    if (descLower.includes(keyword)) score += 2;
+  });
+  
+  return score;
+};
+
+// Enhanced intent alignment scoring
+const calculateIntentScore = (dataset: Dataset, keywords: any): number => {
+  let score = 0;
+  const titleLower = dataset.title.toLowerCase();
+  const descLower = dataset.description.toLowerCase();
+  
+  // Intent-specific scoring
+  switch (keywords.intent) {
+    case 'compare':
+      // Look for datasets with comparative or multi-category data
+      if (titleLower.includes('comparison') || descLower.includes('versus') || 
+          descLower.includes('compare') || titleLower.includes('vs')) score += 4;
+      break;
+    case 'trend':
+      // Look for time-series or historical data
+      if (titleLower.includes('trend') || titleLower.includes('historical') ||
+          descLower.includes('over time') || descLower.includes('yearly')) score += 4;
+      break;
+    case 'correlate':
+      // Look for datasets mentioning relationships or multiple factors
+      if (descLower.includes('relationship') || descLower.includes('correlation') ||
+          descLower.includes('impact') || descLower.includes('effect')) score += 4;
+      break;
+    case 'distribute':
+      // Look for datasets with distribution or breakdown data
+      if (titleLower.includes('distribution') || descLower.includes('breakdown') ||
+          descLower.includes('by region') || descLower.includes('by category')) score += 4;
+      break;
+  }
+  
+  return score;
+};
+
+// Calculate semantic relevance score with enhanced domain and intent alignment
 const calculateSemanticScore = (dataset: Dataset, keywords: any): number => {
   let score = 0;
   
@@ -103,12 +158,16 @@ const calculateSemanticScore = (dataset: Dataset, keywords: any): number => {
     if (dataset.description.toLowerCase().includes(keyword)) score += 1;
   });
 
-  // Domain alignment
-  if (dataset.category.toLowerCase().includes(keywords.domain)) {
-    score += 3;
-  }
-
   return score;
+};
+
+// Category mappings for domain scoring
+const categoryMappings: Record<string, string[]> = {
+  'health': ['healthcare', 'medical', 'hospital', 'disease', 'patient', 'mortality', 'wellness'],
+  'economics': ['economy', 'gdp', 'inflation', 'trade', 'finance', 'income', 'employment'],
+  'education': ['school', 'university', 'student', 'learning', 'academic', 'literacy', 'enrollment'],
+  'transport': ['transportation', 'vehicle', 'traffic', 'road', 'travel', 'mobility', 'logistics'],
+  'environment': ['environmental', 'climate', 'pollution', 'energy', 'sustainability', 'emissions']
 };
 
 // Enhanced dataset finding with intelligent scoring
@@ -147,10 +206,9 @@ export const findRelevantDatasetsIntelligent = async (
       }
     });
 
-    // Calculate category relevance
-    const categoryRelevance = dataset.category.toLowerCase().includes(keywords.domain) ? 4 : 
-                             keywords.primary.some(k => dataset.category.toLowerCase().includes(k.toLowerCase())) ? 3 : 
-                             keywords.secondary.some(k => dataset.category.toLowerCase().includes(k.toLowerCase())) ? 1 : 0;
+    // Calculate enhanced domain and intent scores
+    const domainScore = calculateDomainScore(dataset, keywords);
+    const intentScore = calculateIntentScore(dataset, keywords);
 
     // Context boost from conversation history
     let contextBoost = 0;
@@ -168,11 +226,12 @@ export const findRelevantDatasetsIntelligent = async (
     // Calculate semantic score
     const semanticScore = calculateSemanticScore(dataset, keywords);
 
-    // Calculate total relevance score
+    // Calculate total relevance score with enhanced domain and intent alignment
     const relevanceScore = 
       titleMatches.length * 3 +
       descriptionMatches.length * 2 +
-      categoryRelevance +
+      domainScore +              // Enhanced domain scoring
+      intentScore +              // New intent alignment scoring
       contextBoost +
       semanticScore +
       (dataset.featured ? 1 : 0); // Small boost for featured datasets
@@ -183,7 +242,7 @@ export const findRelevantDatasetsIntelligent = async (
       matchDetails: {
         titleMatches,
         descriptionMatches,
-        categoryRelevance,
+        categoryRelevance: domainScore, // Now using enhanced domain score
         contextBoost,
         semanticScore
       }
