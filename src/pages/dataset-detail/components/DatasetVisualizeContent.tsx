@@ -44,6 +44,7 @@ const DatasetVisualizeContent: React.FC<DatasetVisualizeContentProps> = ({
         error={error || undefined}
         isLoading={false}
         geoJSON={geoJSON}
+        hasValidData={visualizationData.length > 0}
       />
       
       <DatasetAnalyticsSection

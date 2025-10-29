@@ -16,21 +16,12 @@ const MapVisualizationContent: React.FC<MapVisualizationContentProps> = ({
       <MapHeader 
         title={title} 
         description={description} 
-        anomalyDetection={anomalyDetection} 
+        anomalyDetection={anomalyDetection}
+        data={data}
       />
       
       {/* Main Layout Container */}
       <MapVisualizationLayout {...layoutProps} />
-      
-      {/* Show notice when using sample data */}
-      {(!data || data.length === 0) && (
-        <div className="mt-4 bg-muted/20 border border-border rounded-xl p-4 text-center">
-          <p className="text-sm text-muted-foreground">
-            <strong>Note:</strong> Sample geographic data is being displayed for demonstration purposes. 
-            Upload a file with geographic coordinates to see actual location data.
-          </p>
-        </div>
-      )}
     </div>
   );
 };

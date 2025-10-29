@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 
 interface ConfidenceIndicatorProps {
   confidence: number; // 0-100
-  dataSource: 'real' | 'sample' | 'empty';
+  dataSource: 'real' | 'empty';
   className?: string;
   showDetails?: boolean;
   issues?: string[];
@@ -32,15 +32,6 @@ export const ConfidenceIndicator: React.FC<ConfidenceIndicatorProps> = ({
         icon: AlertCircle,
         label: 'No Data',
         description: 'No data available for analysis'
-      };
-    }
-
-    if (dataSource === 'sample') {
-      return {
-        color: 'secondary',
-        icon: Info,
-        label: 'Sample Data',
-        description: 'Showing representative sample data'
       };
     }
 

@@ -17,6 +17,7 @@ interface VisualizationContainerProps {
   isLoading?: boolean;
   error?: string;
   geoJSON?: any | null;
+  hasValidData?: boolean;
 }
 
 const VisualizationContainer: React.FC<VisualizationContainerProps> = ({
@@ -27,7 +28,8 @@ const VisualizationContainer: React.FC<VisualizationContainerProps> = ({
   setAnalysisMode,
   isLoading = false,
   error,
-  geoJSON
+  geoJSON,
+  hasValidData = true
 }) => {
   return (
     <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
@@ -37,7 +39,8 @@ const VisualizationContainer: React.FC<VisualizationContainerProps> = ({
             dataset={dataset} 
             analysisMode={analysisMode} 
             isLoading={isLoading} 
-            error={error} 
+            error={error}
+            visualizationData={visualizationData}
           />
         </div>
       </div>

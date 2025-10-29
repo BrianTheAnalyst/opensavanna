@@ -20,7 +20,7 @@ export interface DataInsightResult {
     // Enhanced validation and confidence data
     validation?: ValidationResult;
     confidence?: number;
-    dataSource?: 'real' | 'sample' | 'empty';
+    dataSource?: 'real' | 'empty';
     aiRelevanceScore?: number; // AI-calculated relevance score
   }[];
   insights: string[];

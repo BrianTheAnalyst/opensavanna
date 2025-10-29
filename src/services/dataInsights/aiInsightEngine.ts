@@ -27,7 +27,7 @@ export interface AIInsightResult {
     type: 'statistical' | 'trend' | 'outlier' | 'distribution' | 'ai-generated';
     description: string;
     confidence: number;
-    dataSource: 'real' | 'sample' | 'empty';
+    dataSource: 'real' | 'empty';
     supporting_data?: any;
   }[];
   recommendations: string[];
@@ -193,10 +193,6 @@ const calculateOverallConfidence = (
     const avgInsightConfidence = insights.reduce((sum, i) => sum + i.confidence, 0) / insights.length;
     confidence += avgInsightConfidence * 0.3;
   }
-  
-  // Penalty for sample data
-  const sampleDataPenalty = insights.filter(i => i.dataSource === 'sample').length * 10;
-  confidence = Math.max(confidence - sampleDataPenalty, 10);
   
   return Math.min(Math.round(confidence), 100);
 };

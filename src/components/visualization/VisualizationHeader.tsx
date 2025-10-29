@@ -10,22 +10,32 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { DataSourceBadge } from '@/components/ui/data-source-badge';
+import { ConfidenceIndicator } from '@/components/ui/confidence-indicator';
 
 interface VisualizationHeaderProps {
   dataset: Dataset;
   analysisMode: 'overview' | 'detailed' | 'advanced';
   isLoading?: boolean;
   error?: string;
+  visualizationData?: any[];
 }
 
 const VisualizationHeader: React.FC<VisualizationHeaderProps> = ({
   dataset,
   analysisMode,
   isLoading = false,
-  error
+  error,
+  visualizationData = []
 }) => {
   const [downloadingChart, setDownloadingChart] = useState(false);
   const [sharingUrl, setSharingUrl] = useState(false);
+  
+  // Calculate data quality metrics
+  const hasValidData = Array.isArray(visualizationData) && visualizationData.length > 0;
+  const dataSource: 'real' | 'empty' = hasValidData ? 'real' : 'empty';
+  const recordCount = hasValidData ? visualizationData.length : 0;
+  const confidence = hasValidData ? Math.min(95, 70 + Math.min(recordCount / 10, 25)) : 0;
 
   // Function to handle sharing the visualization
   const handleShareVisualization = async () => {
@@ -78,13 +88,14 @@ const VisualizationHeader: React.FC<VisualizationHeaderProps> = ({
   };
 
   return (
-    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-      <div>
-        <h2 className="text-2xl font-medium tracking-tight">Visualize This Dataset</h2>
-        <p className="text-foreground/70 mt-1">
-          Explore the data through interactive visualizations
-        </p>
-      </div>
+    <div className="space-y-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-medium tracking-tight">Visualize This Dataset</h2>
+          <p className="text-foreground/70 mt-1">
+            Explore the data through interactive visualizations
+          </p>
+        </div>
       
       <div className="flex flex-wrap gap-2">
         <TooltipProvider>
@@ -151,6 +162,23 @@ const VisualizationHeader: React.FC<VisualizationHeaderProps> = ({
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
+        )}
+      </div>
+      </div>
+      
+      {/* Prominent Quality Indicators */}
+      <div className="flex flex-wrap items-center gap-4 p-4 bg-card/50 rounded-lg border border-border">
+        <DataSourceBadge 
+          dataSource={dataSource}
+          recordCount={recordCount}
+          className="flex-shrink-0"
+        />
+        {hasValidData && (
+          <ConfidenceIndicator 
+            confidence={confidence}
+            dataSource={dataSource}
+            showDetails={false}
+          />
         )}
       </div>
     </div>

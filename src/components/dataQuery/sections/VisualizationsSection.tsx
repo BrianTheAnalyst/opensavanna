@@ -75,15 +75,6 @@ const VisualizationsSection: React.FC<VisualizationsSectionProps> = ({ visualiza
                     geoJSON={geoJSON}
                   />
                 </div>
-                
-                {viz.dataSource === 'sample' && (
-                  <div className="mt-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-3 text-center">
-                    <p className="text-sm text-orange-800 dark:text-orange-200">
-                      <strong>Note:</strong> Sample geographic data is being displayed. 
-                      Upload a dataset with location information for real map insights.
-                    </p>
-                  </div>
-                )}
               </CardContent>
             </Card>
           );
@@ -192,15 +183,6 @@ const VisualizationsSection: React.FC<VisualizationsSectionProps> = ({ visualiza
                     yAxisLabel={yAxisLabel}
                     tooltipFormatter={(value, name) => [`${value}`, viz.valueLabel || 'Value']}
                   />
-                  
-                  {viz.dataSource === 'sample' && (
-                    <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-3 text-center">
-                      <p className="text-sm text-orange-800 dark:text-orange-200">
-                        <strong>Note:</strong> Sample data is being displayed for demonstration purposes. 
-                        Upload a file with this dataset to see actual data visualizations.
-                      </p>
-                    </div>
-                  )}
                 </div>
               )}
             </CardContent>

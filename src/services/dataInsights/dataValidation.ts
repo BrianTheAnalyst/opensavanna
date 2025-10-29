@@ -6,7 +6,7 @@
 export interface ValidationResult {
   isValid: boolean;
   confidence: number; // 0-100
-  dataSource: 'real' | 'sample' | 'empty';
+  dataSource: 'real' | 'empty';
   issues: string[];
   recommendations: string[];
   dataQuality: {
@@ -63,7 +63,7 @@ export const validateDataset = (
     return {
       isValid: false,
       confidence: 0,
-      dataSource: 'sample',
+      dataSource: 'empty' as const,
       issues: ['Sample/demo data detected - not acceptable for visualization'],
       recommendations: ['Upload a real dataset with actual data for analysis'],
       dataQuality: { completeness: 0, consistency: 0, accuracy: 0 }
@@ -253,11 +253,7 @@ const validateDataStructure = (data: any[]) => {
  */
 export const generateActionableErrorMessage = (validation: ValidationResult, query: string): string => {
   if (validation.dataSource === 'empty') {
-    return `No data available for "${query}". Try uploading a dataset or searching for "economic trends" or "health statistics".`;
-  }
-
-  if (validation.dataSource === 'sample') {
-    return `Showing sample data for "${query}". Upload your own dataset to see real insights and analysis.`;
+    return `No data available for "${query}". Try uploading a dataset or searching for different terms.`;
   }
 
   if (validation.confidence < 50) {

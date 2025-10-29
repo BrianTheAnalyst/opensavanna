@@ -9,7 +9,7 @@ import { Database, TestTube, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface DataSourceBadgeProps {
-  dataSource: 'real' | 'sample' | 'empty';
+  dataSource: 'real' | 'empty';
   recordCount?: number;
   lastUpdated?: string;
   className?: string;
@@ -27,23 +27,16 @@ export const DataSourceBadge: React.FC<DataSourceBadgeProps> = ({
         return {
           variant: 'default' as const,
           icon: Database,
-          text: 'Real Data',
+          text: 'Real Data ✓',
           bgClass: 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800',
           textClass: 'text-green-800 dark:text-green-200'
         };
-      case 'sample':
-        return {
-          variant: 'secondary' as const,
-          icon: TestTube,
-          text: 'Sample Data',
-          bgClass: 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800',
-          textClass: 'text-orange-800 dark:text-orange-200'
-        };
       case 'empty':
+      default:
         return {
           variant: 'destructive' as const,
           icon: AlertTriangle,
-          text: 'No Data',
+          text: 'No Data Available ⚠️',
           bgClass: 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800',
           textClass: 'text-red-800 dark:text-red-200'
         };
@@ -74,9 +67,9 @@ export const DataSourceBadge: React.FC<DataSourceBadgeProps> = ({
         </span>
       )}
 
-      {dataSource === 'sample' && (
-        <span className="text-xs text-orange-600 dark:text-orange-400">
-          Upload your dataset for real insights
+      {dataSource === 'empty' && (
+        <span className="text-xs text-red-600 dark:text-red-400">
+          Upload a dataset file to enable visualizations
         </span>
       )}
     </div>
