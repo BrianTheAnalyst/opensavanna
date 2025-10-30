@@ -38,6 +38,13 @@ export const isUserAdmin = async (): Promise<boolean> => {
 // Assign a role to a user (admin only)
 export const assignUserRole = async (userId: string, role: UserRole): Promise<boolean> => {
   try {
+    // Verify the current user is an admin before attempting operation
+    const isAdmin = await isUserAdmin();
+    if (!isAdmin) {
+      toast.error('Only administrators can assign roles');
+      return false;
+    }
+    
     const { error } = await supabase
       .from('user_roles')
       .insert({ user_id: userId, role });
@@ -60,6 +67,13 @@ export const assignUserRole = async (userId: string, role: UserRole): Promise<bo
 // Remove a role from a user (admin only)
 export const removeUserRole = async (userId: string, role: UserRole): Promise<boolean> => {
   try {
+    // Verify the current user is an admin before attempting operation
+    const isAdmin = await isUserAdmin();
+    if (!isAdmin) {
+      toast.error('Only administrators can remove roles');
+      return false;
+    }
+    
     const { error } = await supabase
       .from('user_roles')
       .delete()

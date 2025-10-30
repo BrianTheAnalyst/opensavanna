@@ -51,7 +51,7 @@ export const addDataset = async (
       } else if (error.code === '42P01') {
         toast.error('Database configuration issue. Please contact support.');
       } else {
-        toast.error(`Failed to add dataset: ${error.message}`);
+        toast.error('Failed to add dataset. Please try again.');
       }
       
       return null;
@@ -88,23 +88,15 @@ export const addDataset = async (
         } else if (uploadError.message?.includes('bucket')) {
           toast.error('Storage bucket not found. Please contact support.');
         } else {
-          toast.error(`Dataset added but file upload failed: ${uploadError.message}`);
+          toast.error('Dataset added but file upload failed. Please try again.');
         }
         return data as Dataset;
       }
       
       console.log('File uploaded successfully');
       
-      // Get the public URL for the file
-      const { data: publicURL } = supabase.storage
-        .from('dataset_files')
-        .getPublicUrl(filePath);
-      
-      if (!publicURL || !publicURL.publicUrl) {
-        console.error('Failed to get public URL for uploaded file');
-        toast.error('Dataset added but could not get file URL');
-        return data as Dataset;
-      }
+      // Store the file path instead of public URL since bucket is now private
+      const fileUrl = filePath;
       
       // Process the uploaded file to extract real data and insights
       toast.info('Processing dataset file...');
@@ -115,9 +107,9 @@ export const addDataset = async (
         const processedData = await processDatasetFile(file, data.id);
         console.log('File processing complete', processedData ? `with ${Array.isArray(processedData) ? processedData.length : 0} records` : 'with no data');
         
-        // Update the dataset with the file URL and any additional metadata
+        // Update the dataset with the file path
         const updateData: any = { 
-          file: publicURL.publicUrl 
+          file: fileUrl 
         };
         
         // If we successfully processed the data, add data points count
@@ -131,14 +123,13 @@ export const addDataset = async (
           .eq('id', data.id);
         
         if (updateError) {
-          console.error('Error updating dataset with file URL:', updateError);
-          toast.error(`Failed to update dataset with file information: ${updateError.message}`);
+          console.error('Error updating dataset with file path:', updateError);
+          toast.error('Failed to update dataset with file information');
         } else {
-          // Update the return data with the file URL
-          // Create a new object with the proper type cast to include dataPoints
+          // Update the return data with the file path
           const updatedData = {
             ...(data as any),
-            file: publicURL.publicUrl
+            file: fileUrl
           } as Dataset;
           
           // Add the dataPoints property if available
@@ -162,11 +153,7 @@ export const addDataset = async (
     return data as Dataset;
   } catch (error) {
     console.error('Error adding dataset:', error);
-    if (error instanceof Error) {
-      toast.error(`Failed to add dataset: ${error.message}`);
-    } else {
-      toast.error('Failed to add dataset due to an unknown error');
-    }
+    toast.error('Failed to add dataset. Please try again.');
     return null;
   }
 };

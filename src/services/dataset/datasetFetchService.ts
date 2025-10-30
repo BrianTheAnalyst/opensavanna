@@ -98,7 +98,8 @@ export const fetchDatasets = async (filters?: DatasetFilters): Promise<Dataset[]
     }
     
     // Now execute query with manual filtering to avoid deep type recursion
-    let builder = supabase.from('datasets').select('*');
+    // Exclude user_id from public queries to prevent user tracking
+    let builder = supabase.from('datasets').select('id, title, description, category, format, country, date, downloads, featured, file, verification_status, verification_notes, created_at, updated_at, aiAnalysis, verification_feedback_sent');
     
     // Apply all simple filters
     query.filters.forEach(filter => {
@@ -121,7 +122,7 @@ export const fetchDatasets = async (filters?: DatasetFilters): Promise<Dataset[]
     
     if (error) {
       console.error('Error fetching datasets:', error);
-      toast.error('Failed to load datasets');
+      toast.error('Unable to load datasets. Please try again.');
       return [];
     }
     
@@ -133,7 +134,7 @@ export const fetchDatasets = async (filters?: DatasetFilters): Promise<Dataset[]
     return (data as RawDataset[]).map(mapRawDatasetToDataset);
   } catch (error) {
     console.error('Error fetching datasets:', error);
-    toast.error('Failed to load datasets');
+    toast.error('Unable to load datasets. Please try again.');
     return [];
   }
 };
@@ -152,7 +153,7 @@ export const getDatasetById = async (id: string): Promise<Dataset | null> => {
     
     if (error) {
       console.error('Error fetching dataset:', error);
-      toast.error('Failed to load dataset');
+      toast.error('Unable to load dataset. Please try again.');
       return null;
     }
     
@@ -191,7 +192,7 @@ export const getDatasetById = async (id: string): Promise<Dataset | null> => {
     return dataset;
   } catch (error) {
     console.error('Error fetching dataset:', error);
-    toast.error('Failed to load dataset');
+    toast.error('Unable to load dataset. Please try again.');
     return null;
   }
 };
