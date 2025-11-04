@@ -4,9 +4,9 @@ import { Dataset } from '@/types/dataset';
 import VisualizationTabs from './VisualizationTabs';
 import VisualizationHeader from './VisualizationHeader';
 import VisualizationFooter from './VisualizationFooter';
+import { FilterPills } from './FilterPills';
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Separator } from '@/components/ui/separator';
 
 interface VisualizationContainerProps {
   dataset: Dataset;
@@ -55,6 +55,11 @@ const VisualizationContainer: React.FC<VisualizationContainerProps> = ({
             </AlertDescription>
           </Alert>
         )}
+
+        {/* Filter Pills */}
+        <div className="mb-6">
+          <FilterPills />
+        </div>
         
         <VisualizationTabs 
           dataset={dataset}
